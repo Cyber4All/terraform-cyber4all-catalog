@@ -7,7 +7,7 @@ variable "public_subnets" {
 }
 
 variable "aws_route_table" {
-  type = "?"
+  type = list(string)
 }
 
 variable "cidr" {
