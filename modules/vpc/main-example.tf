@@ -5,15 +5,13 @@ module "cyber4all-vpc" {
 //all below are optional and can be found at
 //https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.14.4?tab=inputs
   name = "cyber4all-vpc"
-  azs  = "us-east-1a"
+  azs  = [ "us-east-1a" ]
   cidr = var.cidr
 
   private_subnets = var.private_subnets
   public_subnets  = var.public_subnets
 
-  enable_nat_gateway = true
   single_nat_gateway = true
 
-  create_igw = true
   create_egress_only_igw = true
 }

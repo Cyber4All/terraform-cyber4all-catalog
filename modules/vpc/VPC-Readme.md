@@ -5,13 +5,16 @@
 [This](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.14.4?tab=inputs) is a list of all possible inputs for a vpc module
 
 [This](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.14.4?tab=outputs) is a list of outputs which can be defined in the outputs file
-Example: 
-```
-output "vpc_id" {}
-```
 
 
-main file defines the module itself
-[main.tf](./main-example.tf)
+[main-example.tf](./main-example.tf) is a simple example which includes:
+
+- azs: availability zone
+- cidr: the CIDR block for the VPC
+- private_subnets: list of private subnets
+- public_subnets: list of public subnets
+- single_nat_gateway: single shared nat gateway across all private networks
+- create_egress_only_igw: creates egress only igw
+
 
 
