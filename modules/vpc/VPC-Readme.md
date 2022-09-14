@@ -4,7 +4,7 @@
 
 [This](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.14.4?tab=inputs) is a list of all possible inputs for a vpc module
 
-[This](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.14.4?tab=outputs) is a list of outputs which can be defined in the outputs file
+[This](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.14.4?tab=outputs) is a list of outputs which can be used
 
 
 [main-example.tf](./main-example.tf) is a simple example which includes:
@@ -16,5 +16,9 @@
 - single_nat_gateway: single shared nat gateway across all private networks
 - create_egress_only_igw: creates egress only igw
 
+```terraform init``` will download all the necessary dependencies
 
+```terraform plan``` will diplay an plan for what will be created in aws
+
+```terraform apply``` would make the changes in aws
 
