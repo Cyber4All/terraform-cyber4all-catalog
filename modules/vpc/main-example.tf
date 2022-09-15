@@ -162,12 +162,12 @@ module "cyber4all-vpc" {
   private_subnets = [ "10.0.3.0/24", "10.0.4.0/24" ]
   public_subnets  = [ "10.0.1.0/24", "10.0.2.0/24" ]
 
-  public_dedicated_network_acl = true
+  public_dedicated_network_acl  = true
   private_dedicated_network_acl = true
 
-  public_inbound_acl_rules = concat(local.network_acls["default_inbound"], local.network_acls["public_inbound"])
-  public_outbound_acl_rules = concat(local.network_acls["default_outbound"], local.network_acls["public_outbound"])
-  private_inbound_acl_rules = local.network_acls["default_inbound"]
+  public_inbound_acl_rules   = concat(local.network_acls["default_inbound"], local.network_acls["public_inbound"])
+  public_outbound_acl_rules  = concat(local.network_acls["default_outbound"], local.network_acls["public_outbound"])
+  private_inbound_acl_rules  = local.network_acls["default_inbound"]
   private_outbound_acl_rules = concat(local.network_acls["default_outbound"], local.network_acls["private_outbound"])
 
   enable_nat_gateway = true
