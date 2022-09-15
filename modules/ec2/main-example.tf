@@ -27,12 +27,10 @@ module "vpc" {
   name = "example-vpc"
   cidr = "10.99.0.0/18"
 
-  azs              = ["${backend.region}a", "${backend.region}b"]
-  public_subnets   = ["10.99.0.0/24", "10.99.1.0/24", "10.99.2.0/24"]
-  private_subnets  = ["10.99.3.0/24", "10.99.4.0/24", "10.99.5.0/24"]
-  database_subnets = ["10.99.7.0/24", "10.99.8.0/24", "10.99.9.0/24"]
+  azs              = ["us-east-1a", "us-east-1b"]
+  public_subnets   = ["10.99.0.0/24", "10.99.1.0/24"]
+  private_subnets  = ["10.99.3.0/24", "10.99.4.0/24"]
 
-  tags = local.tags
 }
 
 
@@ -60,9 +58,9 @@ module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
 
-  name = "example-ec2-instance"
-  ami  = "ami-08d4ac5b634553e16" #ubuntu 20.04 LTS
-  type = "t2.micro"
+  name          = "example-ec2-instance"
+  ami           = "ami-08d4ac5b634553e16" #ubuntu 20.04 LTS
+  instance_type = "t2.micro"
 
   availability_zone           = element(module.vpc.azs, 0)
   subnet_id                   = element(module.vpc.private_subnets, 0)
