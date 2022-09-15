@@ -1,1 +1,13 @@
-echo "pre-commit hook here"
+# Git pre-commit hook
+
+## Formats the terraform file (*.tf)
+
+terraform fmt
+
+## Uses terraform linter (*.tf)
+
+tflint
+
+## Validates the terraform code (*.tf)
+
+terraform validate
