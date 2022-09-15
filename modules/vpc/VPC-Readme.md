@@ -13,6 +13,8 @@
 - cidr: the CIDR block for the VPC
 - private_subnets: list of private subnets
 - public_subnets: list of public subnets
+- public_dedicated_network_acl: sets custom acl for public subnets
+- private_dedicated_network_acl: sets custom acl for private subnets
 - single_nat_gateway: single shared nat gateway across all private networks
 - create_egress_only_igw: creates egress only igw
 
