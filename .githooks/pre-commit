@@ -3,7 +3,7 @@
 ## exclude .terraform directories
 DIRS=$($(pwd)/.githooks/scripts/get-terraform-dirs.py)
 
-terraform -chdir=modules fmt 
+terraform -chdir=modules fmt -recursive 
 
 # for i in $DIRS
 # do
