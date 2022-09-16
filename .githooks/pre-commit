@@ -13,14 +13,14 @@ def findDirs():
 print(findDirs())
 """)
 
-terraform -chdir=modules fmt -recursive 
+terraform -chdir=modules fmt 
 
 for i in $DIRS
 do
     tflint $i
 done
 
-for i in $DIRS
-do
-    terraform -chdir=$i validate
-done
+# for i in $DIRS
+# do
+#     terraform -chdir=$i validate
+# done

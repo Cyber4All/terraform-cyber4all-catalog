@@ -19,6 +19,7 @@ terraform {
 
 #################################
 # vpc
+# https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
 #################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -27,15 +28,16 @@ module "vpc" {
   name = "example-vpc"
   cidr = "10.99.0.0/18"
 
-  azs              = ["us-east-1a", "us-east-1b"]
-  public_subnets   = ["10.99.0.0/24", "10.99.1.0/24"]
-  private_subnets  = ["10.99.3.0/24", "10.99.4.0/24"]
+  azs             = ["us-east-1a", "us-east-1b"]
+  public_subnets  = ["10.99.0.0/24", "10.99.1.0/24"]
+  private_subnets = ["10.99.3.0/24", "10.99.4.0/24"]
 
 }
 
 
 #################################
 # security group
+# https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/latest
 #################################
 module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
@@ -53,6 +55,7 @@ module "security_group" {
 
 #################################
 # ec2 
+# https://registry.terraform.io/modules/terraform-aws-modules/ec2-instance/aws/latest
 #################################
 module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
@@ -67,5 +70,17 @@ module "ec2_instance" {
   vpc_security_group_ids      = [module.security_group.security_group_id]
   placement_group             = "cluster"
   associate_public_ip_address = true
+  launch_template             = ""
 
+}
+
+#################################
+# ecs
+# https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
+#################################
+module "ecs" {
+  source  = "terraform-aws-modules/ecs/aws"
+  version = "4.1.1"
+
+  cluster_name = "example-ecs-ec2"
 }
