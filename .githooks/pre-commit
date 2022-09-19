@@ -1,7 +1,7 @@
 # Git pre-commit hook
 
 ## exclude .terraform directories
-DIRS=$(../scripts/get-terraform-dirs.py)
+DIRS=$($(pwd)/.githooks/scripts/get-terraform-dirs.py)
 
 terraform -chdir=modules fmt -recursive 
 
