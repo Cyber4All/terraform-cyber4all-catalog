@@ -1,0 +1,51 @@
+version: 2.1
+orbs:
+  terraform: circleci/terraform@3.1.0
+
+jobs:
+  tflint:
+    executor: terraform/default
+    steps:
+      - checkout
+      - run:
+          command: |
+            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      - run:
+          command: |
+            for i in $(./.githooks/scripts/get-terraform-dirs.py)
+            do
+              tflint $i
+            done 
+
+  tfvalidate:
+    executor: terraform/default
+    steps:
+      - checkout
+      - run:
+          command: |
+            for i in $(./.githooks/scripts/get-terraform-dirs.py)
+            do
+              terraform -chdir=$i validate
+            done 
+
+  tfsec:
+    docker:
+      - image: cimg/go:1.19.1
+    steps:
+      - checkout
+      - run:
+          command: |
+            go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
+      - run:
+          command: |
+            tfsec ./terraform --concise-output -m HIGH -s
+
+workflows:
+  continuous-integration:
+    jobs:
+      - tflint
+      - tfvalidate
+
+  continuous-testing:
+    jobs:
+      - tfsec

@@ -1,17 +1,7 @@
 # Git pre-commit hook
 
-DIRS=$(python3 -c """
-import os
-def findDirs():
-    dirs = []
-    for root, _, files in os.walk('.'):
-        for file in files:
-            if '.tf' in file:
-                dirs.append(root)
-                break
-    return ' '.join(tuple(dirs))
-print(findDirs())
-""")
+## exclude .terraform directories
+DIRS=$(../scripts/get-terraform-dirs.py)
 
 terraform -chdir=modules fmt -recursive 
 
