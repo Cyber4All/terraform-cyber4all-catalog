@@ -75,6 +75,16 @@ module "ec2_instance" {
 }
 
 #################################
+# Auto-Scaling Group
+# https://registry.terraform.io/modules/terraform-aws-modules/autoscaling/aws/latest
+#################################
+module "autoscaling" {
+  source  = "terraform-aws-modules/autoscaling/aws"
+  version = "6.5.2"
+}
+
+
+#################################
 # ecs
 # https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
 #################################
@@ -83,4 +93,14 @@ module "ecs" {
   version = "4.1.1"
 
   cluster_name = "example-ecs-ec2"
+
+  cluster_configuration = {
+    one = {
+      autoscaling_group_arn = {}
+    }
+  }
+
+  autoscaling_capacity_providers = {
+
+  }
 }
