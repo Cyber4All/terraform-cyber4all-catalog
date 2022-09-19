@@ -9,8 +9,3 @@ for i in $DIRS
 do
     tflint $i
 done
-
-for i in $DIRS
-do
-    terraform -chdir=$i validate
-done
