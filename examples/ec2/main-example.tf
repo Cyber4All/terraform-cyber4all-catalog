@@ -136,19 +136,19 @@ module "ecs" {
   autoscaling_capacity_providers = {
     one = {
       auto_scaling_group_arn         = module.autoscaling.autoscaling_group_arn
-      managed_termination_protection = "ENABLED"
+      # managed_termination_protection = "ENABLED"
 
-      managed_scaling = {
-        maximum_scaling_step_size = 5
-        minimum_scaling_step_size = 1
-        status                    = "ENABLED"
-        target_capacity           = 60
-      }
+      # managed_scaling = {
+      #   maximum_scaling_step_size = 5
+      #   minimum_scaling_step_size = 1
+      #   status                    = "ENABLED"
+      #   target_capacity           = 60
+      # }
 
-      default_capacity_provider_strategy = {
-        weight = 60
-        base   = 20
-      }
+      # default_capacity_provider_strategy = {
+      #   weight = 60
+      #   base   = 20
+      # }
     }
   }
 
