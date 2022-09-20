@@ -17,8 +17,6 @@ terraform {
   }
 }
 
-
-
 #################################
 # vpc
 # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
@@ -52,7 +50,6 @@ module "security_group" {
   ingress_cidr_blocks = ["0.0.0.0/0"]
   ingress_rules       = ["http-80-tcp", "all-icmp", "ssh-tcp"]
   egress_rules        = ["all-all"]
-
 }
 
 #################################
@@ -97,31 +94,6 @@ module "autoscaling" {
 }
 
 #################################
-# Launch Template for ASG
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template
-#################################
-# resource "aws_launch_template" "example_lt" {
-#   name                   = "example-lt"
-#   image_id               = "ami-06e07b42f153830d8"
-#   instance_type          = "t2.micro"
-#   # vpc_security_group_ids = [module.security_group.security_group_id]
-
-#   update_default_version = true
-#   # network_interfaces {
-#   #   associate_public_ip_address = true
-#   #   security_groups = [module.security_group.security_group_id]
-#   # }
-
-#   # iam_instance_profile {
-#   #   arn = module.iam_iam-assumable-role.iam_instance_profile_arn
-#   # }
-
-#   user_data = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "example-ecs-ec2" })) # abstract name to vars, can't reference ecs module, cyclical dependency
-# }
-
-
-
-#################################
 # ecs
 # https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
 #################################
@@ -135,22 +107,7 @@ module "ecs" {
 
   autoscaling_capacity_providers = {
     one = {
-      auto_scaling_group_arn         = module.autoscaling.autoscaling_group_arn
-      # managed_termination_protection = "ENABLED"
-
-      # managed_scaling = {
-      #   maximum_scaling_step_size = 5
-      #   minimum_scaling_step_size = 1
-      #   status                    = "ENABLED"
-      #   target_capacity           = 60
-      # }
-
-      # default_capacity_provider_strategy = {
-      #   weight = 60
-      #   base   = 20
-      # }
+      auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
     }
   }
-
-
 }
