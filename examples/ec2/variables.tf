@@ -53,17 +53,17 @@ variable "launch_template_name" {
 }
 variable "cluster_name" {
   description = "the name of the cluster that is to be created"
-  default = "${project_name}-cluster"
+  default     = "${project_name}-cluster"
 }
 
 variable "iam_role_name" {
   description = "the name of the iam role to be created for the ASG"
-  default = "${project_name}-iam-role"
+  default     = "${project_name}-iam-role"
 }
 
 variable "security_group_name" {
   description = "the name of the security group to be created"
-  default = "${project_name}-sg"
+  default     = "${project_name}-sg"
 }
 
 variable "asg_min_size" {
@@ -73,20 +73,20 @@ variable "asg_min_size" {
 
 variable "launch_template_description" {
   description = "description of the launch template"
-  default = ""
+  default     = ""
 }
 
 variable "iam_role_description" {
   description = "the description for the iam role to be created"
-  default = ""
+  default     = ""
 }
 
 variable "security_group_description" {
   description = "the description for the security group to be created"
-  default = ""
+  default     = ""
 }
 
 variable "avail_zones" {
   description = "the list of availability zones to create subnets in"
-  default = ["us-east-1a", "us-east-1b"]
+  default     = ["us-east-1a", "us-east-1b"]
 }
