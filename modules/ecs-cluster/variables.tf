@@ -72,7 +72,7 @@ variable "security_group_name" {
 
 variable "vpc_name" {
   description = "the name of the vpc to be created"
-  default = "${project_name}-vpc"
+  default     = "${project_name}-vpc"
 }
 
 variable "asg_min_size" {
