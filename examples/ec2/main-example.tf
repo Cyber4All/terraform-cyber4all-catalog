@@ -17,6 +17,8 @@ terraform {
   }
 }
 
+
+
 #################################
 # vpc
 # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
@@ -48,7 +50,7 @@ module "security_group" {
 
   # allow ssh from anywhere
   ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["http-80-tcp", "all-icmp"]
+  ingress_rules       = ["http-80-tcp", "all-icmp", "ssh-tcp"]
   egress_rules        = ["all-all"]
 
 }
@@ -61,33 +63,63 @@ module "autoscaling" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "6.5.2"
 
-  name    = "example-asg"
-  launch_template = aws_launch_template.example_lt.name
-  min_size = 0
-  max_size = 1
+  name                = "example-asg"
+  vpc_zone_identifier = module.vpc.public_subnets
+  min_size            = 1
+  max_size            = 1
+
+  # launch template
+  create_launch_template      = true
+  launch_template_name        = "example-asg"
+  launch_template_description = "Launch template example"
+  update_default_version      = true
+  image_id                    = "ami-06e07b42f153830d8"
+  instance_type               = "t2.micro"
+  user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "example-ecs-ec2" })) # abstract name to vars, can't reference ecs module, cyclical dependency
+
+
+  security_groups = [module.security_group.security_group_id]
+
+  # iam role creation
+  create_iam_instance_profile = true
+  iam_role_name               = "example-iam"
+  iam_role_description        = "ECS role for"
+  iam_role_policies = {
+    AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+    AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  }
+
+  autoscaling_group_tags = {
+    AmazonECSManaged = true
+  }
+
+  protect_from_scale_in = true
 }
 
 #################################
 # Launch Template for ASG
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template
 #################################
-resource "aws_launch_template" "example_lt" {
-  name = "example-lt"
-  image_id = "ami-015baecf2e21c75c0"
-  instance_type = "t2.micro"
-  vpc_security_group_ids = module.security_group.security_group_id
+# resource "aws_launch_template" "example_lt" {
+#   name                   = "example-lt"
+#   image_id               = "ami-06e07b42f153830d8"
+#   instance_type          = "t2.micro"
+#   # vpc_security_group_ids = [module.security_group.security_group_id]
 
-  block_device_mappings {
-    device_name = "/dev/sda1"
-    no_device   = 1
-    ebs {
-      delete_on_termination = true
-      encrypted             = true
-      volume_size           = 30
-      volume_type           = "gp2"
-    }
-  }
-}
+#   update_default_version = true
+#   # network_interfaces {
+#   #   associate_public_ip_address = true
+#   #   security_groups = [module.security_group.security_group_id]
+#   # }
+
+#   # iam_instance_profile {
+#   #   arn = module.iam_iam-assumable-role.iam_instance_profile_arn
+#   # }
+
+#   user_data = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "example-ecs-ec2" })) # abstract name to vars, can't reference ecs module, cyclical dependency
+# }
+
+
 
 #################################
 # ecs
@@ -97,11 +129,28 @@ module "ecs" {
   source  = "terraform-aws-modules/ecs/aws"
   version = "4.1.1"
 
+  default_capacity_provider_use_fargate = false
+
   cluster_name = "example-ecs-ec2"
 
-  cluster_configuration = {
+  autoscaling_capacity_providers = {
     one = {
-      autoscaling_group_arn = module.autoscaling.autoscaling_group_arn
+      auto_scaling_group_arn         = module.autoscaling.autoscaling_group_arn
+      managed_termination_protection = "ENABLED"
+
+      managed_scaling = {
+        maximum_scaling_step_size = 5
+        minimum_scaling_step_size = 1
+        status                    = "ENABLED"
+        target_capacity           = 60
+      }
+
+      default_capacity_provider_strategy = {
+        weight = 60
+        base   = 20
+      }
     }
   }
+
+
 }
