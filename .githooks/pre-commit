@@ -5,10 +5,10 @@ DIRS=$(../scripts/get-terraform-dirs.py)
 
 terraform -chdir=modules fmt -recursive 
 
-for i in $DIRS
-do
-    tflint $i
-done
+# for i in $DIRS
+# do
+#     tflint $i
+# done
 
 # for i in $DIRS
 # do

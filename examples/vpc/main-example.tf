@@ -9,7 +9,7 @@ terraform {
 
   backend "s3" {
     bucket = "competency-service-terraform-state"
-    key    = "live/example/vpc/terraform.tfstate"
+    key    = "live/example/ecs-example/terraform.tfstate"
     region = "us-east-1"
 
     dynamodb_table = "competency-service-terraform-locks"
