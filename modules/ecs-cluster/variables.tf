@@ -47,34 +47,6 @@ variable "asg_max_size" {
 # Optional vars
 ########################################
 
-variable "asg_name" {
-  description = "Name for the autoscaling group"
-  default     = "${project_name}-asg"
-}
-variable "launch_template_name" {
-  description = "Name for the launch template that will be created"
-  default     = "${project_name}-launch-template"
-}
-variable "cluster_name" {
-  description = "the name of the cluster that is to be created"
-  default     = "${project_name}-cluster"
-}
-
-variable "iam_role_name" {
-  description = "the name of the iam role to be created for the ASG"
-  default     = "${project_name}-iam-role"
-}
-
-variable "security_group_name" {
-  description = "the name of the security group to be created"
-  default     = "${project_name}-sg"
-}
-
-variable "vpc_name" {
-  description = "the name of the vpc to be created"
-  default     = "${project_name}-vpc"
-}
-
 variable "asg_min_size" {
   description = "minimum size of the autoscaling group"
   default     = 1

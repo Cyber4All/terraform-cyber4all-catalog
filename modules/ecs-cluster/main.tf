@@ -25,7 +25,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 3.0"
 
-  name = var.vpc_name
+  name = "${var.project_name}-vpc"
   cidr = var.vpc_cidr
 
   azs             = var.avail_zones
@@ -42,7 +42,7 @@ module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "~> 4.0"
 
-  name        = var.security_group_name
+  name        = "${var.project_name}-sg"
   description = var.security_group_description
   vpc_id      = module.vpc.vpc_id
 
@@ -60,14 +60,14 @@ module "autoscaling" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "6.5.2"
 
-  name                = var.asg_name
+  name                = "${var.project_name}-asg"
   vpc_zone_identifier = module.vpc.public_subnets
   min_size            = var.asg_min_size
   max_size            = var.asg_max_size
 
   # launch template
   create_launch_template      = true
-  launch_template_name        = var.launch_template_name
+  launch_template_name        = "${var.project_name}-launch-template"
   launch_template_description = var.launch_template_description
   update_default_version      = true
   image_id                    = var.launch_template_ami
@@ -79,7 +79,7 @@ module "autoscaling" {
 
   # iam role creation
   create_iam_instance_profile = true
-  iam_role_name               = var.iam_role_name
+  iam_role_name               = "${var.project_name}-iam-role"
   iam_role_description        = var.iam_role_description
   iam_role_policies = {
     AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
@@ -103,7 +103,7 @@ module "ecs" {
 
   default_capacity_provider_use_fargate = false
 
-  cluster_name = var.cluster_name
+  cluster_name = "${var.project_name}-cluster"
 
   autoscaling_capacity_providers = {
     one = {
