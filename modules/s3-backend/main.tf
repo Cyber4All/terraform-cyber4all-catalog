@@ -79,3 +79,57 @@ resource "aws_dynamodb_table" "terraform_locks" {
     type = "S"
   }
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Provisions IAM Role with a custom policy that can access the S3 backend bucket
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_iam_policy_document" "tf_s3_backend_policy" {
+    statement {
+        actions = [
+            "s3:PutObject",
+            "s3:GetObject",
+            "dynamodb:PutItem",
+            "dynamodb:DeleteItem",
+            "dynamodb:GetItem",
+            "s3:ListBucket"
+        ]
+
+        resources = [
+            "arn:aws:s3:::competency-service-terraform-state/*",
+            "arn:aws:s3:::competency-service-terraform-state",
+            "arn:aws:dynamodb:us-east-1:317620868823:table/competency-service-terraform-locks"
+        ]
+    }
+
+    statement {
+      actions = ["sts:GetCallerIdentity"]
+      resources = ["*"]
+    }
+}
+
+resource "aws_iam_policy" "tf_s3_backend_policy" {
+    name = "${var.environment}_s3_backend_policy"
+    path = var.path
+    description = "Policy that permits backend permissions needed for terraform apply"
+
+    policy = data.aws_iam_policy_document.tf_s3_backend_policy.json
+}
+
+module "iam_assumable_role" {
+    source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+    version = "5.4.0"
+
+    trusted_role_services = [
+        "s3.amazonaws.com"
+    ]
+
+    create_role = true
+
+    role_name        = "S3RemoteBackendRole"
+    role_description = "Role permits updating tfstate files for terraform IaC"
+
+    custom_role_policy_arns = [
+        aws_iam_policy.tf_s3_backend_policy.arn
+    ]
+}

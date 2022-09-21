@@ -29,3 +29,19 @@ variable "sse_algorithm" {
   type        = string
   default     = "AES256"
 }
+
+variable "environment" {
+  description = "The environment type i.e (dev, staging, qa, prod)"
+  type = string
+  default = "staging"
+  validation {
+    condition = contains(["dev", "staging", "qa", "prod"], var.environment)
+    error_message = "Environment must be either dev, staging, qa, or prod"
+  }
+}
+
+variable "path" {
+  description = "The path to organize the policy in IAM"
+  type = string
+  default = "/"
+}
