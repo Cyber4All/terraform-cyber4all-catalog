@@ -46,7 +46,6 @@ module "security_group" {
   description = var.security_group_description
   vpc_id      = module.vpc.vpc_id
 
-  # allow ssh from anywhere
   ingress_cidr_blocks = var.ingress_cidr_blocks
   ingress_rules       = var.ingress_rules
   egress_rules        = var.egress_rules

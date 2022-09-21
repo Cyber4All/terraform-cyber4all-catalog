@@ -41,6 +41,9 @@ variable "asg_max_size" {
   description = "maximum size of the autoscaling group"
 }
 
+variable "security_group_description" {
+  description = "the description for the security group to be created"
+}
 
 
 ########################################
@@ -62,10 +65,7 @@ variable "iam_role_description" {
   default     = ""
 }
 
-variable "security_group_description" {
-  description = "the description for the security group to be created"
-  default     = ""
-}
+
 
 variable "avail_zones" {
   description = "the list of availability zones to create subnets in"
