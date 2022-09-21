@@ -25,12 +25,12 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 3.0"
 
-  name = "example-vpc"
-  cidr = "10.99.0.0/18"
+  name = var.vpc_name
+  cidr = var.vpc_cidr
 
-  azs             = ["us-east-1a", "us-east-1b"]
-  public_subnets  = ["10.99.0.0/24", "10.99.1.0/24"]
-  private_subnets = ["10.99.3.0/24", "10.99.4.0/24"]
+  azs             = var.avail_zones
+  public_subnets  = var.public_subnets
+  private_subnets = var.private_subnets
 
 }
 
@@ -42,14 +42,14 @@ module "security_group" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "~> 4.0"
 
-  name        = "example-security-group"
-  description = "Security group for example usage with EC2 instance"
+  name        = var.security_group_name
+  description = var.security_group_description
   vpc_id      = module.vpc.vpc_id
 
   # allow ssh from anywhere
-  ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["http-80-tcp", "all-icmp", "ssh-tcp"]
-  egress_rules        = ["all-all"]
+  ingress_cidr_blocks = var.ingress_cidr_blocks
+  ingress_rules       = var.ingress_rules
+  egress_rules        = var.egress_rules
 }
 
 #################################
@@ -60,18 +60,18 @@ module "autoscaling" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "6.5.2"
 
-  name                = "example-asg"
+  name                = var.asg_name
   vpc_zone_identifier = module.vpc.public_subnets
-  min_size            = 1
-  max_size            = 1
+  min_size            = var.asg_min_size
+  max_size            = var.asg_max_size
 
   # launch template
   create_launch_template      = true
-  launch_template_name        = "example-asg"
-  launch_template_description = "Launch template example"
+  launch_template_name        = var.launch_template_name
+  launch_template_description = var.launch_template_description
   update_default_version      = true
-  image_id                    = "ami-06e07b42f153830d8"
-  instance_type               = "t2.micro"
+  image_id                    = var.launch_template_ami
+  instance_type               = var.instance_type
   user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "example-ecs-ec2" })) # abstract name to vars, can't reference ecs module, cyclical dependency
 
 
@@ -79,8 +79,8 @@ module "autoscaling" {
 
   # iam role creation
   create_iam_instance_profile = true
-  iam_role_name               = "example-iam"
-  iam_role_description        = "ECS role for"
+  iam_role_name               = var.iam_role_name
+  iam_role_description        = var.iam_role_description
   iam_role_policies = {
     AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
     AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -103,7 +103,7 @@ module "ecs" {
 
   default_capacity_provider_use_fargate = false
 
-  cluster_name = "example-ecs-ec2"
+  cluster_name = var.cluster_name
 
   autoscaling_capacity_providers = {
     one = {
