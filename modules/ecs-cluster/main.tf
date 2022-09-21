@@ -71,7 +71,7 @@ module "autoscaling" {
   update_default_version      = true
   image_id                    = var.launch_template_ami
   instance_type               = var.instance_type
-  user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "example-ecs-ec2" })) # abstract name to vars, can't reference ecs module, cyclical dependency
+  user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "${var.project_name}-cluster" })) # abstract name to vars, can't reference ecs module, cyclical dependency
 
 
   security_groups = [module.security_group.security_group_id]
