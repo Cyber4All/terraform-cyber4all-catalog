@@ -8,3 +8,4 @@ egress_rules        = ["all-all"]
 public_subnets      = ["10.99.0.0/24", "10.99.1.0/24"]
 private_subnets     = ["10.99.3.0/24", "10.99.4.0/24"]
 asg_max_size        = 1
+security_group_description = "example security group"
