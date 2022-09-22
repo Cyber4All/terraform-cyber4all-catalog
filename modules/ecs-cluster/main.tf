@@ -21,37 +21,7 @@ terraform {
 # vpc
 # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
 #################################
-# module "vpc" {
-#   source  = "terraform-aws-modules/vpc/aws"
-#   version = "~> 3.0"
 
-#   name = "${var.project_name}-vpc"
-#   cidr = var.vpc_cidr
-
-#   azs             = var.avail_zones
-#   public_subnets  = var.public_subnets
-#   private_subnets = var.private_subnets
-
-# }
-
-#################################
-# security group
-# https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/latest
-#################################
-module "security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 4.0"
-
-  name        = "${var.project_name}-sg"
-  description = var.security_group_description
-  vpc_id      = var.vpc_id
-
-  ingress_cidr_blocks      = var.ingress_cidr_blocks
-  ingress_rules            = var.ingress_rules
-  ingress_with_cidr_blocks = var.ingress_with_cidr_blocks
-  egress_rules             = var.egress_rules
-
-}
 
 #################################
 # Auto-Scaling Group
@@ -76,7 +46,7 @@ module "autoscaling" {
   user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "${var.project_name}-cluster" }))
 
 
-  security_groups = [module.security_group.security_group_id]
+  security_groups = [var.security_group_ids]
 
   # iam role creation
   create_iam_instance_profile = true
@@ -106,9 +76,5 @@ module "ecs" {
 
   cluster_name = "${var.project_name}-cluster"
 
-  autoscaling_capacity_providers = {
-    one = {
-      auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
-    }
-  }
+  autoscaling_capacity_providers = var.autoscaling_capacity_providers
 }
