@@ -5,7 +5,7 @@ variable "project_name" {
   type        = string
   description = "name that will be appended to all default names"
 }
-
+# asg
 variable "launch_template_ami" {
   type        = string
   description = "the ami image number for the ec2 instance to be launched"
@@ -16,34 +16,14 @@ variable "instance_type" {
   description = "the type of instance to launch (e.g. t2.micro)"
 }
 
-variable "ingress_cidr_blocks" {
-  type        = list(string)
-  description = "list of ingress cidr blocks for the security group to be created"
-}
-
-variable "egress_cidr_blocks" {
-  type        = list(string)
-  description = "list of ingress cidr blocks for the security group to be created"
-}
-
-variable "ingress_rules" {
-  type        = list(string)
-  description = "list of ingress rules for the security group to be created"
-}
-
-variable "egress_rules" {
-  type        = list(string)
-  description = "list of egress rules for the security group to be created"
-}
-
 variable "public_subnets" {
   type        = list(string)
-  description = "the list of public subnets to create for the VPC"
+  description = "the list of public subnets from the vpc"
 }
 
 variable "private_subnets" {
   type        = list(string)
-  description = "the list of private subnets to create for the VPC"
+  description = "the list of private subnets from the VPC"
 }
 
 variable "asg_max_size" {
@@ -51,17 +31,29 @@ variable "asg_max_size" {
   description = "maximum size of the autoscaling group"
 }
 
-variable "security_group_description" {
-  type        = string
-  description = "the description for the security group to be created"
-}
-
 variable "vpc_id" {
   type        = string
   description = "VPC id to create the cluster in"
 }
 
+variable "security_group_ids" {
+  type = list(string)
+  description = "list of security group ids to associate with the autoscaling group"
+}
 
+variable "autoscaling_capacity_providers" {
+  type = map(object({
+    auto_scaling_group_arn         = string
+    managed_termination_protection = string
+
+    managed_scaling = {
+      maximum_scaling_step_size = number
+      minimum_scaling_step_size = number
+      status                    = string
+      target_capacity           = number
+    }
+  }))
+}
 ########################################
 # Optional vars
 ########################################
