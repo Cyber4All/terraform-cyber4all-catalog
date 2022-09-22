@@ -17,11 +17,6 @@ terraform {
   }
 }
 
-#################################
-# vpc
-# https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
-#################################
-
 
 #################################
 # Auto-Scaling Group
