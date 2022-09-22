@@ -37,7 +37,7 @@ variable "vpc_id" {
 }
 
 variable "security_group_ids" {
-  type = list(string)
+  type        = list(string)
   description = "list of security group ids to associate with the autoscaling group"
 }
 

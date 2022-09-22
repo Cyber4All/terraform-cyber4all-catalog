@@ -19,11 +19,11 @@ variable "egress_rules" {
 }
 
 variable "vpc_id" {
-  type = string
+  type        = string
   description = "the id of the vpc to associate with this security group"
 }
 
 variable "security_group_description" {
-    type = string
-    description = "the description of the security group to create"
+  type        = string
+  description = "the description of the security group to create"
 }
