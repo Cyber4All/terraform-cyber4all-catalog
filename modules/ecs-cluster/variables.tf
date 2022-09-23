@@ -7,7 +7,7 @@ variable "project_name" {
 }
 
 variable "autoscaling_group_arn" {
-  type = string
+  type        = string
   description = "arn of the autoscaling group to assign to the cluster"
 }
 

@@ -10,8 +10,8 @@ module "security_group" {
   description = var.security_group_description
   vpc_id      = var.vpc_id
 
-  ingress_cidr_blocks      = var.ingress_cidr_blocks
-  ingress_rules            = var.ingress_rules
-  egress_rules             = var.egress_rules
+  ingress_cidr_blocks = var.ingress_cidr_blocks
+  ingress_rules       = var.ingress_rules
+  egress_rules        = var.egress_rules
 
 }
