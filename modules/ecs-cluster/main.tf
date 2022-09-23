@@ -27,7 +27,7 @@ module "autoscaling" {
   version = "6.5.2"
 
   name                = "${var.project_name}-asg"
-  vpc_zone_identifier = concat(var.public_subnets, var.private_subnets)
+  vpc_zone_identifier = var.private_subnets
   min_size            = var.asg_min_size
   max_size            = var.asg_max_size
 
@@ -45,7 +45,7 @@ module "autoscaling" {
 
   # iam role creation
   create_iam_instance_profile = true
-  iam_role_name               = "${var.project_name}-iam-role"
+  iam_role_name               = "${var.project_name}-iam-role-profile"
   iam_role_description        = var.iam_role_description
   iam_role_policies = {
     AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
