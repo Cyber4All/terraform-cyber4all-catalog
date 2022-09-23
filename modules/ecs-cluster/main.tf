@@ -10,5 +10,9 @@ module "ecs" {
 
   cluster_name = "${var.project_name}-cluster"
 
-  autoscaling_capacity_providers = var.autoscaling_capacity_providers
+  autoscaling_capacity_providers = {
+    one = {
+      auto_scaling_group_arn = var.autoscaling_group_arn
+    }
+  }
 }
