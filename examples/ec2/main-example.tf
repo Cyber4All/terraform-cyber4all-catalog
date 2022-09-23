@@ -17,20 +17,33 @@ terraform {
   }
 }
 
+locals {
+  project_name               = "example"
+  launch_template_ami        = "ami-06e07b42f153830d8"
+  instance_type              = "t2.micro"
+  ingress_with_cidr_blocks   = ["0.0.0.0/0"]
+  vpc_cidr                   = "10.99.0.0/18"
+  ingress_rules              = ["http-80-tcp", "all-icmp", "ssh-tcp"]
+  egress_rules               = ["all-all"]
+  public_subnets             = ["10.99.0.0/24", "10.99.1.0/24"]
+  private_subnets            = ["10.99.3.0/24", "10.99.4.0/24"]
+  asg_max_size               = 1
+  security_group_description = "example security group"
+}
+
 #################################
 # vpc
 # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
 #################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.0"
 
-  name = "example-vpc"
-  cidr = "10.99.0.0/18"
+  name = "${local.project_name}-vpc"
+  cidr = local.vpc_cidr
 
   azs             = ["us-east-1a", "us-east-1b"]
-  public_subnets  = ["10.99.0.0/24", "10.99.1.0/24"]
-  private_subnets = ["10.99.3.0/24", "10.99.4.0/24"]
+  public_subnets  = local.public_subnets
+  private_subnets = local.private_subnets
 
 }
 
@@ -38,18 +51,15 @@ module "vpc" {
 # security group
 # https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/latest
 #################################
-module "security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 4.0"
-
-  name        = "example-security-group"
-  description = "Security group for example usage with EC2 instance"
-  vpc_id      = module.vpc.vpc_id
+module "security-group" {
+  source  = "../../modules/security-group"
+  project_name = local.project_name
+  vpc_id  = module.vpc.vpc_id
 
   # allow ssh from anywhere
-  ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["http-80-tcp", "all-icmp", "ssh-tcp"]
-  egress_rules        = ["all-all"]
+  ingress_cidr_blocks = local.ingress_with_cidr_blocks
+  ingress_rules       = local.ingress_rules
+  egress_rules        = local.egress_rules
 }
 
 #################################
@@ -57,57 +67,23 @@ module "security_group" {
 # https://registry.terraform.io/modules/terraform-aws-modules/autoscaling/aws/latest
 #################################
 module "autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
-  version = "6.5.2"
-
-  name                = "example-asg"
-  vpc_zone_identifier = module.vpc.public_subnets
-  min_size            = 1
-  max_size            = 1
+  source  = "../../modules/autoscaling"
+  project_name    = local.project_name
+  private_subnets = module.vpc.private_subnets
+  asg_max_size    = local.asg_max_size
+  vpc_id          = module.vpc.vpc_id
+  security_group_ids = [module.security-group.security_group_id]
 
   # launch template
-  create_launch_template      = true
-  launch_template_name        = "example-asg"
-  launch_template_description = "Launch template example"
-  update_default_version      = true
-  image_id                    = "ami-06e07b42f153830d8"
-  instance_type               = "t2.micro"
-  user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "example-ecs-ec2" })) # abstract name to vars, can't reference ecs module, cyclical dependency
-
-
-  security_groups = [module.security_group.security_group_id]
-
-  # iam role creation
-  create_iam_instance_profile = true
-  iam_role_name               = "example-iam"
-  iam_role_description        = "ECS role for"
-  iam_role_policies = {
-    AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-    AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  }
-
-  autoscaling_group_tags = {
-    AmazonECSManaged = true
-  }
-
-  protect_from_scale_in = true
+  launch_template_ami = local.launch_template_ami
+  instance_type       = local.instance_type
 }
-
 #################################
 # ecs
 # https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
 #################################
-module "ecs" {
-  source  = "terraform-aws-modules/ecs/aws"
-  version = "4.1.1"
-
-  default_capacity_provider_use_fargate = false
-
-  cluster_name = "example-ecs-ec2"
-
-  autoscaling_capacity_providers = {
-    one = {
-      auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
-    }
-  }
+module "ecs-cluster" {
+  source  = "../../modules/ecs-cluster"
+  project_name = local.project_name
+  autoscaling_group_arn = module.autoscaling.autoscaling_group_arn
 }

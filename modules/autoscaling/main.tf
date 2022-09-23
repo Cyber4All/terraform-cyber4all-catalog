@@ -21,7 +21,7 @@ module "autoscaling" {
   user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "${var.project_name}-cluster" }))
 
 
-  security_groups = [var.security_group_ids]
+  security_groups = var.security_group_ids
 
   # iam role creation
   create_iam_instance_profile = true
