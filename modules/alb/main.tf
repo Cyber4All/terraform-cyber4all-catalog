@@ -153,7 +153,7 @@ module "external-alb" {
   # HTTP TCP LISTENERS
   # ----------------------------------------------------
   http_tcp_listeners      = var.external_http_tcp_listeners
-  http_tcp_listener_rules      = var.external_http_tcp_listener_rules
+  http_tcp_listener_rules = var.external_http_tcp_listener_rules
 
   # ----------------------------------------------------
   # HTTPS_LISTENERS
