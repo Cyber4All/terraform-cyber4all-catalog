@@ -1,2 +1,2 @@
-examples/*/.terraform
-modules/*/.terraform
+.terraform
+*.tfstate*
