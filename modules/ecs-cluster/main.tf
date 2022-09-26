@@ -1,3 +1,7 @@
+terraform {
+  experiments = [module_variable_optional_attrs]
+}
+
 #################################
 # ecs
 # https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
@@ -14,19 +18,11 @@ module "ecs" {
     one = {
       auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
 
-      managed_termination_protection = "ENABLED"
+      managed_termination_protection = var.managed_termination_protection
 
-      managed_scaling = {
-        maximum_scaling_step_size = 5
-        minimum_scaling_step_size = 1
-        status                    = "ENABLED"
-        target_capacity           = 60
-      }
+      managed_scaling = var.managed_scaling
 
-      default_capacity_provider_strategy = {
-        weight = 60
-        base   = 20
-      }
+      default_capacity_provider_strategy = var.default_capacity_provider_strategy
     }
   }
 }
@@ -61,7 +57,7 @@ module "autoscaling" {
   version = "6.5.2"
 
   name                = "${var.project_name}-asg"
-  vpc_zone_identifier = concat(var.public_subnets, var.private_subnets)
+  vpc_zone_identifier = concat(var.private_subnets, var.public_subnets)
   min_size            = var.asg_min_size
   max_size            = var.asg_max_size
 
@@ -74,6 +70,7 @@ module "autoscaling" {
   instance_type               = var.instance_type
   user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "${var.project_name}-cluster" }))
 
+  block_device_mappings = var.block_device_mappings
 
   security_groups = [module.security_group.security_group_id]
 
@@ -91,4 +88,6 @@ module "autoscaling" {
   }
 
   protect_from_scale_in = true
+  capacity_rebalance    = var.capacity_rebalance
+  create_schedule       = false
 }
