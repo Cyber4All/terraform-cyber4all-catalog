@@ -124,7 +124,7 @@ module "internal-sg" {
 # https://registry.terraform.io/modules/terraform-aws-modules/alb/aws/8.1.0
 #
 # LB Listeners: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener
-# LB Listener Rules: 
+# LB Listener Rules: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule
 # Targets: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -169,9 +169,7 @@ module "external-alb" {
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-  access_logs = {
-    bucket = "alb-log-bucket"
-  }
+  access_logs = var.external_access_logs
 
   # ----------------------------------------------------
   # DEFAULTS
@@ -202,13 +200,12 @@ module "external-alb" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE EXTERNAL APPLICATION LOAD BALANCER
+# CREATE INTERNAL APPLICATION LOAD BALANCER
 # https://registry.terraform.io/modules/terraform-aws-modules/alb/aws/8.1.0
 #
-#
-#
-#
-#
+# LB Listeners: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener
+# LB Listener Rules: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule
+# Targets: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "internal-alb" {
@@ -217,7 +214,7 @@ module "internal-alb" {
 
   create_lb = true
 
-  name = "internal-"
+  name = "internal-alb-${var.name}"
 
   load_balancer_type               = "application"
   internal                         = true
@@ -225,45 +222,34 @@ module "internal-alb" {
 
   # ----------------------------------------------------
   # NETWORK CONFIG
-  # 
+  #
   #   Internal ALB should exist in private subnets
   # ----------------------------------------------------
-  vpc_id          = module.vpc.vpc_id
-  subnets         = module.vpc.private_subnet_arns
-  security_groups = [module.sg.security_group_id]
+  vpc_id          = var.vpc_id
+  subnets         = var.public_subnet_arns
+  security_groups = [module.internal-sg.security_group_id]
 
   # ----------------------------------------------------
   # HTTP TCP LISTENERS
   # ----------------------------------------------------
-  http_tcp_listeners      = []
-  http_tcp_listeners_tags = {}
-
-  http_tcp_listener_rules      = []
-  http_tcp_listener_rules_tags = {}
+  http_tcp_listeners      = var.internal_http_tcp_listeners
+  http_tcp_listener_rules = var.internal_http_tcp_listener_rules
 
   # ----------------------------------------------------
   # HTTPS_LISTENERS
   # ----------------------------------------------------
-  https_listeners      = []
-  https_listeners_tags = {}
-
-  https_listener_rules      = []
-  https_listener_rules_tags = {}
+  https_listeners      = var.internal_https_listeners
+  https_listener_rules = var.internal_https_listener_rules
 
   # ----------------------------------------------------
   # TARGETS
   # ----------------------------------------------------
-  target_groups     = []
-  target_group_tags = {}
+  target_groups = var.internal_target_groups
 
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-
-  # bucket must exist PRIOR to reference
-  access_logs = {
-    bucket = "alb-log-bucket"
-  }
+  access_logs = var.internal_access_logs
 
   # ----------------------------------------------------
   # DEFAULTS
@@ -285,5 +271,10 @@ module "internal-alb" {
   # name_prefix = null
   # putin_khuylo = true
   # subnet_mapping = [] *only for NLB
+  # http_tcp_listeners_tags = {}
+  # http_tcp_listener_rules_tags = {}
+  # https_listeners_tags = {}
+  # https_listener_rules_tags = {}
+  # target_group_tags = {}
   # tags = {}
 }
