@@ -1,5 +1,6 @@
 terraform {
   required_version = "1.2.9"
+  experiments      = [module_variable_optional_attrs]
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -49,7 +50,6 @@ module "ecs-cluster" {
 
   vpc_id = module.vpc.vpc_id
 
-  # allow ssh from anywhere
   ingress_with_cidr_blocks = [
     {
       from_port   = 8080
@@ -63,7 +63,13 @@ module "ecs-cluster" {
       cidr_blocks = "0.0.0.0/0"
     }
   ]
-  egress_with_cidr_blocks  = []
+
+  egress_with_cidr_blocks = [
+    {
+      rule        = "all-tcp"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
 
   private_subnets = module.vpc.private_subnets
   public_subnets  = module.vpc.public_subnets
@@ -72,4 +78,6 @@ module "ecs-cluster" {
   # launch template
   launch_template_ami = "ami-06e07b42f153830d8"
   instance_type       = "t2.micro"
+
+
 }
