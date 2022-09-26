@@ -65,16 +65,16 @@ module "alb" {
   # internal = false
   enable_cross_zone_load_balancing = true
 
-  vpc_id = data.aws_vpc.default.id
-  subnets = data.aws_subnets.all.ids
+  vpc_id          = data.aws_vpc.default.id
+  subnets         = data.aws_subnets.all.ids
   security_groups = [module.security_group.security_group_id]
 
-  
+
   # listeners
   http_tcp_listeners = [
     {
-      port = 80
-      protocol = "HTTP"
+      port               = 80
+      protocol           = "HTTP"
       target_group_index = 0 # used to identify in the http_tcp_listeners_rules
     },
     /* {
@@ -98,7 +98,7 @@ module "alb" {
       }
     }, */
   ]
-  
+
   /* https_listeners = [
     {
       port               = 443
@@ -128,12 +128,12 @@ module "alb" {
           value = "random"
         }]
       }]
-    }, 
+    },
   ]
   /*
   https_listener_rules = []
   */
-  target_groups =  [
+  target_groups = [
     {
       name_prefix          = "h1"
       backend_protocol     = "HTTP"
@@ -166,7 +166,7 @@ module "alb" {
         InstanceTargetGroupTag = "baz"
       }
     },
-  ] 
+  ]
 
   # https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html
   /* listener_ssl_policy_default = "ELBSecurityPolicy-2016-08" */

@@ -33,12 +33,12 @@ module "internal-alb" {
 
   name = "example-internal-alb"
 
-  load_balancer_type = "application"
-  internal = true
+  load_balancer_type               = "application"
+  internal                         = true
   enable_cross_zone_load_balancing = true
 
-  vpc_id = module.vpc.vpc_id
-  subnets = module.vpc.private_subnet_arns
+  vpc_id          = module.vpc.vpc_id
+  subnets         = module.vpc.private_subnet_arns
   security_groups = [module.sg.security_group_id]
 
   # listeners
@@ -47,67 +47,67 @@ module "internal-alb" {
       target_group_index = 0
 
       protocol = "HTTP"
-      port = 80
+      port     = 80
     }
   ]
 
   http_tcp_listener_rules = [
     {
-        http_tcp_listener_index = 0
+      http_tcp_listener_index = 0
 
-        actions = [{
-            type = "forward"
-            target_group_index = 0
-        }]
-        conditions = [{
-            path_patterns = ["/service1"]
-        }]
+      actions = [{
+        type               = "forward"
+        target_group_index = 0
+      }]
+      conditions = [{
+        path_patterns = ["/service1"]
+      }]
     },
     {
-        http_tcp_listener_index = 0
+      http_tcp_listener_index = 0
 
-        actions = [{
-            type = "forward"
-            target_group_index = 1
-        }]
-        conditions = [{
-            path_patterns = ["/service2"]
-        }]
+      actions = [{
+        type               = "forward"
+        target_group_index = 1
+      }]
+      conditions = [{
+        path_patterns = ["/service2"]
+      }]
     }
   ]
 
   # targets
 
-  target_groups =  [
+  target_groups = [
     {
-        name = "Service 1 Target Group"
-        
-        backend_protocol = 80
-        backend_protocol = "HTTP"
-        protocol_version = "HTTP2"
-        target_type = "instance"
+      name = "Service 1 Target Group"
 
-        # deregistration_delay = 300 (default) should be longer then StopTimeout in task-defintion and Client Connection Timeout
+      backend_protocol = 80
+      backend_protocol = "HTTP"
+      protocol_version = "HTTP2"
+      target_type      = "instance"
 
-        health_check = {
-            matcher = "200-299"
-            path = "/"
-        }
+      # deregistration_delay = 300 (default) should be longer then StopTimeout in task-defintion and Client Connection Timeout
+
+      health_check = {
+        matcher = "200-299"
+        path    = "/"
+      }
     },
     {
-        name = "Service 2 Target Group"
-        
-        backend_protocol = 80
-        backend_protocol = "HTTP"
-        protocol_version = "HTTP2"
-        target_type = "instance"
+      name = "Service 2 Target Group"
 
-        # deregistration_delay = 300 (default) should be longer then StopTimeout in task-defintion and Client Connection Timeout
+      backend_protocol = 80
+      backend_protocol = "HTTP"
+      protocol_version = "HTTP2"
+      target_type      = "instance"
 
-        health_check = {
-            matcher = "200-299"
-            path = "/"
-        }
+      # deregistration_delay = 300 (default) should be longer then StopTimeout in task-defintion and Client Connection Timeout
+
+      health_check = {
+        matcher = "200-299"
+        path    = "/"
+      }
     }
-  ] 
+  ]
 }
