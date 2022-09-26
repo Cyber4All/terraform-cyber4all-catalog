@@ -17,40 +17,6 @@ terraform {
   }
 }
 
-#################################
-# vpc
-# https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
-#################################
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.0"
-
-  name = "${var.project_name}-vpc"
-  cidr = var.vpc_cidr
-
-  azs             = var.avail_zones
-  public_subnets  = var.public_subnets
-  private_subnets = var.private_subnets
-
-}
-
-#################################
-# security group
-# https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/latest
-#################################
-module "security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 4.0"
-
-  name        = "${var.project_name}-sg"
-  description = var.security_group_description
-  vpc_id      = module.vpc.vpc_id
-
-  # allow ssh from anywhere
-  ingress_cidr_blocks = var.ingress_cidr_blocks
-  ingress_rules       = var.ingress_rules
-  egress_rules        = var.egress_rules
-}
 
 #################################
 # Auto-Scaling Group
@@ -61,7 +27,7 @@ module "autoscaling" {
   version = "6.5.2"
 
   name                = "${var.project_name}-asg"
-  vpc_zone_identifier = module.vpc.public_subnets
+  vpc_zone_identifier = var.private_subnets
   min_size            = var.asg_min_size
   max_size            = var.asg_max_size
 
@@ -72,14 +38,14 @@ module "autoscaling" {
   update_default_version      = true
   image_id                    = var.launch_template_ami
   instance_type               = var.instance_type
-  user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "example-ecs-ec2" })) # abstract name to vars, can't reference ecs module, cyclical dependency
+  user_data                   = base64encode(templatefile("${path.module}/containerAgent.sh", { CLUSTER_NAME = "${var.project_name}-cluster" }))
 
 
-  security_groups = [module.security_group.security_group_id]
+  security_groups = [var.security_group_ids]
 
   # iam role creation
   create_iam_instance_profile = true
-  iam_role_name               = "${var.project_name}-iam-role"
+  iam_role_name               = "${var.project_name}-iam-role-profile"
   iam_role_description        = var.iam_role_description
   iam_role_policies = {
     AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
@@ -105,9 +71,5 @@ module "ecs" {
 
   cluster_name = "${var.project_name}-cluster"
 
-  autoscaling_capacity_providers = {
-    one = {
-      auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
-    }
-  }
+  autoscaling_capacity_providers = var.autoscaling_capacity_providers
 }
