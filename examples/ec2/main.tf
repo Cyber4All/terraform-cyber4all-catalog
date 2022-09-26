@@ -73,7 +73,7 @@ module "ecs-cluster" {
 
   private_subnets = module.vpc.private_subnets
   public_subnets  = module.vpc.public_subnets
-  asg_max_size    = 1
+  asg_max_size    = 2
 
   # launch template
   launch_template_ami = "ami-06e07b42f153830d8"

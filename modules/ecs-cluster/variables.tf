@@ -145,5 +145,11 @@ variable "capacity_rebalance" {
 variable "desired_capacity" {
   type        = number
   description = "desired capacity"
-  defualt     = 2
+  default     = 2
+}
+
+variable "iam_instance_profile_name" {
+  type = string
+  description = "name for the IAM instance profile"
+  default = ""
 }

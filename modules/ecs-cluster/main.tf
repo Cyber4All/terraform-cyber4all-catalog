@@ -78,6 +78,7 @@ module "autoscaling" {
 
   # iam role creation
   create_iam_instance_profile = true
+  iam_instance_profile_name = var.iam_instance_profile_name != "" ? var.iam_instance_profile_name : "${var.project_name}-instance-profile"
   iam_role_name               = "${var.project_name}-iam-role-profile"
   iam_role_description        = var.iam_role_description
   iam_role_policies = {
@@ -89,6 +90,15 @@ module "autoscaling" {
     AmazonECSManaged = true
   }
 
+  instance_refresh = {
+     strategy = Rolling
+     preferences = {
+          checkpoint_delay = 3600
+          checkpoint_percentages = 100
+          min_healthy_percentage = 90
+     }
+}
+
   protect_from_scale_in = true
   capacity_rebalance    = var.capacity_rebalance
   create_schedule       = false
@@ -96,16 +106,16 @@ module "autoscaling" {
   enabled_metrics = [
     "GroupDesiredCapacity",
     "GroupInServiceCapacity",
-    "GroupPendingCapacity", 
-    "GroupMinSize", 
-    "GroupMaxSize", 
-    "GroupInServiceInstances", 
-    "GroupPendingInstances", 
-    "GroupStandbyInstances", 
-    "GroupStandbyCapacity", 
-    "GroupTerminatingCapacity", 
-    "GroupTerminatingInstances", 
-    "GroupTotalCapacity", 
+    "GroupPendingCapacity",
+    "GroupMinSize",
+    "GroupMaxSize",
+    "GroupInServiceInstances",
+    "GroupPendingInstances",
+    "GroupStandbyInstances",
+    "GroupStandbyCapacity",
+    "GroupTerminatingCapacity",
+    "GroupTerminatingInstances",
+    "GroupTotalCapacity",
     "GroupTotalInstances"
-    ]
+  ]
 }
