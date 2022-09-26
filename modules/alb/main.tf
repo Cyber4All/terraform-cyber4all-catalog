@@ -123,10 +123,9 @@ module "internal-sg" {
 # CREATE EXTERNAL APPLICATION LOAD BALANCER
 # https://registry.terraform.io/modules/terraform-aws-modules/alb/aws/8.1.0
 #
-#
-#
-#
-#
+# LB Listeners: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener
+# LB Listener Rules: 
+# Targets: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "external-alb" {
@@ -154,25 +153,22 @@ module "external-alb" {
   # HTTP TCP LISTENERS
   # ----------------------------------------------------
   http_tcp_listeners      = var.external_http_tcp_listeners
-  http_tcp_listener_rules      = var.external_http_tcp_listener_rules
+  http_tcp_listener_rules = var.external_http_tcp_listener_rules
 
   # ----------------------------------------------------
   # HTTPS_LISTENERS
   # ----------------------------------------------------
   https_listeners      = var.external_https_listeners
-  https_listener_rules      = var.external_https_listener_rules
+  https_listener_rules = var.external_https_listener_rules
 
   # ----------------------------------------------------
   # TARGETS
   # ----------------------------------------------------
-
-  target_groups     = var.external_target_groups
+  target_groups = var.external_target_groups
 
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-
-  # bucket must exist PRIOR to reference
   access_logs = {
     bucket = "alb-log-bucket"
   }
