@@ -141,3 +141,9 @@ variable "capacity_rebalance" {
   description = "Indicates whether capacity rebalance is enabled"
   default     = true
 }
+
+variable "desired_capacity" {
+  type        = number
+  description = "desired capacity"
+  defualt     = 2
+}
