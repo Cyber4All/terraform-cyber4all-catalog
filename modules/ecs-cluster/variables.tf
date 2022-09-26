@@ -149,7 +149,7 @@ variable "desired_capacity" {
 }
 
 variable "iam_instance_profile_name" {
-  type = string
+  type        = string
   description = "name for the IAM instance profile"
-  default = ""
+  default     = ""
 }
