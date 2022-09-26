@@ -304,14 +304,14 @@ variable "external_http_tcp_listener_rules" {
 
 variable "external_https_listeners" {
   description = "A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index (defaults to https_listeners[count.index])"
-  type        = list(object({
-    port     = optional(port)
-    protocol = optional(string) # HTTP | HTTPS, default HTTPS
+  type = list(object({
+    port            = optional(port)
+    protocol        = optional(string) # HTTP | HTTPS, default HTTPS
     certificate_arn = string
-    ssl_policy = optional(string)
-    alpn_policy = optional(string)
+    ssl_policy      = optional(string)
+    alpn_policy     = optional(string)
 
-    action_type = optional(string) # forward | redirect | fixed-response | authenticate-cognito | authenticate-oidc
+    action_type        = optional(string) # forward | redirect | fixed-response | authenticate-cognito | authenticate-oidc
     target_group_index = optional(number) # default [count.index] 
 
     fixed_response = optional(object({
@@ -332,14 +332,14 @@ variable "external_https_listeners" {
     # authenticate-cognito options not supported
     # authenticate-oidc options not supported
   }))
-  default     = []
+  default = []
 }
 
 variable "external_https_listener_rules" {
   description = "A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https_listener_index (default to https_listeners[count.index])"
-  type        = list(object({
+  type = list(object({
     https_listener_index = optional(number) # default [count.index]
-    priority = optional(number)
+    priority             = optional(number)
 
     actions = optional(list(object({
       type = string # redirect | fixed-response | forward | weighted-forward | authenticate-oidc | authenticate-cognito
@@ -374,7 +374,7 @@ variable "external_https_listener_rules" {
       # authenticate-oidc options not supported
     })))
   }))
-  default     = []
+  default = []
 }
 
 variable "external_target_groups" {
@@ -522,14 +522,14 @@ variable "internal_http_tcp_listener_rules" {
 
 variable "internal_https_listeners" {
   description = "A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index (defaults to https_listeners[count.index])"
-  type        = list(object({
-    port     = optional(port)
-    protocol = optional(string) # HTTP | HTTPS, default HTTPS
+  type = list(object({
+    port            = optional(port)
+    protocol        = optional(string) # HTTP | HTTPS, default HTTPS
     certificate_arn = string
-    ssl_policy = optional(string)
-    alpn_policy = optional(string)
+    ssl_policy      = optional(string)
+    alpn_policy     = optional(string)
 
-    action_type = optional(string) # forward | redirect | fixed-response | authenticate-cognito | authenticate-oidc
+    action_type        = optional(string) # forward | redirect | fixed-response | authenticate-cognito | authenticate-oidc
     target_group_index = optional(number) # default [count.index] 
 
     fixed_response = optional(object({
@@ -550,14 +550,14 @@ variable "internal_https_listeners" {
     # authenticate-cognito options not supported
     # authenticate-oidc options not supported
   }))
-  default     = []
+  default = []
 }
 
 variable "internal_https_listener_rules" {
   description = "A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https_listener_index (default to https_listeners[count.index])"
-  type        = list(object({
+  type = list(object({
     https_listener_index = optional(number) # default [count.index]
-    priority = optional(number)
+    priority             = optional(number)
 
     actions = optional(list(object({
       type = string # redirect | fixed-response | forward | weighted-forward | authenticate-oidc | authenticate-cognito
@@ -592,7 +592,7 @@ variable "internal_https_listener_rules" {
       # authenticate-oidc options not supported
     })))
   }))
-  default     = []
+  default = []
 }
 
 variable "internal_target_groups" {
