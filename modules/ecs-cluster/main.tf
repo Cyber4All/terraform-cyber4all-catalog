@@ -60,6 +60,8 @@ module "autoscaling" {
   vpc_zone_identifier = concat(var.private_subnets, var.public_subnets)
   min_size            = var.asg_min_size
   max_size            = var.asg_max_size
+  desired_capacity    = var.desired_capacity
+  health_check_type   = "EC2"
 
   # launch template
   create_launch_template      = true
@@ -90,4 +92,20 @@ module "autoscaling" {
   protect_from_scale_in = true
   capacity_rebalance    = var.capacity_rebalance
   create_schedule       = false
+
+  enabled_metrics = [
+    "GroupDesiredCapacity",
+    "GroupInServiceCapacity",
+    "GroupPendingCapacity", 
+    "GroupMinSize", 
+    "GroupMaxSize", 
+    "GroupInServiceInstances", 
+    "GroupPendingInstances", 
+    "GroupStandbyInstances", 
+    "GroupStandbyCapacity", 
+    "GroupTerminatingCapacity", 
+    "GroupTerminatingInstances", 
+    "GroupTotalCapacity", 
+    "GroupTotalInstances"
+    ]
 }
