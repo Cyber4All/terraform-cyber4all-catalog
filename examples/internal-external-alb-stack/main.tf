@@ -15,7 +15,38 @@ module "vpc" {
 module "alb-stack" {
   source = "../../modules/alb"
 
-  
+  name = "alb-stack-example"
+  region                                            = "us-east-1"
+
+  # Network config
+  vpc_id = module.vpc.vpc_id
+  vpc_cidr                                          = module.vpc.vpc_cidr_block
+  private_subnet_arns = module.vpc.private_subnet_arns
+  public_subnet_arns = module.vpc.public_subnet_arns
+
+  # Using default Security Groups
+
+  # External ALB config
+  external_target_groups                            = []
+
+  external_http_tcp_listeners      = []
+  external_http_tcp_listener_rules = []
+
+  external_https_listeners         = []
+  external_https_listener_rules    = []
+
+  external_access_logs             = {}
+
+  # Internal ALB config
+  internal_target_groups                            = []
+
+  internal_http_tcp_listeners                       = []
+  internal_http_tcp_listener_rules                  = []
+
+  internal_https_listeners                          = []
+  internal_https_listener_rules                     = []
+
+  internal_access_logs                              = {}
 }
 
 module "internal-alb" {
