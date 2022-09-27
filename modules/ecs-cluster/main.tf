@@ -18,7 +18,8 @@ module "ecs" {
     execute_command_configuration = {
       logging = "OVERRIDE"
       log_configuration = {
-        cloud_watch_log_group_name = var.cloud_watch_log_group_name
+        cloud_watch_encryption_enabled = true
+        cloud_watch_log_group_name     = var.cloud_watch_log_group_name
       }
     }
   }
@@ -34,12 +35,16 @@ module "ecs" {
       default_capacity_provider_strategy = var.default_capacity_provider_strategy
     }
   }
+
+  cluster_settings = {
+    "name" : "containerInsights",
+    "value" : "enabled"
+  }
 }
 
 ##################################
 # Required resources
 ##################################
-
 
 #################################
 # security group
@@ -97,6 +102,10 @@ module "autoscaling" {
 
   autoscaling_group_tags = {
     AmazonECSManaged = true
+  }
+
+  credit_specification = {
+    cpu_credits = "standard"
   }
 
   instance_refresh = {
