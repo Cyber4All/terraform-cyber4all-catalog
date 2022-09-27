@@ -95,15 +95,7 @@ Default: `true`
 
 Description: Map containing access logging configuration for load balancer.
 
-Type:
-
-```hcl
-optional(object({
-    enabled = optional(bool) # default true
-    bucket  = string         # bucket must exist
-    prefix  = optional(string)
-  }))
-```
+Type: `map(string)`
 
 Default: `{}`
 
@@ -111,62 +103,7 @@ Default: `{}`
 
 Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http\_tcp\_listener\_index (default to http\_tcp\_listeners[count.index])
 
-Type:
-
-```hcl
-list(object({
-    http_tcp_listener_index = number
-    priority                = number
-
-    actions = list(object({
-      type = string # redirect | fixed-response | forward | weighted-forward
-
-      # redirect options
-      host        = optional(string) # default #{host}
-      path        = optional(string) # default /#{path}
-      port        = optional(number) # 1 - 65535 | #{port}, default #{port}
-      protocol    = optional(string) # HTTP | HTTPS | #{protocol}, default #{protocol}
-      query       = optional(string) # default #{query}
-      status_code = optional(string) # HTTP_301 | HTTP_302
-
-      # fixed-response options
-      content_type = optional(string) # text/plain | text/css | text/html | application/javascript | application/json
-      message_body = optional(string)
-      status_code  = optional(number) # 2XX, 4XX, 5XX
-
-      # forward options
-      target_group_index = optional(number) # default [count.index]
-
-      # weighted-forward options
-      target_groups = optional(list(object({
-        target_group_index = optional(number)
-        weight             = optional(number)
-      })))
-      stickiness = optional(object({
-        enabled  = optional(bool)   # default false
-        duration = optional(number) # default 1
-      }))
-    }))
-
-    conditions = list(object({
-      host_headers = optional(list(string))
-
-      http_headers = optional(list(object({
-        http_header_name = string
-        values           = string
-      })))
-
-      http_request_methods = optional(list(string))
-
-      query_strings = optional(list(object({
-        key   = optional(string)
-        value = string
-      })))
-
-      source_ips = optional(list(string))
-    }))
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -174,32 +111,7 @@ Default: `[]`
 
 Description: A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target\_group\_index (defaults to http\_tcp\_listeners[count.index])
 
-Type:
-
-```hcl
-list(object({
-    port     = optional(port)
-    protocol = optional(string) # HTTP | HTTPS, default HTTP
-
-    action_type        = optional(string) # forward | redirect | fixed-response, default forward
-    target_group_index = optional(number) # default [count.index]
-
-    redirect = optional(object({
-      path        = optional(string) # default /#{path}
-      host        = optional(string) # default #{host}
-      port        = optional(number) # 1 - 65535 | #{port}, default #{port}
-      protocol    = optional(string) # HTTP | HTTPS | #{protocol}, default #{protocol}
-      query       = optional(string) # default #{query}
-      status_code = string           # HTTP_301 | HTTP_302
-    }))
-
-    fixed_response = optional(object({
-      content_type = string # text/plain | text/css | text/html | application/javascript | application/json
-      message_body = optional(string)
-      status_code  = optional(number) # 2XX, 4XX, 5XX
-    }))
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -207,47 +119,7 @@ Default: `[]`
 
 Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https\_listener\_index (default to https\_listeners[count.index])
 
-Type:
-
-```hcl
-list(object({
-    https_listener_index = optional(number) # default [count.index]
-    priority             = optional(number)
-
-    actions = optional(list(object({
-      type = string # redirect | fixed-response | forward | weighted-forward | authenticate-oidc | authenticate-cognito
-
-      # redirect options
-      host        = optional(string) # default #{host}
-      path        = optional(string) # default /#{path}
-      port        = optional(number) # 1 - 65535 | #{port}, default #{port}
-      protocol    = optional(string) # HTTP | HTTPS | #{protocol}, default #{protocol}
-      query       = optional(string) # default #{query}
-      status_code = optional(string) # HTTP_301 | HTTP_302
-
-      # fixed-response options
-      content_type = optional(string) # text/plain | text/css | text/html | application/javascript | application/json
-      message_body = optional(string)
-      status_code  = optional(number) # 2XX, 4XX, 5XX
-
-      # forward options
-      target_group_index = optional(number) # default [count.index]
-
-      # weighted-forward options
-      target_groups = optional(list(object({
-        target_group_index = optional(number)
-        weight             = optional(number)
-      })))
-      stickiness = optional(object({
-        enabled  = optional(bool)   # default false
-        duration = optional(number) # default 1
-      }))
-
-      # authenticate-cognito options not supported
-      # authenticate-oidc options not supported
-    })))
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -255,38 +127,7 @@ Default: `[]`
 
 Description: A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate\_arn. Optional key/values: ssl\_policy (defaults to ELBSecurityPolicy-2016-08), target\_group\_index (defaults to https\_listeners[count.index])
 
-Type:
-
-```hcl
-list(object({
-    port            = optional(port)
-    protocol        = optional(string) # HTTP | HTTPS, default HTTPS
-    certificate_arn = string
-    ssl_policy      = optional(string)
-    alpn_policy     = optional(string)
-
-    action_type        = optional(string) # forward | redirect | fixed-response | authenticate-cognito | authenticate-oidc
-    target_group_index = optional(number) # default [count.index]
-
-    fixed_response = optional(object({
-      content_type = string # text/plain | text/css | text/html | application/javascript | application/json
-      message_body = optional(string)
-      status_code  = optional(number) # 2XX, 4XX, 5XX
-    }))
-
-    redirect = optional(object({
-      host        = optional(string) # default #{host}
-      path        = optional(string) # default /#{path}
-      port        = optional(number) # 1 - 65535 | #{port}, default #{port}
-      protocol    = optional(string) # HTTP | HTTPS | #{protocol}, default #{protocol}
-      query       = optional(string) # default #{query}
-      status_code = optional(string) # HTTP_301 | HTTP_302
-    }))
-
-    # authenticate-cognito options not supported
-    # authenticate-oidc options not supported
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -310,17 +151,7 @@ Default: `"Security group attached to external alb managed by terraform"`
 
 Description: List of egress rules to create where 'cidr\_blocks' is used (set to [] if using external\_sg\_egress\_with\_source\_security\_group\_id, see main.tf locals)
 
-Type:
-
-```hcl
-list(object({
-    cidr_blocks = string
-    description = string
-    from_port   = number
-    to_port     = number
-    protocol    = string
-  }))
-```
+Type: `list(map(string))`
 
 Default:
 
@@ -347,17 +178,7 @@ Default:
 
 Description: List of egress rules to create where 'source\_security\_group\_id' is used (external\_sg\_egress\_with\_cidr\_blocks set to [] if using this variable, see main.tf locals)
 
-Type:
-
-```hcl
-list(object({
-    source_security_group_id = string
-    description              = string
-    from_port                = number
-    to_port                  = number
-    protocol                 = string
-  }))
-```
+Type: `list(map(string))`
 
 Default: `[]`
 
@@ -365,17 +186,7 @@ Default: `[]`
 
 Description: List of ingress rules to create where 'cidr\_blocks' is used
 
-Type:
-
-```hcl
-list(object({
-    cidr_blocks = string
-    description = string
-    from_port   = number
-    to_port     = number
-    protocol    = string
-  }))
-```
+Type: `list(map(string))`
 
 Default:
 
@@ -402,17 +213,7 @@ Default:
 
 Description: List of ingress rules to create where 'source\_security\_group\_id' is used
 
-Type:
-
-```hcl
-list(object({
-    source_security_group_id = string
-    description              = string
-    from_port                = number
-    to_port                  = number
-    protocol                 = string
-  }))
-```
+Type: `list(map(string))`
 
 Default: `[]`
 
@@ -420,46 +221,7 @@ Default: `[]`
 
 Description: A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend\_protocol, backend\_port
 
-Type:
-
-```hcl
-list(object({
-    name             = string
-    backend_protocol = number # GENEVE | HTTP | HTTPS | TCP | TCP_UDP | TLS | UDP
-    backend_port     = number
-    protocol_version = optional(string) # HTTP2 | HTTP1, default HTTP1
-    target_type      = optional(string) # default instance
-
-    connection_termination             = optional(bool)   # default false
-    deregistration_delay               = optional(number) # default 300 seconds
-    slow_start                         = optional(number) # default 0 seconds
-    proxy_protocol_v2                  = optional(bool)   # default false
-    lambda_multi_value_headers_enabled = optional(bool)   # default false
-    load_balancing_algorithm_type      = optional(string) # default round_robin
-    preserve_client_ip                 = optional(bool)
-    ip_address_type                    = optional(string) # ipv4 | ipv6
-
-    health_check = optional(object({
-      enabled             = optional(bool)   # default true
-      interval            = optional(number) # default 30 seconds
-      path                = optional(string)
-      port                = optional(string) # default traffic-port
-      healthy_threshold   = optional(number) # default 3
-      unhealthy_threshold = optional(number) # default 3
-      timeout             = optional(number) # default 5 or 10 seconds
-      protocol            = optional(string) # default HTTP
-      matcher             = optional(string)
-    }))
-
-    stickiness = optional(object({
-      enabled         = optional(bool)   # default true
-      cookie_duration = optional(number) # default 86400 (1 day)
-      type            = string           # lb_cookie | app_cookie | source_ip
-      cookie_name     = optional(string)
-    }))
-
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -467,15 +229,7 @@ Default: `[]`
 
 Description: Map containing access logging configuration for load balancer.
 
-Type:
-
-```hcl
-optional(object({
-    enabled = optional(bool) # default true
-    bucket  = string         # bucket must exist
-    prefix  = optional(string)
-  }))
-```
+Type: `map(string)`
 
 Default: `{}`
 
@@ -483,62 +237,7 @@ Default: `{}`
 
 Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http\_tcp\_listener\_index (default to http\_tcp\_listeners[count.index])
 
-Type:
-
-```hcl
-list(object({
-    http_tcp_listener_index = number
-    priority                = number
-
-    actions = list(object({
-      type = string # redirect | fixed-response | forward | weighted-forward
-
-      # redirect options
-      host        = optional(string) # default #{host}
-      path        = optional(string) # default /#{path}
-      port        = optional(number) # 1 - 65535 | #{port}, default #{port}
-      protocol    = optional(string) # HTTP | HTTPS | #{protocol}, default #{protocol}
-      query       = optional(string) # default #{query}
-      status_code = optional(string) # HTTP_301 | HTTP_302
-
-      # fixed-response options
-      content_type = optional(string) # text/plain | text/css | text/html | application/javascript | application/json
-      message_body = optional(string)
-      status_code  = optional(number) # 2XX, 4XX, 5XX
-
-      # forward options
-      target_group_index = optional(number) # default [count.index]
-
-      # weighted-forward options
-      target_groups = optional(list(object({
-        target_group_index = optional(number)
-        weight             = optional(number)
-      })))
-      stickiness = optional(object({
-        enabled  = optional(bool)   # default false
-        duration = optional(number) # default 1
-      }))
-    }))
-
-    conditions = list(object({
-      host_headers = optional(list(string))
-
-      http_headers = optional(list(object({
-        http_header_name = string
-        values           = string
-      })))
-
-      http_request_methods = optional(list(string))
-
-      query_strings = optional(list(object({
-        key   = optional(string)
-        value = string
-      })))
-
-      source_ips = optional(list(string))
-    }))
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -546,32 +245,7 @@ Default: `[]`
 
 Description: A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target\_group\_index (defaults to http\_tcp\_listeners[count.index])
 
-Type:
-
-```hcl
-list(object({
-    port     = optional(port)
-    protocol = optional(string) # HTTP | HTTPS, default HTTP
-
-    action_type        = optional(string) # forward | redirect | fixed-response, default forward
-    target_group_index = optional(number) # default [count.index]
-
-    redirect = optional(object({
-      path        = optional(string) # default /#{path}
-      host        = optional(string) # default #{host}
-      port        = optional(number) # 1 - 65535 | #{port}, default #{port}
-      protocol    = optional(string) # HTTP | HTTPS | #{protocol}, default #{protocol}
-      query       = optional(string) # default #{query}
-      status_code = string           # HTTP_301 | HTTP_302
-    }))
-
-    fixed_response = optional(object({
-      content_type = string # text/plain | text/css | text/html | application/javascript | application/json
-      message_body = optional(string)
-      status_code  = optional(number) # 2XX, 4XX, 5XX
-    }))
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -579,47 +253,7 @@ Default: `[]`
 
 Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https\_listener\_index (default to https\_listeners[count.index])
 
-Type:
-
-```hcl
-list(object({
-    https_listener_index = optional(number) # default [count.index]
-    priority             = optional(number)
-
-    actions = optional(list(object({
-      type = string # redirect | fixed-response | forward | weighted-forward | authenticate-oidc | authenticate-cognito
-
-      # redirect options
-      host        = optional(string) # default #{host}
-      path        = optional(string) # default /#{path}
-      port        = optional(number) # 1 - 65535 | #{port}, default #{port}
-      protocol    = optional(string) # HTTP | HTTPS | #{protocol}, default #{protocol}
-      query       = optional(string) # default #{query}
-      status_code = optional(string) # HTTP_301 | HTTP_302
-
-      # fixed-response options
-      content_type = optional(string) # text/plain | text/css | text/html | application/javascript | application/json
-      message_body = optional(string)
-      status_code  = optional(number) # 2XX, 4XX, 5XX
-
-      # forward options
-      target_group_index = optional(number) # default [count.index]
-
-      # weighted-forward options
-      target_groups = optional(list(object({
-        target_group_index = optional(number)
-        weight             = optional(number)
-      })))
-      stickiness = optional(object({
-        enabled  = optional(bool)   # default false
-        duration = optional(number) # default 1
-      }))
-
-      # authenticate-cognito options not supported
-      # authenticate-oidc options not supported
-    })))
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -627,38 +261,7 @@ Default: `[]`
 
 Description: A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate\_arn. Optional key/values: ssl\_policy (defaults to ELBSecurityPolicy-2016-08), target\_group\_index (defaults to https\_listeners[count.index])
 
-Type:
-
-```hcl
-list(object({
-    port            = optional(port)
-    protocol        = optional(string) # HTTP | HTTPS, default HTTPS
-    certificate_arn = string
-    ssl_policy      = optional(string)
-    alpn_policy     = optional(string)
-
-    action_type        = optional(string) # forward | redirect | fixed-response | authenticate-cognito | authenticate-oidc
-    target_group_index = optional(number) # default [count.index]
-
-    fixed_response = optional(object({
-      content_type = string # text/plain | text/css | text/html | application/javascript | application/json
-      message_body = optional(string)
-      status_code  = optional(number) # 2XX, 4XX, 5XX
-    }))
-
-    redirect = optional(object({
-      host        = optional(string) # default #{host}
-      path        = optional(string) # default /#{path}
-      port        = optional(number) # 1 - 65535 | #{port}, default #{port}
-      protocol    = optional(string) # HTTP | HTTPS | #{protocol}, default #{protocol}
-      query       = optional(string) # default #{query}
-      status_code = optional(string) # HTTP_301 | HTTP_302
-    }))
-
-    # authenticate-cognito options not supported
-    # authenticate-oidc options not supported
-  }))
-```
+Type: `any`
 
 Default: `[]`
 
@@ -682,17 +285,7 @@ Default: `"Security group attached to internal alb managed by terraform"`
 
 Description: List of egress rules to create where 'cidr\_blocks' is used (set to [] if using internal\_sg\_egress\_with\_source\_security\_group\_id, see main.tf locals)
 
-Type:
-
-```hcl
-list(object({
-    cidr_blocks = string
-    description = string
-    from_port   = number
-    to_port     = number
-    protocol    = string
-  }))
-```
+Type: `list(map(string))`
 
 Default:
 
@@ -712,17 +305,7 @@ Default:
 
 Description: List of egress rules to create where 'source\_security\_group\_id' is used (internal\_sg\_egress\_with\_cidr\_blocks set to [] if using this variable, see main.tf locals)
 
-Type:
-
-```hcl
-list(object({
-    source_security_group_id = string
-    description              = string
-    from_port                = number
-    to_port                  = number
-    protocol                 = string
-  }))
-```
+Type: `list(map(string))`
 
 Default: `[]`
 
@@ -730,17 +313,7 @@ Default: `[]`
 
 Description: List of ingress rules to create where 'cidr\_blocks' is used (if vpc\_cidr is set, default rules set with cidr\_blocks, see main.tf locals)
 
-Type:
-
-```hcl
-list(object({
-    cidr_blocks = string
-    description = string
-    from_port   = number
-    to_port     = number
-    protocol    = string
-  }))
-```
+Type: `list(map(string))`
 
 Default:
 
@@ -760,17 +333,7 @@ Default:
 
 Description: List of ingress rules to create where 'source\_security\_group\_id' is used
 
-Type:
-
-```hcl
-list(object({
-    source_security_group_id = string
-    description              = string
-    from_port                = number
-    to_port                  = number
-    protocol                 = string
-  }))
-```
+Type: `list(map(string))`
 
 Default: `[]`
 
@@ -778,46 +341,7 @@ Default: `[]`
 
 Description: A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend\_protocol, backend\_port
 
-Type:
-
-```hcl
-list(object({
-    name             = string
-    backend_protocol = number # GENEVE | HTTP | HTTPS | TCP | TCP_UDP | TLS | UDP
-    backend_port     = number
-    protocol_version = optional(string) # HTTP2 | HTTP1, default HTTP1
-    target_type      = optional(string) # default instance
-
-    connection_termination             = optional(bool)   # default false
-    deregistration_delay               = optional(number) # default 300 seconds
-    slow_start                         = optional(number) # default 0 seconds
-    proxy_protocol_v2                  = optional(bool)   # default false
-    lambda_multi_value_headers_enabled = optional(bool)   # default false
-    load_balancing_algorithm_type      = optional(string) # default round_robin
-    preserve_client_ip                 = optional(bool)
-    ip_address_type                    = optional(string) # ipv4 | ipv6
-
-    health_check = optional(object({
-      enabled             = optional(bool)   # default true
-      interval            = optional(number) # default 30 seconds
-      path                = optional(string)
-      port                = optional(string) # default traffic-port
-      healthy_threshold   = optional(number) # default 3
-      unhealthy_threshold = optional(number) # default 3
-      timeout             = optional(number) # default 5 or 10 seconds
-      protocol            = optional(string) # default HTTP
-      matcher             = optional(string)
-    }))
-
-    stickiness = optional(object({
-      enabled         = optional(bool)   # default true
-      cookie_duration = optional(number) # default 86400 (1 day)
-      type            = string           # lb_cookie | app_cookie | source_ip
-      cookie_name     = optional(string)
-    }))
-
-  }))
-```
+Type: `any`
 
 Default: `[]`
 

@@ -169,7 +169,7 @@ module "external-alb" {
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-  access_logs = var.external_access_logs
+  access_logs = var.access_log_bucket ? { bucket = var.access_log_bucket } : null
 
   # ----------------------------------------------------
   # DEFAULTS
@@ -249,7 +249,7 @@ module "internal-alb" {
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-  access_logs = var.internal_access_logs
+  access_logs = var.access_log_bucket ? { bucket = var.access_log_bucket } : null
 
   # ----------------------------------------------------
   # DEFAULTS
