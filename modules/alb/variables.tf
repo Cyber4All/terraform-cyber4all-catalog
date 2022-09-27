@@ -17,6 +17,11 @@ variable "public_subnet_arns" {
   type        = list(string)
 }
 
+variable "private_subnet_arns" {
+  description = "List of private subnet ARNs to deploy internal ALB into (required if create_internal_alb == true)"
+  type        = list(string)
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These parameters have reasonable defaults.
@@ -420,11 +425,12 @@ variable "external_target_groups" {
 
 variable "external_access_logs" {
   description = "Map containing access logging configuration for load balancer."
-  type = object({
+  type = optional(object({
     enabled = optional(bool) # default true
     bucket  = string         # bucket must exist
     prefix  = optional(string)
-  })
+  }))
+  default = {}
 }
 
 # ----------------------------------------------------
@@ -638,9 +644,10 @@ variable "internal_target_groups" {
 
 variable "internal_access_logs" {
   description = "Map containing access logging configuration for load balancer."
-  type = object({
+  type = optional(object({
     enabled = optional(bool) # default true
     bucket  = string         # bucket must exist
     prefix  = optional(string)
-  })
+  }))
+  default = {}
 }

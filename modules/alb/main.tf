@@ -226,7 +226,7 @@ module "internal-alb" {
   #   Internal ALB should exist in private subnets
   # ----------------------------------------------------
   vpc_id          = var.vpc_id
-  subnets         = var.public_subnet_arns
+  subnets         = var.private_subnet_arns
   security_groups = [module.internal-sg.security_group_id]
 
   # ----------------------------------------------------
