@@ -14,6 +14,15 @@ module "ecs" {
 
   cluster_name = "${var.project_name}-cluster"
 
+  cluster_configuration = {
+    execute_command_configuration = {
+      logging = "OVERRIDE"
+      log_configuration = {
+        cloud_watch_log_group_name = var.cloud_watch_log_group_name
+      }
+    }
+  }
+
   autoscaling_capacity_providers = {
     one = {
       auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn

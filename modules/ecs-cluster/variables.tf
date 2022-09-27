@@ -26,7 +26,10 @@ variable "vpc_id" {
   description = "VPC id to create the cluster in"
 }
 
-
+variable "cloud_watch_log_group_name" {
+  type        = string
+  description = "log group name to log cluster information"
+}
 ########################################
 # Optional vars
 ########################################
