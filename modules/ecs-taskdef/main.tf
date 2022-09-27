@@ -18,8 +18,8 @@ terraform {
 }
 
 resource "aws_ecs_task_definition" "example" {
-  family = "example"
-  container_definitions = file("task-definitions/example1.json")
-  requires_compatibilities = [ "EC2" ]
-  network_mode = "awsvpc"
+  family                   = "example"
+  container_definitions    = file("task-definitions/example1.json")
+  requires_compatibilities = ["EC2"]
+  network_mode             = "awsvpc"
 }
