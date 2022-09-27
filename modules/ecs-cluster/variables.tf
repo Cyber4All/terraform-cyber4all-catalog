@@ -35,7 +35,7 @@ variable "cloud_watch_log_group_name" {
 ########################################
 # variable "autoscaling_capacity_providers" {
 #   type = map(object({
-#     auto_scaling_group_arn = optional(string, module.autoscaling.auto_scaling_group_arn)
+#     auto_scaling_group_arn = optional(string)
 
 #     managed_termination_protection = optional(string)
 
@@ -53,26 +53,15 @@ variable "cloud_watch_log_group_name" {
 #   }))
 # }
 variable "managed_scaling" {
-  type = object({
-    maximum_scaling_step_size = optional(number)
-    minimum_scaling_step_size = optional(number)
-    status                    = optional(string)
-    target_capacity           = optional(number)
-  })
-  default = {}
+  type        = any
+  description = "variables for managing scaling"
+  default     = {}
 }
 
 variable "default_capacity_provider_strategy" {
-  type = object({
-    weight = optional(number)
-    base   = optional(number)
-  })
-  default = {}
-}
-
-variable "managed_termination_protection" {
-  type    = string
-  default = "ENABLED"
+  type        = any
+  description = "capacity provider strategy"
+  default     = {}
 }
 
 variable "asg_min_size" {
@@ -124,17 +113,7 @@ variable "security_group_description" {
 }
 
 variable "block_device_mappings" {
-  type = list(object({
-    device_name = optional(string)
-    no_device   = optional(number)
-
-    ebs = optional(object({
-      delete_on_termination = optional(bool)
-      encrypted             = optional(bool)
-      volume_size           = optional(number)
-      volume_type           = optional(string)
-    }))
-  }))
+  type        = list(any)
   description = "Specify volumes to attach to the instance besides the volumes specified by the AMI"
   default     = []
 }

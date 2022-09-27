@@ -1,6 +1,4 @@
-terraform {
-  experiments = [module_variable_optional_attrs]
-}
+
 
 #################################
 # ecs
@@ -28,7 +26,7 @@ module "ecs" {
     one = {
       auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
 
-      managed_termination_protection = var.managed_termination_protection
+      managed_termination_protection = "ENABLED"
 
       managed_scaling = var.managed_scaling
 
