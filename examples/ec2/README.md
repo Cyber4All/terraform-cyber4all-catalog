@@ -5,7 +5,7 @@ github.com/Cyber4All/terraform-module/modules/ecs-cluster
 
 ### Description:
 
-The ECS module will be responsible for the creation of ECS clusters with an
+The ECS module will be responsible for the creation of ECS clusters with an Autoscaling group
 
 ### Usage: 
 Link a VPC to an ECS-Cluster with ASG and EC2 instances baked in
