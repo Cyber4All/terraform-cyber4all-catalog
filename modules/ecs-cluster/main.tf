@@ -1,5 +1,3 @@
-
-
 #################################
 # ecs
 # https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
@@ -104,15 +102,6 @@ module "autoscaling" {
 
   credit_specification = {
     cpu_credits = "standard"
-  }
-
-  instance_refresh = {
-    strategy = Rolling
-    preferences = {
-      checkpoint_delay       = 3600
-      checkpoint_percentages = 100
-      min_healthy_percentage = 90
-    }
   }
 
   protect_from_scale_in = true

@@ -39,6 +39,10 @@ module "vpc" {
   single_nat_gateway = true
 }
 
+resource "aws_cloudwatch_log_group" "log_group" {
+  name = "cloudwatch_log_group"
+}
+
 #################################
 # ecs
 # 
@@ -69,6 +73,8 @@ module "ecs-cluster" {
       cidr_blocks = "0.0.0.0/0"
     }
   ]
+
+  cloud_watch_log_group_name = resource.aws_cloudwatch_log_group.log_group.name
 
   private_subnets = module.vpc.private_subnets
   public_subnets  = module.vpc.public_subnets
