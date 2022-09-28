@@ -21,7 +21,7 @@ TF_LOG=trace terraform -chdir=modules/iam apply --auto-approve &> log.log
 cat log.log | grep "DEBUG: Request"
 ```
 
-The first command logs all the actions in the apply, while the second command will echo the aws actions called durring runtime.
+The first command logs all the actions in the apply, while the second command will echo the aws actions called during runtime.
 
 ## Using Roles in CICD
 
