@@ -16,7 +16,7 @@ module "ecs" {
       logging = "OVERRIDE"
       log_configuration = {
         s3_bucket_encryption_enabled = true
-        s3_bucket_name     = var.s3_log_bucket_name
+        s3_bucket_name               = var.s3_log_bucket_name
       }
     }
   }
