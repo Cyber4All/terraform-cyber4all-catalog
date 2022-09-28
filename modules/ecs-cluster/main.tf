@@ -37,17 +37,17 @@ module "ecs" {
     "value" : "enabled"
   }
 
-##################################
-# Defaults
-##################################
-# autoscaling_capacity_providers = {}
-# cluster_configuration = {}
-# cluster_name = ""
-# cluster_settings = { "name": "containerInsights", "value": "enabled" }
-# create = true
-# default_capacity_provider_use_fargate = true
-# fargate_capacity_providers = {}
-# tags = {}
+  ##################################
+  # Defaults
+  ##################################
+  # autoscaling_capacity_providers = {}
+  # cluster_configuration = {}
+  # cluster_name = ""
+  # cluster_settings = { "name": "containerInsights", "value": "enabled" }
+  # create = true
+  # default_capacity_provider_use_fargate = true
+  # fargate_capacity_providers = {}
+  # tags = {}
 }
 
 ##################################
@@ -70,59 +70,59 @@ module "security_group" {
   egress_with_cidr_blocks  = var.egress_with_cidr_blocks
 
 
-##################################
-# Defaults
-##################################
-# auto_groups (see registry page, too long to include)
-# computed_egress_rules = []
-# computed_egress_with_cidr_blocks = []
-# computed_egress_with_ipv6_cidr_blocks = []
-# computed_egress_with_self = []
-# computed_egress_with_source_security_group_id = []
-# computed_ingress_rules = []
-# computed_ingress_with_cidr_blocks = []
-# computed_ingress_with_ipv6_cidr_blocks = []
-# computed_ingress_with_self = []
-# computed_ingress_with_source_security_group_id = []
-# create = true
-# create_sg = true
-# create_timeout = "10m"
-# delete_timeout = "15m"
-# description = "Security Group managed by Terraform"
-# egress_cidr_blocks = [ "0.0.0.0/0" ]
-# egress_ipv6_cidr_blocks = [ "::/0" ]
-# egress_prefix_list_ids = []
-# egress_rules = []
-# egress_with_cidr_blocks = []
-# egress_with_ipv6_cidr_blocks = []
-# egress_with_self = []
-# egress_with_source_security_group_id = []
-# ingress_cidr_blocks = []
-# ingress_ipv6_cidr_blocks = []
-# ingress_prefix_list_ids = []
-# ingress_rules = []
-# ingress_with_cidr_blocks = []
-# ingress_with_ipv6_cidr_blocks = []
-# ingress_with_self = []
-# ingress_with_source_security_group_id = []
-# name = null
-# number_of_computed_egress_rules = 0
-# number_of_computed_egress_with_cidr_blocks = 0
-# number_of_computed_egress_with_ipv6_cidr_blocks = 0
-# number_of_computed_egress_with_self = 0
-# number_of_computed_egress_with_source_security_group_id = 0
-# number_of_computed_ingress_rules = 0
-# number_of_computed_ingress_with_cidr_blocks = 0
-# number_of_computed_ingress_with_ipv6_cidr_blocks = 0
-# number_of_computed_ingress_with_self = 0
-# number_of_computed_ingress_with_source_security_group_id = 0
-# putin_khuylo = true
-# revoke_rules_on_delete = false
-# rules (see registry page, too long to include)
-# security_group_id = null
-# tags = {}
-# use_name_prefix = true
-# vpc_id = null
+  ##################################
+  # Defaults
+  ##################################
+  # auto_groups (see registry page, too long to include)
+  # computed_egress_rules = []
+  # computed_egress_with_cidr_blocks = []
+  # computed_egress_with_ipv6_cidr_blocks = []
+  # computed_egress_with_self = []
+  # computed_egress_with_source_security_group_id = []
+  # computed_ingress_rules = []
+  # computed_ingress_with_cidr_blocks = []
+  # computed_ingress_with_ipv6_cidr_blocks = []
+  # computed_ingress_with_self = []
+  # computed_ingress_with_source_security_group_id = []
+  # create = true
+  # create_sg = true
+  # create_timeout = "10m"
+  # delete_timeout = "15m"
+  # description = "Security Group managed by Terraform"
+  # egress_cidr_blocks = [ "0.0.0.0/0" ]
+  # egress_ipv6_cidr_blocks = [ "::/0" ]
+  # egress_prefix_list_ids = []
+  # egress_rules = []
+  # egress_with_cidr_blocks = []
+  # egress_with_ipv6_cidr_blocks = []
+  # egress_with_self = []
+  # egress_with_source_security_group_id = []
+  # ingress_cidr_blocks = []
+  # ingress_ipv6_cidr_blocks = []
+  # ingress_prefix_list_ids = []
+  # ingress_rules = []
+  # ingress_with_cidr_blocks = []
+  # ingress_with_ipv6_cidr_blocks = []
+  # ingress_with_self = []
+  # ingress_with_source_security_group_id = []
+  # name = null
+  # number_of_computed_egress_rules = 0
+  # number_of_computed_egress_with_cidr_blocks = 0
+  # number_of_computed_egress_with_ipv6_cidr_blocks = 0
+  # number_of_computed_egress_with_self = 0
+  # number_of_computed_egress_with_source_security_group_id = 0
+  # number_of_computed_ingress_rules = 0
+  # number_of_computed_ingress_with_cidr_blocks = 0
+  # number_of_computed_ingress_with_ipv6_cidr_blocks = 0
+  # number_of_computed_ingress_with_self = 0
+  # number_of_computed_ingress_with_source_security_group_id = 0
+  # putin_khuylo = true
+  # revoke_rules_on_delete = false
+  # rules (see registry page, too long to include)
+  # security_group_id = null
+  # tags = {}
+  # use_name_prefix = true
+  # vpc_id = null
 
 }
 
@@ -192,68 +192,68 @@ module "autoscaling" {
     "GroupTotalInstances"
   ]
 
-##################################
-# Defaults
-##################################
-# availability_zones = null
-# capacity_reservation_specification = {}
-# cpu_options = {}
-# create = true
-# create_scaling_policy = true
-# default_cooldown = null
-# default_version = null
-# delete_timeout = null
-# disable_api_termination = null
-# ebs_optimized = null
-# elastic_gpu_specifications = {}
-# elastic_inference_accelerator = {}
-# enable_monitoring = true
-# enclave_options = {}
-# force_delete = null
-# health_check_grace_period = null
-# hibernation_options = {}
-# iam_instance_profile_arn = null
-# iam_role_path = null
-# iam_role_permissions_boundary = null
-# iam_role_tags = {}
-# iam_role_use_name_prefix = true
-# ignore_desired_capacity_changes = false
-# initial_lifecycle_hooks = []
-# instance_initiated_shutdown_behavior = null
-# instance_market_options = {}
-# instance_name = ""
-# instance_refresh = {}
-# instance_requirements = {}
-# kernel_id = null
-# key_name = null
-# launch_template = null
-# launch_template_use_name_prefix = true
-# launch_template_version = null
-# license_specifications = {}
-# load_balancers = []
-# maintenance_options = {}
-# max_instance_lifetime = null
-# metadata_options = {}
-# metrics_granularity = null
-# min_elb_capacity = null
-# mixed_instances_policy = null
-# network_interfaces = []
-# placement = {}
-# placement_group = null
-# private_dns_name_options = {}
-# putin_khuylo = true
-# ram_disk_id = null
-# scaling_policies = {}
-# schedules = {}
-# service_linked_role_arn = null
-# suspended_processes = []
-# tag_specifications = []
-# tags = {}
-# target_group_arns = []
-# termination_policies = []
-# use_mixed_instances_policy = false
-# use_name_prefix = true
-# wait_for_capacity_timeout = null
-# wait_for_elb_capacity = null
-# warm_pool = {}
+  ##################################
+  # Defaults
+  ##################################
+  # availability_zones = null
+  # capacity_reservation_specification = {}
+  # cpu_options = {}
+  # create = true
+  # create_scaling_policy = true
+  # default_cooldown = null
+  # default_version = null
+  # delete_timeout = null
+  # disable_api_termination = null
+  # ebs_optimized = null
+  # elastic_gpu_specifications = {}
+  # elastic_inference_accelerator = {}
+  # enable_monitoring = true
+  # enclave_options = {}
+  # force_delete = null
+  # health_check_grace_period = null
+  # hibernation_options = {}
+  # iam_instance_profile_arn = null
+  # iam_role_path = null
+  # iam_role_permissions_boundary = null
+  # iam_role_tags = {}
+  # iam_role_use_name_prefix = true
+  # ignore_desired_capacity_changes = false
+  # initial_lifecycle_hooks = []
+  # instance_initiated_shutdown_behavior = null
+  # instance_market_options = {}
+  # instance_name = ""
+  # instance_refresh = {}
+  # instance_requirements = {}
+  # kernel_id = null
+  # key_name = null
+  # launch_template = null
+  # launch_template_use_name_prefix = true
+  # launch_template_version = null
+  # license_specifications = {}
+  # load_balancers = []
+  # maintenance_options = {}
+  # max_instance_lifetime = null
+  # metadata_options = {}
+  # metrics_granularity = null
+  # min_elb_capacity = null
+  # mixed_instances_policy = null
+  # network_interfaces = []
+  # placement = {}
+  # placement_group = null
+  # private_dns_name_options = {}
+  # putin_khuylo = true
+  # ram_disk_id = null
+  # scaling_policies = {}
+  # schedules = {}
+  # service_linked_role_arn = null
+  # suspended_processes = []
+  # tag_specifications = []
+  # tags = {}
+  # target_group_arns = []
+  # termination_policies = []
+  # use_mixed_instances_policy = false
+  # use_name_prefix = true
+  # wait_for_capacity_timeout = null
+  # wait_for_elb_capacity = null
+  # warm_pool = {}
 }
