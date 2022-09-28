@@ -26,13 +26,14 @@ variable "vpc_id" {
   description = "VPC id to create the cluster in"
 }
 
-variable "cloud_watch_log_group_name" {
+variable "s3_log_bucket_name" {
   type        = string
-  description = "log group name to log cluster information"
+  description = "s3 bucket name for logging"
 }
 ########################################
 # Optional vars
 ########################################
+
 # variable "autoscaling_capacity_providers" {
 #   type = map(object({
 #     auto_scaling_group_arn = optional(string)

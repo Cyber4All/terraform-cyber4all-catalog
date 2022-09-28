@@ -43,9 +43,9 @@ Description: maximum size of the autoscaling group
 
 Type: `number`
 
-### <a name="input_cloud_watch_log_group_name"></a> [cloud\_watch\_log\_group\_name](#input\_cloud\_watch\_log\_group\_name)
+### <a name="input_s3\_log\_bucket\_name"></a> [s3\_log\_bucket\_name](#input\_s3\_log\_bucket\_name)
 
-Description: log group name to log cluster information
+Description: s3 bucket name for logging
 
 Type: `string`
 

@@ -1,6 +1,7 @@
 #################################
 # ecs
 # https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster
 #################################
 module "ecs" {
   source  = "terraform-aws-modules/ecs/aws"
@@ -14,8 +15,8 @@ module "ecs" {
     execute_command_configuration = {
       logging = "OVERRIDE"
       log_configuration = {
-        cloud_watch_encryption_enabled = true
-        cloud_watch_log_group_name     = var.cloud_watch_log_group_name
+        s3_bucket_encryption_enabled = true
+        s3_bucket_name     = var.s3_log_bucket_name
       }
     }
   }
