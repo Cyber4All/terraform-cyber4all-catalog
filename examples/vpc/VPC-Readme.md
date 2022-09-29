@@ -20,7 +20,7 @@
 
 ```terraform init``` will download all the necessary dependencies
 
-```terraform plan``` will diplay an plan for what will be created in aws
+```terraform plan``` will display an plan for what will be created in aws
 
 ```terraform apply``` would make the changes in aws
 
