@@ -135,6 +135,5 @@ module "alb-stack" {
       }
     }
   ]
-
   access_log_bucket = "example-log-bucket"
 }
