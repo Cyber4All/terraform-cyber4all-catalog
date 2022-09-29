@@ -31,8 +31,8 @@ resource "aws_ecs_task_definition" "example" {
 # Terraform Docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
 # AWS Docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service_definition_parameters.html
 resource "aws_ecs_service" "example" {
-  name = "example_service"
+  name            = "example_service"
   task_definition = aws_ecs_task_definition.example.arn
-  cluster = module.aws_ecs_cluster.cluster_arn
-  desired_count = 1
+  cluster         = module.aws_ecs_cluster.cluster_arn
+  desired_count   = 1
 }
