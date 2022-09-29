@@ -8,14 +8,10 @@ variable "family" {
   type        = string
 }
 
-# variable "container_definitions" {
-#   description = "A list of containers with container definitions provided as a single JSON document"
-#   type = list(object({
-#     name = string
-#     image = string
-#     memory = number # hard limit of memory (in MiB) for a container, killed if limit exceeded, required for EC2 container types (specified in requires_compatibilities)
-#   }))
-# }
+variable "container_definitions" {
+  description = "A list of containers with container definitions provided as a single JSON document"
+  type        = any
+}
 
 # --------------------------------------------------------
 # OPTIONAL PARAMETERS

@@ -22,17 +22,7 @@ terraform {
 # AWS Docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
 resource "aws_ecs_task_definition" "example" {
   family                   = var.family
-  container_definitions    = file("task-definitions/example1.json")
+  container_definitions    = var.container_definitions
   requires_compatibilities = var.requires_compatibilities
   network_mode             = var.network_mode
-}
-
-# Creates an ECS service in AWS
-# Terraform Docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
-# AWS Docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service_definition_parameters.html
-resource "aws_ecs_service" "example" {
-  name            = "example_service"
-  task_definition = aws_ecs_task_definition.example.arn
-  cluster         = module.aws_ecs_cluster.cluster_arn
-  desired_count   = 1
 }
