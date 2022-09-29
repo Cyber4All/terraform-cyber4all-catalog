@@ -1,0 +1,10 @@
+[{
+  "name": "sampleApp",
+  "image": "mongo",
+  "memory": 512,
+  "memoryReservation": 256,
+  "essential": true,
+  "portMappings": [{
+    "containerPort": 27017
+  }]
+}]
