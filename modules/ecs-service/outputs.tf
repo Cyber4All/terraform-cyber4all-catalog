@@ -7,3 +7,18 @@ output "ecs_service_name" {
   description = "Name of the service"
   value       = aws_ecs_service.example.name
 }
+
+output "ecs_service_cluster" {
+  description = "ARN of cluster which service runs on"
+  value       = aws_ecs_service.example.cluster
+}
+
+output "ecs_service_desired_count" {
+  description = "Number of instances of the task def"
+  value       = aws_ecs_service.example.desired_count
+}
+
+output "ecs_service_iam_role" {
+  description = "ARN of IAM role used for ELB"
+  value       = aws_ecs_service.example.iam_role
+}
