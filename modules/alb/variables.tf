@@ -51,13 +51,7 @@ variable "external_sg_description" {
 # ingress rules
 variable "external_sg_ingress_with_cidr_blocks" {
   description = "List of ingress rules to create where 'cidr_blocks' is used"
-  type = list(object({
-    cidr_blocks = string
-    description = string
-    from_port   = number
-    to_port     = number
-    protocol    = string
-  }))
+  type        = list(map(string))
   default = [
     {
       cidr_blocks = "0.0.0.0/0"
@@ -78,26 +72,14 @@ variable "external_sg_ingress_with_cidr_blocks" {
 
 variable "external_sg_ingress_with_source_security_group_id" {
   description = "List of ingress rules to create where 'source_security_group_id' is used"
-  type = list(object({
-    source_security_group_id = string
-    description              = string
-    from_port                = number
-    to_port                  = number
-    protocol                 = string
-  }))
-  default = []
+  type        = list(map(string))
+  default     = []
 }
 
 # egress rules
 variable "external_sg_egress_with_cidr_blocks" {
   description = "List of egress rules to create where 'cidr_blocks' is used (set to [] if using external_sg_egress_with_source_security_group_id, see main.tf locals)"
-  type = list(object({
-    cidr_blocks = string
-    description = string
-    from_port   = number
-    to_port     = number
-    protocol    = string
-  }))
+  type        = list(map(string))
   default = [
     {
       cidr_blocks = "0.0.0.0/0"
@@ -118,14 +100,8 @@ variable "external_sg_egress_with_cidr_blocks" {
 
 variable "external_sg_egress_with_source_security_group_id" {
   description = "List of egress rules to create where 'source_security_group_id' is used (external_sg_egress_with_cidr_blocks set to [] if using this variable, see main.tf locals)"
-  type = list(object({
-    source_security_group_id = string
-    description              = string
-    from_port                = number
-    to_port                  = number
-    protocol                 = string
-  }))
-  default = []
+  type        = list(map(string))
+  default     = []
 }
 
 # ----------------------------------------------------
@@ -140,13 +116,7 @@ variable "internal_sg_description" {
 # ingress rules
 variable "internal_sg_ingress_with_cidr_blocks" {
   description = "List of ingress rules to create where 'cidr_blocks' is used (if vpc_cidr is set, default rules set with cidr_blocks, see main.tf locals)"
-  type = list(object({
-    cidr_blocks = string
-    description = string
-    from_port   = number
-    to_port     = number
-    protocol    = string
-  }))
+  type        = list(map(string))
   default = [
     {
       cidr_blocks = "0.0.0.0/0"
@@ -160,26 +130,14 @@ variable "internal_sg_ingress_with_cidr_blocks" {
 
 variable "internal_sg_ingress_with_source_security_group_id" {
   description = "List of ingress rules to create where 'source_security_group_id' is used"
-  type = list(object({
-    source_security_group_id = string
-    description              = string
-    from_port                = number
-    to_port                  = number
-    protocol                 = string
-  }))
-  default = []
+  type        = list(map(string))
+  default     = []
 }
 
 # egress rules
 variable "internal_sg_egress_with_cidr_blocks" {
   description = "List of egress rules to create where 'cidr_blocks' is used (set to [] if using internal_sg_egress_with_source_security_group_id, see main.tf locals)"
-  type = list(object({
-    cidr_blocks = string
-    description = string
-    from_port   = number
-    to_port     = number
-    protocol    = string
-  }))
+  type        = list(map(string))
   default = [
     {
       cidr_blocks = "0.0.0.0/0"
@@ -193,14 +151,8 @@ variable "internal_sg_egress_with_cidr_blocks" {
 
 variable "internal_sg_egress_with_source_security_group_id" {
   description = "List of egress rules to create where 'source_security_group_id' is used (internal_sg_egress_with_cidr_blocks set to [] if using this variable, see main.tf locals)"
-  type = list(object({
-    source_security_group_id = string
-    description              = string
-    from_port                = number
-    to_port                  = number
-    protocol                 = string
-  }))
-  default = []
+  type        = list(map(string))
+  default     = []
 }
 
 # ----------------------------------------------------

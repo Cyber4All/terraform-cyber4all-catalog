@@ -15,18 +15,7 @@ jobs:
             for i in $(./.githooks/scripts/get-terraform-dirs.py)
             do
               tflint $i
-            done 
-
-  tfvalidate:
-    executor: terraform/default
-    steps:
-      - checkout
-      - run:
-          command: |
-            for i in $(./.githooks/scripts/get-terraform-dirs.py)
-            do
-              terraform -chdir=$i validate
-            done 
+            done
 
   tfsec:
     docker:
@@ -44,7 +33,6 @@ workflows:
   continuous-integration:
     jobs:
       - tflint
-      - tfvalidate
 
   continuous-testing:
     jobs:
