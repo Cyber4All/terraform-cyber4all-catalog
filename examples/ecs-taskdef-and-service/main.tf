@@ -61,7 +61,7 @@ module "ecs-service" {
   source = "../../modules/ecs-service"
 
   name = "${local.project_name}-service"
-  task_def_arn = module.ecs-taskdef.ecs_task_def_arn
+  task_def = module.ecs-taskdef.ecs_task_def_arn
   cluster_arn = module.ecs-cluster.cluster_arn
   num_tasks = 2
 

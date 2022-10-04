@@ -11,7 +11,7 @@
 # AWS Docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service_definition_parameters.html
 resource "aws_ecs_service" "example" {
   name            = var.name
-  task_definition = var.task_def_arn
+  task_definition = var.task_def
   cluster         = var.cluster_arn
   desired_count   = var.num_tasks
 
