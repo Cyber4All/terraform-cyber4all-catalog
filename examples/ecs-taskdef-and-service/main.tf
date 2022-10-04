@@ -46,7 +46,7 @@ module "ecs-taskdef" {
 module "ecs-cluster" {
   source = "../../modules/ecs-cluster"
 
-  project_name = "${local.project_name}-cluster"
+  project_name = "${local.project_name}"
   launch_template_ami = "ami-06e07b42f153830d8"
   instance_type = "t2.micro"
   asg_max_size = 2
@@ -63,7 +63,7 @@ module "ecs-service" {
   name = "${local.project_name}-service"
   task_def = module.ecs-taskdef.ecs_task_def_arn
   cluster_arn = module.ecs-cluster.cluster_arn
-  num_tasks = 2
+  num_tasks = 1
 
   public_subnets = module.vpc.public_subnets
   private_subnets = module.vpc.private_subnets

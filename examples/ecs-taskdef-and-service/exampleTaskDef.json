@@ -1,10 +1,10 @@
 [{
   "name": "sampleApp",
-  "image": "mongo",
-  "memory": 512,
-  "memoryReservation": 256,
+  "image": "ubuntu:latest",
+  "memory": 256,
+  "memoryReservation": null,
   "essential": true,
   "portMappings": [{
-    "containerPort": 27017
+    "containerPort": 3000
   }]
 }]
