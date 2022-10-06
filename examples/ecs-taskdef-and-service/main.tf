@@ -36,13 +36,6 @@ module "vpc" {
   single_nat_gateway = true
 }
 
-module "ecs-taskdef" {
-  source = "../../modules/ecs-taskdef"
-
-  family = "${local.project_name}-taskdef"
-  container_definitions = file("./exampleTaskDef.json")
-}
-
 module "ecs-cluster" {
   source = "../../modules/ecs-cluster"
 
@@ -78,16 +71,20 @@ module "ecs-cluster" {
   ]
 }
 
-module "ecs-service" {
-  source = "../../modules/ecs-service"
+module "ecs-taskdef-and-service" {
+  source = "../../modules/ecs-taskdef-and-service"
 
-  name = "${local.project_name}-service"
-  task_def = module.ecs-taskdef.ecs_task_def_arn
-  cluster_arn = module.ecs-cluster.cluster_arn
-  num_tasks = 1
+  # Task Definition Parameters
+  ecs_taskdef_family = "${local.project_name}-taskdef"
+  ecs_taskdef_container_definitions = file("exampleTaskDef.json")
 
-  public_subnets = module.vpc.public_subnets
-  private_subnets = module.vpc.private_subnets
-  security_group_id = module.ecs-cluster.security_group_id
+  # Service Parameters
+  ecs_service_name = "${local.project_name}-service"
+  ecs_service_cluster_arn = module.ecs-cluster.cluster_arn
+  ecs_service_num_tasks = 1
+
+  ecs_service_public_subnets = module.vpc.public_subnets
+  ecs_service_private_subnets = module.vpc.private_subnets
+  ecs_service_security_group_id = module.ecs-cluster.security_group_id
 
 }
