@@ -6,6 +6,11 @@ resource "aws_ecs_task_definition" "example" {
   container_definitions    = var.ecs_taskdef_container_definitions
   requires_compatibilities = var.requires_compatibilities
   network_mode             = var.network_mode
+
+  # Defaults
+  # network_mode = "default"
+  # tags = {}
+  # ipc_mode = "shareable"
 }
 
 # Creates an ECS service in AWS
@@ -21,4 +26,15 @@ resource "aws_ecs_service" "example" {
     subnets         = concat(var.ecs_service_public_subnets, var.ecs_service_private_subnets)
     security_groups = [var.ecs_service_security_group_id]
   }
+
+  # Defaults
+  # cluster = (assumes default cluster)
+  # deployment_controller = "ECS"
+  # deployment_minimum_healthy_percent = 100
+  # desired_count = 0
+  # enable_ecs_managed_tags = false
+  # health_check_grace_period_seconds = 0
+  # launch_type = "EC2"
+  # scheduling_strategy = "REPLICA"
+  # wait_for_steady_state = false
 }
