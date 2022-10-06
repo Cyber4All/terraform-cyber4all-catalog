@@ -39,15 +39,15 @@ module "vpc" {
 module "ecs-cluster" {
   source = "../../modules/ecs-cluster"
 
-  project_name = "${local.project_name}"
+  project_name        = "${local.project_name}"
   launch_template_ami = "ami-06e07b42f153830d8"
-  instance_type = "t2.micro"
-  asg_max_size = 2
-  vpc_id = module.vpc.vpc_id
-  s3_log_bucket_name = ""
+  instance_type       = "t2.micro"
+  asg_max_size        = 2
+  vpc_id              = module.vpc.vpc_id
+  s3_log_bucket_name  = ""
 
   private_subnets = module.vpc.private_subnets
-  public_subnets = module.vpc.public_subnets
+  public_subnets  = module.vpc.public_subnets
 
   ingress_with_cidr_blocks = [
     {
@@ -75,16 +75,16 @@ module "ecs-taskdef-and-service" {
   source = "../../modules/ecs-taskdef-and-service"
 
   # Task Definition Parameters
-  ecs_taskdef_family = "${local.project_name}-taskdef"
+  ecs_taskdef_family                = "${local.project_name}-taskdef"
   ecs_taskdef_container_definitions = file("exampleTaskDef.json")
 
   # Service Parameters
-  ecs_service_name = "${local.project_name}-service"
+  ecs_service_name        = "${local.project_name}-service"
   ecs_service_cluster_arn = module.ecs-cluster.cluster_arn
-  ecs_service_num_tasks = 1
+  ecs_service_num_tasks   = 1
 
-  ecs_service_public_subnets = module.vpc.public_subnets
-  ecs_service_private_subnets = module.vpc.private_subnets
+  ecs_service_public_subnets    = module.vpc.public_subnets
+  ecs_service_private_subnets   = module.vpc.private_subnets
   ecs_service_security_group_id = module.ecs-cluster.security_group_id
 
 }
