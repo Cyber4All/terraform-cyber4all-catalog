@@ -4,7 +4,7 @@ This folder contains a [Terraform](https://www.terraform.io/) module that define
 
 ## Quick Start
 
-In a terraform file below the terraform block use a module block to add the s3-backend module.
+In a terraform file, below the terraform block, use a module block to add the s3-backend module.
 
 ```hcl
 terraform {

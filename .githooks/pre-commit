@@ -3,9 +3,14 @@
 ## exclude .terraform directories
 DIRS=$($(pwd)/.githooks/scripts/get-terraform-dirs.py)
 
-terraform -chdir=modules fmt -recursive 
+terraform fmt -recursive 
 
-for i in $DIRS
-do
-    tflint $i
-done
+# for i in $DIRS
+# do
+#     tflint $i
+# done
+
+# for i in $DIRS
+# do
+#     terraform -chdir=$i validate
+# done
