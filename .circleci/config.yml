@@ -33,7 +33,15 @@ workflows:
   continuous-integration:
     jobs:
       - tflint
-
-  continuous-testing:
-    jobs:
       - tfsec
+
+  continuous-deployment:
+    when:
+      equal: [ main, << pipeline.git.branch >> ]
+    jobs:
+      - gh/release:
+          context: [Github]
+          tag: "v$(jq -r '.version' package.json)"
+          token: GH_PAT
+
+      
