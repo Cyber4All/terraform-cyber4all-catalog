@@ -43,7 +43,6 @@ workflows:
     jobs:
       - gh/release:
           context: [Github]
-          tag: "v$(jq -r '.version' package.json)"
-          token: GH_PAT
+          tag: "v$(./version.sh -r)"
 
       
