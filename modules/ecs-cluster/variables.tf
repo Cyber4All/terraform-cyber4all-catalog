@@ -64,15 +64,9 @@ variable "iam_role_description" {
   default     = ""
 }
 
-variable "public_subnets" {
+variable "subnets" {
   type        = list(string)
-  description = "the list of public subnets from the vpc"
-  default     = []
-}
-
-variable "private_subnets" {
-  type        = list(string)
-  description = "the list of public subnets from the vpc"
+  description = "the list of subnets from the vpc to run the EC2 instances in"
   default     = []
 }
 

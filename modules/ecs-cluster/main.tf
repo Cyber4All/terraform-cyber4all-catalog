@@ -136,7 +136,7 @@ module "autoscaling" {
   version = "6.5.2"
 
   name                = "${var.project_name}-asg"
-  vpc_zone_identifier = concat(var.private_subnets, var.public_subnets)
+  vpc_zone_identifier = var.subnets
   min_size            = var.asg_min_size
   max_size            = var.asg_max_size
   desired_capacity    = var.desired_capacity
