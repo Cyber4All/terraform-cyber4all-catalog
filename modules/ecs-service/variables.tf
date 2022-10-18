@@ -31,13 +31,8 @@ variable "ecs_service_num_tasks" {
   type        = number
 }
 
-variable "ecs_service_public_subnets" {
-  description = "The list of public subnets from the vpc"
-  type        = list(string)
-}
-
-variable "ecs_service_private_subnets" {
-  description = "The list of private subnets from the vpc"
+variable "ecs_service_subnets" {
+  description = "The list of subnets from the vpc to run the service in"
   type        = list(string)
 }
 
