@@ -1,2 +1,5 @@
 .terraform
 *.tfstate*
+dlog.log
+log.log
+.DS_Store

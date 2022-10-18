@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  gh: circleci/github-cli@2.1.1
-
 jobs:
   tflint:
     machine:
@@ -36,4 +33,3 @@ workflows:
     jobs:
       # - tflint
       - tfsec
-      
