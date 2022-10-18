@@ -1,6 +1,13 @@
 terraform {
   required_version = "1.2.9"
 
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "4.29.0"
+    }
+  }
+
   backend "s3" {
     bucket = "competency-service-terraform-state"
     key    = "live/example/internal-external-alb-stack/terraform.tfstate"
