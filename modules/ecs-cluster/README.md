@@ -117,7 +117,7 @@ Default: `true`
 
 ### <a name="input_default_capacity_provider_strategy"></a> [default\_capacity\_provider\_strategy](#input\_default\_capacity\_provider\_strategy)
 
-Description: capacity provider strategy
+Description: capacity provider strategy. see [autoscaling\_capacity\_providers](#reference_autoscaling_capacity_providers)
 
 Type:
 
@@ -180,7 +180,7 @@ Default: `""`
 
 ### <a name="input_managed_scaling"></a> [managed\_scaling](#input\_managed\_scaling)
 
-Description: default\_capacity\_provider\_strategy
+Description: default\_capacity\_provider\_strategy. see [autoscaling\_capacity\_providers](#reference_autoscaling_capacity_providers)
 
 Type:
 
@@ -246,3 +246,28 @@ Description: the arn of the security group
 ### <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id)
 
 Description: the id of the security group created
+
+## Autoscaling capacity provider reference<a name="reference_autoscaling_capacity_providers"></a>
+this is the documentation for autoscaling capacity providers from the ECS module on the terraform registry found [here](https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest). The Variable was split up in this module to preserve granularity, while still making them optional.
+
+```
+variable "autoscaling_capacity_providers" {
+  type = map(object({
+    auto_scaling_group_arn = optional(string)
+
+    managed_termination_protection = optional(string)
+
+    managed_scaling = optional(object({
+      maximum_scaling_step_size = optional(number)
+      minimum_scaling_step_size = optional(number)
+      status                    = optional(string)
+      target_capacity           = optional(number)
+    }))
+
+    default_capacity_provider_strategy = optional(object({
+      weight = optional(number)
+      base   = optional(number)
+    }))
+  }))
+}
+```

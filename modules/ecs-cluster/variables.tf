@@ -34,25 +34,6 @@ variable "s3_log_bucket_name" {
 # Optional vars
 ########################################
 
-# variable "autoscaling_capacity_providers" {
-#   type = map(object({
-#     auto_scaling_group_arn = optional(string)
-
-#     managed_termination_protection = optional(string)
-
-#     managed_scaling = optional(object({
-#       maximum_scaling_step_size = optional(number)
-#       minimum_scaling_step_size = optional(number)
-#       status                    = optional(string)
-#       target_capacity           = optional(number)
-#     }))
-
-#     default_capacity_provider_strategy = optional(object({
-#       weight = optional(number)
-#       base   = optional(number)
-#     }))
-#   }))
-# }
 variable "managed_scaling" {
   type        = any
   description = "variables for managing scaling"
