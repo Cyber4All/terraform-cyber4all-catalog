@@ -7,7 +7,7 @@ terraform {
       version = "4.29.0"
     }
   }
-  
+
   backend "s3" {
     bucket = "competency-service-terraform-state"
     key    = "live/example/internal-external-alb-stack/terraform.tfstate"
