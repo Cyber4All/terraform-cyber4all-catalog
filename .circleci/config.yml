@@ -34,7 +34,7 @@ jobs:
 workflows:
   continuous-integration:
     jobs:
-      - tflint
+      # - tflint
       - tfsec
 
   continuous-deployment:
