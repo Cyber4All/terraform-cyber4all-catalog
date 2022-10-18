@@ -23,7 +23,7 @@ resource "aws_ecs_service" "example" {
   desired_count   = var.ecs_service_num_tasks
 
   network_configuration {
-    subnets         = concat(var.ecs_service_public_subnets, var.ecs_service_private_subnets)
+    subnets         = var.ecs_service_subnets
     security_groups = [var.ecs_service_security_group_id]
   }
 
