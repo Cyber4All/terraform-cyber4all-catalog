@@ -1,0 +1,16 @@
+name: Git Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  tagged-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: marvinpinto/action-automatic-releases@v1.2.1
+        with:
+          repo_token: ${{ secrets.MACHINE_PAT }}
+          prerelease: false
+          automatic_release_tag: "v$(./version.sh -r)"
