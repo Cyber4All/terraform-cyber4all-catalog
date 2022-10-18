@@ -11,15 +11,15 @@ module "ecs" {
 
   cluster_name = "${var.project_name}-cluster"
 
-  # cluster_configuration = {
-  #   execute_command_configuration = {
-  #     logging = "OVERRIDE"
-  #     log_configuration = {
-  #       s3_bucket_encryption_enabled = true
-  #       s3_bucket_name               = var.s3_log_bucket_name
-  #     }
-  #   }
-  # }
+  cluster_configuration = {
+    execute_command_configuration = {
+      logging = "OVERRIDE"
+      log_configuration = {
+        s3_bucket_encryption_enabled = true
+        s3_bucket_name               = var.s3_log_bucket_name
+      }
+    }
+  }
 
   autoscaling_capacity_providers = {
     one = {
