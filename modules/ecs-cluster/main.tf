@@ -11,7 +11,7 @@ module "ecs" {
 
   cluster_name = "${var.project_name}-cluster"
 
-  cluster_configuration = !var.s3_log_bucket_name ? {} : {
+  cluster_configuration = var.s3_log_bucket_name ? {
     execute_command_configuration = {
       logging = "OVERRIDE"
       log_configuration = {
@@ -19,7 +19,7 @@ module "ecs" {
         s3_bucket_name               = var.s3_log_bucket_name
       }
     }
-  }
+  } : {}
 
   autoscaling_capacity_providers = {
     one = {
