@@ -26,13 +26,15 @@ variable "vpc_id" {
   description = "VPC id to create the cluster in"
 }
 
-variable "s3_log_bucket_name" {
-  type        = string
-  description = "s3 bucket name for logging"
-}
 ########################################
 # Optional vars
 ########################################
+
+variable "s3_log_bucket_name" {
+  type        = string
+  description = "s3 bucket name for logging"
+  default = null
+}
 
 variable "managed_scaling" {
   type        = any

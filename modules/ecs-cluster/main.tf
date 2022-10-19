@@ -11,7 +11,7 @@ module "ecs" {
 
   cluster_name = "${var.project_name}-cluster"
 
-  cluster_configuration = {
+  cluster_configuration = !var.s3_log_bucket_name ? {} : {
     execute_command_configuration = {
       logging = "OVERRIDE"
       log_configuration = {
@@ -41,12 +41,7 @@ module "ecs" {
   ##################################
   # Defaults
   ##################################
-  # autoscaling_capacity_providers = {}
-  # cluster_configuration = {}
-  # cluster_name = ""
-  # cluster_settings = { "name": "containerInsights", "value": "enabled" }
   # create = true
-  # default_capacity_provider_use_fargate = true
   # fargate_capacity_providers = {}
   # tags = {}
 }
@@ -70,7 +65,6 @@ module "security_group" {
   ingress_with_cidr_blocks = var.ingress_with_cidr_blocks
   egress_with_cidr_blocks  = var.egress_with_cidr_blocks
 
-
   ##################################
   # Defaults
   ##################################
@@ -89,12 +83,10 @@ module "security_group" {
   # create_sg = true
   # create_timeout = "10m"
   # delete_timeout = "15m"
-  # description = "Security Group managed by Terraform"
   # egress_cidr_blocks = [ "0.0.0.0/0" ]
   # egress_ipv6_cidr_blocks = [ "::/0" ]
   # egress_prefix_list_ids = []
   # egress_rules = []
-  # egress_with_cidr_blocks = []
   # egress_with_ipv6_cidr_blocks = []
   # egress_with_self = []
   # egress_with_source_security_group_id = []
@@ -102,11 +94,9 @@ module "security_group" {
   # ingress_ipv6_cidr_blocks = []
   # ingress_prefix_list_ids = []
   # ingress_rules = []
-  # ingress_with_cidr_blocks = []
   # ingress_with_ipv6_cidr_blocks = []
   # ingress_with_self = []
   # ingress_with_source_security_group_id = []
-  # name = null
   # number_of_computed_egress_rules = 0
   # number_of_computed_egress_with_cidr_blocks = 0
   # number_of_computed_egress_with_ipv6_cidr_blocks = 0
@@ -123,8 +113,6 @@ module "security_group" {
   # security_group_id = null
   # tags = {}
   # use_name_prefix = true
-  # vpc_id = null
-
 }
 
 #################################
