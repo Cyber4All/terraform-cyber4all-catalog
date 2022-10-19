@@ -33,7 +33,7 @@ variable "vpc_id" {
 variable "s3_log_bucket_name" {
   type        = string
   description = "s3 bucket name for logging"
-  default = null
+  default     = null
 }
 
 variable "managed_scaling" {
