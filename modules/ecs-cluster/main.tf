@@ -7,10 +7,9 @@ module "ecs" {
   source  = "terraform-aws-modules/ecs/aws"
   version = "4.1.1"
 
-  default_capacity_provider_use_fargate = false
-
   cluster_name = "${var.project_name}-cluster"
 
+  # Cluster Logging Configuration
   cluster_configuration = {
     execute_command_configuration = {
       logging = "OVERRIDE"
@@ -21,28 +20,28 @@ module "ecs" {
     }
   }
 
+  # EC2 Capacity Provider Config
+  /* default_capacity_provider_use_fargate = false
   autoscaling_capacity_providers = {
     one = {
       auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
-
       managed_termination_protection = "ENABLED"
-
       managed_scaling = var.managed_scaling
-
       default_capacity_provider_strategy = var.default_capacity_provider_strategy
     }
-  }
+  } */
 
-  cluster_settings = {
-    "name" : "containerInsights",
-    "value" : "enabled"
-  }
+  
 
   ##################################
   # Defaults
   ##################################
   # create = true
   # fargate_capacity_providers = {}
+  # cluster_settings = {
+  #  "name" : "containerInsights",
+  #  "value" : "enabled"
+  # }
   # tags = {}
 }
 
