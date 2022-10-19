@@ -39,7 +39,7 @@ module "vpc" {
 module "ecs-cluster" {
   source = "../../modules/ecs-cluster"
 
-  project_name        = "${local.project_name}"
+  project_name        = local.project_name
   launch_template_ami = "ami-06e07b42f153830d8"
   instance_type       = "t2.micro"
   asg_max_size        = 2
