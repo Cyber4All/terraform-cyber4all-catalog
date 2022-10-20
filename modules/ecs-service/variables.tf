@@ -125,6 +125,6 @@ variable "container_port" {
 
 variable "assign_public_ip" {
   description = "Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false."
-  type = bool
-  default = false
+  type        = bool
+  default     = false
 }
