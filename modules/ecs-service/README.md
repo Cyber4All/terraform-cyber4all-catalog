@@ -150,7 +150,7 @@ Description: Total amount (in GiB) of ephemeral storage to set for the task
 
 Type: `number`
 
-Default: `null`
+Default: `21`
 
 ### <a name="input_task_memory"></a> [task\_memory](#input\_task\_memory)
 
