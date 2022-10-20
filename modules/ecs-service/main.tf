@@ -21,8 +21,11 @@ resource "aws_ecs_task_definition" "task" {
   # HARDWARE SIZES
   # ----------------------------------------------------
   cpu = var.task_cpu
-  ephemeral_storage {
-    size_in_gib = var.task_ephemeral_storage
+  dynamic "ephemeral_storage" {
+    for_each = length(keys(var.ephemeral_storage)) == 0 ? [] : [var.ephemeral_storage]
+    content {
+      size_in_gib = lookup(ephemeral_storage.value, "size_in_gib", null)
+    }
   }
   memory = var.task_memory
 

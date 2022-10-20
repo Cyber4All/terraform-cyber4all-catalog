@@ -72,10 +72,10 @@ variable "task_cpu" {
   default     = null
 }
 
-variable "task_ephemeral_storage" {
-  description = "Total amount (in GiB) of ephemeral storage to set for the task"
-  type        = number # 21 <= value <= 200
-  default     = null
+variable "ephemeral_storage" {
+  description = "ephemeral storage block, consists (size_in_gib), Total amount (in GiB) of ephemeral storage to set for the task"
+  type        = map(any) # 21 <= value <= 200
+  default     = {}
 }
 
 variable "task_memory" {
