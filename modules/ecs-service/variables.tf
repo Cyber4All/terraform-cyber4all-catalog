@@ -74,8 +74,8 @@ variable "task_cpu" {
 
 variable "requires_compatibilities" {
   description = "List of launch types to validate the task definition against"
-  type = list(string)
-  default = ["EC2"]
+  type        = list(string)
+  default     = ["EC2"]
 }
 
 variable "ephemeral_storage" {

@@ -144,6 +144,20 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_requires_compatibilities"></a> [requires\_compatibilities](#input\_requires\_compatibilities)
+
+Description: List of launch types to validate the task definition against
+
+Type: `list(string)`
+
+Default:
+
+```json
+[
+  "EC2"
+]
+```
+
 ### <a name="input_target_group_arn"></a> [target\_group\_arn](#input\_target\_group\_arn)
 
 Description: ARN of the load balancer
