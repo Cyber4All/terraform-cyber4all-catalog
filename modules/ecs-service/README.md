@@ -112,7 +112,7 @@ Type: `string`
 
 Default: `"EC2"`
 
-### <a name="input_load_balancers"></a> [load\_balancers](#input\_load\_balancers)
+### <a name="input_load_balancer"></a> [load\_balancer](#input\_load\_balancer)
 
 Description: Configuration block for load balancers. Consists of (target\_group\_arn, container\_name, and container\_port)
 
