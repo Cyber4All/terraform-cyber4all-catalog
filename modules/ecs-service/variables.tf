@@ -96,7 +96,6 @@ variable "execution_role_arn" {
   default     = null
 }
 
-
 # ECS SERVICE
 
 variable "launch_type" {
@@ -107,11 +106,7 @@ variable "launch_type" {
 
 variable "load_balancer" {
   description = "Configuration block for load balancers. Consists of (target_group_arn, container_name, and container_port)"
-  type = object({
-    target_group_arn = string
-    container_name   = string
-    container_port   = number
-  })
+  type = map(any)
   default = {}
 }
 
