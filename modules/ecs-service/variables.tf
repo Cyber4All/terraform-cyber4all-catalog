@@ -112,7 +112,7 @@ variable "load_balancer" {
     container_name   = string
     container_port   = number
   })
-  default = null
+  default = {}
 }
 
 variable "target_group_arn" {
