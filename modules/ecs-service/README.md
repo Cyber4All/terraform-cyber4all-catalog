@@ -96,6 +96,14 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_ephemeral_storage"></a> [ephemeral\_storage](#input\_ephemeral\_storage)
+
+Description: ephemeral storage block, consists (size\_in\_gib), Total amount (in GiB) of ephemeral storage to set for the task
+
+Type: `map(any)`
+
+Default: `{}`
+
 ### <a name="input_execution_role_arn"></a> [execution\_role\_arn](#input\_execution\_role\_arn)
 
 Description: ARN of task execution role that container or daemon can assume
@@ -149,14 +157,6 @@ Default: `null`
 Description: Hard limit of CPU units for the task
 
 Type: `string`
-
-Default: `null`
-
-### <a name="input_task_ephemeral_storage"></a> [task\_ephemeral\_storage](#input\_task\_ephemeral\_storage)
-
-Description: Total amount (in GiB) of ephemeral storage to set for the task
-
-Type: `number`
 
 Default: `null`
 
