@@ -30,22 +30,16 @@ variable "vpc_id" {
 # Optional vars
 ########################################
 
-variable "s3_log_bucket_name" {
-  type        = string
-  description = "s3 bucket name for logging"
-  default     = null
+variable "cluster_logging" {
+  type = bool
+  description = "Set to True to enable logging to cloud watch (cloud watch log-group must exist already)"
+  default = false
 }
 
-variable "managed_scaling" {
-  type        = any
-  description = "variables for managing scaling"
-  default     = {}
-}
-
-variable "default_capacity_provider_strategy" {
-  type        = any
-  description = "capacity provider strategy"
-  default     = {}
+variable "cloud_watch_log_group_name" {
+  type = string
+  description = "Name of the cloud watch log group (required when cluster_logging == true)"
+  default = null
 }
 
 variable "asg_min_size" {

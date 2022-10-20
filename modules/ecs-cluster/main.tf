@@ -1,6 +1,6 @@
 #################################
 # ecs
-# https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
+# https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest#inputs
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster
 #################################
 module "ecs" {
@@ -10,39 +10,29 @@ module "ecs" {
   cluster_name = "${var.project_name}-cluster"
 
   # Cluster Logging Configuration
-  cluster_configuration = {
+  cluster_configuration = var.cluster_logging ? {
     execute_command_configuration = {
       logging = "OVERRIDE"
+      
       log_configuration = {
-        s3_bucket_encryption_enabled = true
-        s3_bucket_name               = var.s3_log_bucket_name
+        cloud_watch_encryption_enabled = true
+        cloud_watch_log_group_name = var.cloud_watch_log_group_name
       }
     }
-  }
-
-  # EC2 Capacity Provider Config
-  /* default_capacity_provider_use_fargate = false
-  autoscaling_capacity_providers = {
-    one = {
-      auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
-      managed_termination_protection = "ENABLED"
-      managed_scaling = var.managed_scaling
-      default_capacity_provider_strategy = var.default_capacity_provider_strategy
-    }
-  } */
-
-  
+  } : {}
 
   ##################################
   # Defaults
   ##################################
-  # create = true
-  # fargate_capacity_providers = {}
-  # cluster_settings = {
-  #  "name" : "containerInsights",
-  #  "value" : "enabled"
-  # }
-  # tags = {}
+  /* autoscaling_capacity_providers = {} */
+  /* cluster_settings = {
+    "name": "containerInsights",
+    "value": "enabled"
+  } */
+  /* create = true */
+  /* default_capacity_provider_use_fargate = true */
+  /* fargate_capacity_providers = {} */
+  /* tags = {} */
 }
 
 ##################################
