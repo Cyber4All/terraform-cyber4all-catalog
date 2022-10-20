@@ -75,7 +75,7 @@ variable "task_cpu" {
 variable "task_ephemeral_storage" {
   description = "Total amount (in GiB) of ephemeral storage to set for the task"
   type        = number # 21 <= value <= 200
-  default     = null
+  default     = 21
 }
 
 variable "task_memory" {
