@@ -28,4 +28,5 @@ workflows:
   continuous-integration:
     jobs:
       # - tflint
+      - precommit
       - tfsec
