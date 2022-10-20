@@ -1,20 +1,16 @@
 version: 2.1
 
 jobs:
-  tflint:
-    machine:
-      image: ubuntu-2004:current
+  precommit:
+    docker:
+      - image: cimg/python:3.10.1
     steps:
       - checkout
       - run:
           command: |
-            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-      - run:
-          command: |
-            for i in $(./.githooks/scripts/get-terraform-dirs.py)
-            do
-              tflint $i
-            done
+            pip install pre-commit
+            pre-commit install
+            pre-commit run --all-files 
 
   tfsec:
     docker:
