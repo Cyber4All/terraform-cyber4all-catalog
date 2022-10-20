@@ -76,11 +76,11 @@ resource "aws_ecs_service" "service" {
 
   dynamic "load_balancer" {
     for_each = length(keys(var.load_balancer)) == 0 ? [] : [var.load_balancer]
-    
+
     content {
       target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
-      container_name = lookup(load_balancer.value, "container_name", null)
-      container_port = lookup(load_balancer.value, "container_port", null)
+      container_name   = lookup(load_balancer.value, "container_name", null)
+      container_port   = lookup(load_balancer.value, "container_port", null)
     }
   }
 
