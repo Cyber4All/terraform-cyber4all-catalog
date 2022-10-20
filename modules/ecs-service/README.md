@@ -45,8 +45,8 @@ Type:
 ```hcl
 object({
     target_group_arn = string
-    container_name = string
-    container_port = number
+    container_name   = string
+    container_port   = number
   })
 ```
 
