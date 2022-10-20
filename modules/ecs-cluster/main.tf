@@ -13,10 +13,10 @@ module "ecs" {
   cluster_configuration = var.cluster_logging ? {
     execute_command_configuration = {
       logging = "OVERRIDE"
-      
+
       log_configuration = {
         cloud_watch_encryption_enabled = true
-        cloud_watch_log_group_name = var.cloud_watch_log_group_name
+        cloud_watch_log_group_name     = var.cloud_watch_log_group_name
       }
     }
   } : {}

@@ -31,15 +31,15 @@ variable "vpc_id" {
 ########################################
 
 variable "cluster_logging" {
-  type = bool
+  type        = bool
   description = "Set to True to enable logging to cloud watch (cloud watch log-group must exist already)"
-  default = false
+  default     = false
 }
 
 variable "cloud_watch_log_group_name" {
-  type = string
+  type        = string
   description = "Name of the cloud watch log group (required when cluster_logging == true)"
-  default = null
+  default     = null
 }
 
 variable "asg_min_size" {
