@@ -126,7 +126,7 @@ object({
   })
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_network_mode"></a> [network\_mode](#input\_network\_mode)
 
