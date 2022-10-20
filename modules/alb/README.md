@@ -7,10 +7,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (4.29.0)
 
-## Providers
-
-No providers.
-
 ## Modules
 
 The following Modules are called:
@@ -39,13 +35,15 @@ Source: terraform-aws-modules/security-group/aws
 
 Version: 4.13.0
 
-## Resources
-
-No resources.
-
 ## Required Inputs
 
 The following input variables are required:
+
+### <a name="input_access_log_bucket"></a> [access\_log\_bucket](#input\_access\_log\_bucket)
+
+Description: Name of S3 bucket to forward access logs to
+
+Type: `string`
 
 ### <a name="input_name"></a> [name](#input\_name)
 
@@ -90,14 +88,6 @@ Description: n/a
 Type: `bool`
 
 Default: `true`
-
-### <a name="input_external_access_logs"></a> [external\_access\_logs](#input\_external\_access\_logs)
-
-Description: Map containing access logging configuration for load balancer.
-
-Type: `map(string)`
-
-Default: `{}`
 
 ### <a name="input_external_http_tcp_listener_rules"></a> [external\_http\_tcp\_listener\_rules](#input\_external\_http\_tcp\_listener\_rules)
 
@@ -224,14 +214,6 @@ Description: A list of maps containing key/value pairs that define the target gr
 Type: `any`
 
 Default: `[]`
-
-### <a name="input_internal_access_logs"></a> [internal\_access\_logs](#input\_internal\_access\_logs)
-
-Description: Map containing access logging configuration for load balancer.
-
-Type: `map(string)`
-
-Default: `{}`
 
 ### <a name="input_internal_http_tcp_listener_rules"></a> [internal\_http\_tcp\_listener\_rules](#input\_internal\_http\_tcp\_listener\_rules)
 
@@ -360,8 +342,4 @@ Description: The VPC CIDR block of variable.vpc\_id
 Type: `string`
 
 Default: `null`
-
-## Outputs
-
-No outputs.
 <!-- END_TF_DOCS -->

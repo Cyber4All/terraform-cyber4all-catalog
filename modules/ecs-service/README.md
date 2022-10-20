@@ -1,17 +1,11 @@
 <!-- BEGIN_TF_DOCS -->
-## Requirements
 
-No requirements.
 
 ## Providers
 
 The following providers are used by this module:
 
 - <a name="provider_aws"></a> [aws](#provider\_aws) (4.29.0)
-
-## Modules
-
-No modules.
 
 ## Resources
 
@@ -42,23 +36,17 @@ Description: The number of instances of the given task definition to place and r
 
 Type: `number`
 
-### <a name="input_ecs_service_private_subnets"></a> [ecs\_service\_private\_subnets](#input\_ecs\_service\_private\_subnets)
-
-Description: The list of private subnets from the vpc
-
-Type: `list(string)`
-
-### <a name="input_ecs_service_public_subnets"></a> [ecs\_service\_public\_subnets](#input\_ecs\_service\_public\_subnets)
-
-Description: The list of public subnets from the vpc
-
-Type: `list(string)`
-
 ### <a name="input_ecs_service_security_group_id"></a> [ecs\_service\_security\_group\_id](#input\_ecs\_service\_security\_group\_id)
 
 Description: The id of the security group created
 
 Type: `string`
+
+### <a name="input_ecs_service_subnets"></a> [ecs\_service\_subnets](#input\_ecs\_service\_subnets)
+
+Description: The list of subnets from the vpc to run the service in
+
+Type: `list(string)`
 
 ### <a name="input_ecs_taskdef_container_definitions"></a> [ecs\_taskdef\_container\_definitions](#input\_ecs\_taskdef\_container\_definitions)
 

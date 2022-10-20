@@ -1,6 +1,12 @@
 # Git pre-commit hook
 
 ## exclude .terraform directories
+
 DIRS=$($(pwd)/.githooks/scripts/get-terraform-dirs.py)
+
+for i in $DIRS
+do
+    terraform-docs markdown document --output-file README.md --output-mode replace --hide-empty $i
+done
 
 terraform fmt -recursive

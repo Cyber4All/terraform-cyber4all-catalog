@@ -1,72 +1,118 @@
-# S3 Backend
+<!-- BEGIN_TF_DOCS -->
+## Requirements
 
-This folder contains a [Terraform](https://www.terraform.io/) module that defines an S3 bucket and DynamoDB table that can be used as a remote backend for terraform state files.
+The following requirements are needed by this module:
 
-## Quick Start
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (1.2.9)
 
-In a terraform file, below the terraform block, use a module block to add the s3-backend module.
+- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.0.0)
 
-```hcl
-terraform {
-    required_version = "1.2.9"
+## Providers
 
-    required_providers {
-        aws = {
-            source  = "hashicorp/aws"
-            version = ">= 4.0.0"
-        }
-    }
-}
+The following providers are used by this module:
 
-module "s3-backend" {
-    source = "https://github.com/Cyber4All/terraform-module.git//modules/s3-backend"
+- <a name="provider_aws"></a> [aws](#provider\_aws) (>= 4.0.0)
 
-    bucket_name = "example-bucket"
-    dynamodb_table_name = "example-lock-table"
+## Modules
 
-    # ... (other params omitted) ...
-}
-```
+The following Modules are called:
 
-Initialize terraform in the directory
+### <a name="module_iam_assumable_role"></a> [iam\_assumable\_role](#module\_iam\_assumable\_role)
 
-```console
-terraform init
-```
+Source: terraform-aws-modules/iam/aws//modules/iam-assumable-role
 
-This will use a local backend at first
+Version: 5.4.0
 
-Provision the bucket with apply (assuming plan already verified)
+## Resources
 
-```console
-terraform apply -auto-approve
-```
+The following resources are used by this module:
 
-The S3 bucket and DynamoDB table should be provisioned
+- [aws_dynamodb_table.terraform_locks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) (resource)
+- [aws_iam_policy.tf_s3_backend_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) (resource)
+- [aws_s3_bucket.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) (resource)
+- [aws_s3_bucket_acl.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl) (resource)
+- [aws_s3_bucket_public_access_block.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) (resource)
+- [aws_s3_bucket_server_side_encryption_configuration.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) (resource)
+- [aws_s3_bucket_versioning.backend](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) (resource)
+- [aws_iam_policy_document.tf_s3_backend_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) (data source)
 
-Change the backend type to use S3 remote
+## Required Inputs
 
-```hcl
-terraform {
-  # ... (other params omitted) ...
+The following input variables are required:
 
-  backend "s3" {
-    bucket = "example-bucket"
-    key    = "live/example/s3-backend/terraform.tfstate" # key should follow project structure
-    region = "us-east-1" # us-east-1 was used as the default region in the s3-backend module
+### <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name)
 
-    dynamodb_table = "example-lock-table"
-    encrypt        = true
-  }
-}
-```
+Description: The name of the backend bucket
 
-Re-initialize the project to use the remote backend
+Type: `string`
 
-```console
-terraform init -migrate-state
-```
+### <a name="input_dynamodb_table_name"></a> [dynamodb\_table\_name](#input\_dynamodb\_table\_name)
 
-The S3-backend is all setup and can be used how the `backend "s3" { ... }` was used.
+Description: The name of the dynamodb table
 
-*Note that the `key` in the `backend "s3" { ... }` block should be unique for every distinct .tfstate file
+Type: `string`
+
+## Optional Inputs
+
+The following input variables are optional (have default values):
+
+### <a name="input_environment"></a> [environment](#input\_environment)
+
+Description: The environment type i.e (dev, staging, qa, prod)
+
+Type: `string`
+
+Default: `"staging"`
+
+### <a name="input_path"></a> [path](#input\_path)
+
+Description: The path to organize the policy in IAM
+
+Type: `string`
+
+Default: `"/"`
+
+### <a name="input_region"></a> [region](#input\_region)
+
+Description: AWS region where the bucket should be provisioned to
+
+Type: `string`
+
+Default: `"us-east-1"`
+
+### <a name="input_sse_algorithm"></a> [sse\_algorithm](#input\_sse\_algorithm)
+
+Description: Server side encryption algorithm for S3 bucket
+
+Type: `string`
+
+Default: `"AES256"`
+
+## Outputs
+
+The following outputs are exported:
+
+### <a name="output_bucket_name"></a> [bucket\_name](#output\_bucket\_name)
+
+Description: Name of S3 bucket
+
+### <a name="output_bucket_region"></a> [bucket\_region](#output\_bucket\_region)
+
+Description: AWS region S3 bucket is in
+
+### <a name="output_s3_backend_policy_arn"></a> [s3\_backend\_policy\_arn](#output\_s3\_backend\_policy\_arn)
+
+Description: ARN of IAM policy
+
+### <a name="output_s3_backend_policy_name"></a> [s3\_backend\_policy\_name](#output\_s3\_backend\_policy\_name)
+
+Description: Name of IAM policy
+
+### <a name="output_s3_backend_role_arn"></a> [s3\_backend\_role\_arn](#output\_s3\_backend\_role\_arn)
+
+Description: ARN of IAM role
+
+### <a name="output_s3_backend_role_name"></a> [s3\_backend\_role\_name](#output\_s3\_backend\_role\_name)
+
+Description: Name of IAM role
+<!-- END_TF_DOCS -->
