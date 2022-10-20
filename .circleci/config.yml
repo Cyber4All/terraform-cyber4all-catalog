@@ -29,6 +29,8 @@ install_gruntwork_utils: &install_gruntwork_utils
 
 jobs:
   precommit:
+    environment:
+      <<: *base_env
     docker:
       - image: cimg/python:3.10.1
     steps:
