@@ -36,20 +36,6 @@ Description: The number of instances of the given task definition to place and r
 
 Type: `number`
 
-### <a name="input_load_balancers"></a> [load\_balancers](#input\_load\_balancers)
-
-Description: Configuration block for load balancers. Consists of (target\_group\_arn, container\_name, and container\_port)
-
-Type:
-
-```hcl
-object({
-    target_group_arn = string
-    container_name   = string
-    container_port   = number
-  })
-```
-
 ### <a name="input_service_name"></a> [service\_name](#input\_service\_name)
 
 Description: The name of the service
@@ -125,6 +111,22 @@ Description: Service launch type
 Type: `string`
 
 Default: `"EC2"`
+
+### <a name="input_load_balancers"></a> [load\_balancers](#input\_load\_balancers)
+
+Description: Configuration block for load balancers. Consists of (target\_group\_arn, container\_name, and container\_port)
+
+Type:
+
+```hcl
+object({
+    target_group_arn = string
+    container_name   = string
+    container_port   = number
+  })
+```
+
+Default: `null`
 
 ### <a name="input_network_mode"></a> [network\_mode](#input\_network\_mode)
 
