@@ -105,6 +105,15 @@ variable "launch_type" {
   default     = "EC2"
 }
 
+variable "load_balancers" {
+  description = "Configuration block for load balancers. Consists of (target_group_arn, container_name, and container_port)"
+  type = object({
+    target_group_arn = string
+    container_name = string
+    container_port = number
+  })
+}
+
 variable "target_group_arn" {
   description = "ARN of the load balancer"
   type        = string
