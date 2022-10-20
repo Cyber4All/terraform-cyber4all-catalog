@@ -116,15 +116,7 @@ Default: `"EC2"`
 
 Description: Configuration block for load balancers. Consists of (target\_group\_arn, container\_name, and container\_port)
 
-Type:
-
-```hcl
-object({
-    target_group_arn = string
-    container_name   = string
-    container_port   = number
-  })
-```
+Type: `map(any)`
 
 Default: `{}`
 

@@ -106,8 +106,8 @@ variable "launch_type" {
 
 variable "load_balancer" {
   description = "Configuration block for load balancers. Consists of (target_group_arn, container_name, and container_port)"
-  type = map(any)
-  default = {}
+  type        = map(any)
+  default     = {}
 }
 
 variable "target_group_arn" {
