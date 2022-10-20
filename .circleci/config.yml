@@ -1,42 +1,10 @@
 version: 2.1
 
-base_env: &base_env
-  GRUNTWORK_INSTALLER_VERSION: v0.0.38
-  TERRATEST_LOG_PARSER_VERSION: v0.40.6
-  HELM_VERSION: v3.8.0
-  # Newer versions of minikube has bugs in the nginx ingress setup for k8s <1.19
-  MINIKUBE_VERSION: v1.22.0
-  MODULE_CI_VERSION: v0.46.1
-  TERRAFORM_VERSION: NONE
-  TERRAGRUNT_VERSION: NONE
-  PACKER_VERSION: NONE
-  GOLANG_VERSION: 1.16
-  GO111MODULE: auto
-  KUBECONFIG: /home/circleci/.kube/config
-
-install_gruntwork_utils: &install_gruntwork_utils
-  name: install gruntwork utils
-  command: |
-    curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version "${GRUNTWORK_INSTALLER_VERSION}"
-    gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/terraform-aws-ci" --tag "${MODULE_CI_VERSION}"
-    gruntwork-install --module-name "kubernetes-circleci-helpers" --repo "https://github.com/gruntwork-io/terraform-aws-ci" --tag "${MODULE_CI_VERSION}"
-    gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
-    configure-environment-for-gruntwork-module \
-      --terraform-version ${TERRAFORM_VERSION} \
-      --terragrunt-version ${TERRAGRUNT_VERSION} \
-      --packer-version ${PACKER_VERSION} \
-      --go-version ${GOLANG_VERSION} \
-
 jobs:
   precommit:
-    environment:
-      <<: *base_env
-    docker:
-      - image: cimg/python:3.10.1
+    executor: terraform/default
     steps:
       - checkout
-      - run:
-          <<: *install_gruntwork_utils
       - run:
           command: |
             pip install pre-commit
