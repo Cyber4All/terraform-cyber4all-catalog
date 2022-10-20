@@ -5,5 +5,5 @@
 # Usage: make
 
 init:
-	git config core.hooksPath .githooks
-	brew install tflint
+	brew install pre-commit
+	pre-commit install
