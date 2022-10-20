@@ -10,7 +10,7 @@ resource "aws_ecs_task_definition" "task" {
   container_definitions = var.container_definitions
 
   network_mode             = var.network_mode
-  requires_compatibilities = ["EC2", "FARGATE"]
+  requires_compatibilities = var.requires_compatibilities
 
   runtime_platform {
     operating_system_family = var.operating_system_family
