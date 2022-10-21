@@ -53,7 +53,7 @@ variable "vpc_cidr" {
 variable "access_log_bucket" {
   description = "Name of S3 bucket to forward access logs to"
   type        = string
-  deafult     = null
+  default     = null
 }
 
 # ----------------------------------------------------
