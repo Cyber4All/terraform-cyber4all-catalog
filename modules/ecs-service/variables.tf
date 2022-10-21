@@ -112,8 +112,8 @@ variable "launch_type" {
 
 variable "health_check_grace_period_seconds" {
   description = "The period of time, in seconds, that the Amazon ECS service scheduler should ignore unhealthy Elastic Load Balancing target health checks, container health checks, and Route 53 health checks after a task enters a RUNNING state."
-  type = number
-  default = 0
+  type        = number
+  default     = 0
 }
 
 variable "load_balancer" {

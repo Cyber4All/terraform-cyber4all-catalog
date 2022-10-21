@@ -112,6 +112,14 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_health_check_grace_period_seconds"></a> [health\_check\_grace\_period\_seconds](#input\_health\_check\_grace\_period\_seconds)
+
+Description: The period of time, in seconds, that the Amazon ECS service scheduler should ignore unhealthy Elastic Load Balancing target health checks, container health checks, and Route 53 health checks after a task enters a RUNNING state.
+
+Type: `number`
+
+Default: `0`
+
 ### <a name="input_launch_type"></a> [launch\_type](#input\_launch\_type)
 
 Description: Service launch type
