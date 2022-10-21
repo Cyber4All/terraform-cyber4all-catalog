@@ -123,14 +123,6 @@ Type: `any`
 
 Default: `[]`
 
-### <a name="input_external_instance_sg_id"></a> [external\_instance\_sg\_id](#input\_external\_instance\_sg\_id)
-
-Description: The security group id of the external target instance
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_external_sg_description"></a> [external\_sg\_description](#input\_external\_sg\_description)
 
 Description: n/a
@@ -249,14 +241,6 @@ Type: `any`
 
 Default: `[]`
 
-### <a name="input_internal_instance_sg_id"></a> [internal\_instance\_sg\_id](#input\_internal\_instance\_sg\_id)
-
-Description: The security group id of the internal target instance
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_internal_sg_description"></a> [internal\_sg\_description](#input\_internal\_sg\_description)
 
 Description: n/a
@@ -336,12 +320,4 @@ Description: n/a
 Type: `string`
 
 Default: `"us-east-1"`
-
-### <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr)
-
-Description: The VPC CIDR block of variable.vpc\_id
-
-Type: `string`
-
-Default: `null`
 <!-- END_TF_DOCS -->
