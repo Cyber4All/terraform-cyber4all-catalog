@@ -14,7 +14,7 @@ provider "aws" {
 
 locals {
   # dynamically sets external egress rules based on instance-sg being supplied
-  external_sg_egress_with_source_security_group_id = !var.external_instance_sg_id ? var.external_sg_egress_with_source_security_group_id : [
+  external_sg_egress_with_source_security_group_id = var.external_instance_sg_id == null ? var.external_sg_egress_with_source_security_group_id : [
     {
       source_security_group_id = var.external_instance_sg_id
       description              = "Allow all HTTP outbound traffic to instances on the instance listener and healthcheck port"
@@ -30,11 +30,11 @@ locals {
       protocol                 = "tcp"
     }
   ]
-  external_sg_egress_with_cidr_blocks = var.external_instance_sg_id ? [] : var.external_sg_egress_with_cidr_blocks
+  external_sg_egress_with_cidr_blocks = var.external_instance_sg_id != null ? [] : var.external_sg_egress_with_cidr_blocks
 
 
   # dynamically sets internal ingress rules based on vpc_cidr being supplied
-  internal_sg_ingress_with_cidr_blocks = !var.vpc_cidr ? var.internal_sg_ingress_with_cidr_blocks : [{
+  internal_sg_ingress_with_cidr_blocks = var.vpc_cidr == null ? var.internal_sg_ingress_with_cidr_blocks : [{
     cidr_blocks = var.vpc_cidr
     description = "Allow all inbound traffic from the VPC CIDR on the load balancer listener port"
     from_port   = 80
@@ -43,7 +43,7 @@ locals {
   }]
 
   # dynamically sets internal egress rules based on internal_instance_sg_id being supplied
-  internal_sg_egress_with_source_security_group_id = !var.internal_instance_sg_id ? var.internal_sg_egress_with_source_security_group_id : [
+  internal_sg_egress_with_source_security_group_id = var.internal_instance_sg_id == null ? var.internal_sg_egress_with_source_security_group_id : [
     {
       source_security_group_id = var.internal_instance_sg_id
       description              = "Allow all HTTP outbound traffic to instances on the instance listener and healthcheck port"
@@ -52,7 +52,7 @@ locals {
       protocol                 = "tcp"
     }
   ]
-  internal_sg_egress_with_cidr_blocks = var.internal_instance_sg_id ? [] : var.internal_sg_egress_with_cidr_blocks
+  internal_sg_egress_with_cidr_blocks = var.internal_instance_sg_id != null ? [] : var.internal_sg_egress_with_cidr_blocks
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
