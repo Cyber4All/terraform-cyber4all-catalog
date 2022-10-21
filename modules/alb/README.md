@@ -39,12 +39,6 @@ Version: 4.13.0
 
 The following input variables are required:
 
-### <a name="input_access_log_bucket"></a> [access\_log\_bucket](#input\_access\_log\_bucket)
-
-Description: Name of S3 bucket to forward access logs to
-
-Type: `string`
-
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description: Name of the project the resources are associated with
@@ -72,6 +66,14 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_access_log_bucket"></a> [access\_log\_bucket](#input\_access\_log\_bucket)
+
+Description: Name of S3 bucket to forward access logs to
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_create_external_alb"></a> [create\_external\_alb](#input\_create\_external\_alb)
 
