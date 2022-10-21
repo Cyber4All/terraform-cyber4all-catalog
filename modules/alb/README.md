@@ -45,13 +45,13 @@ Description: Name of the project the resources are associated with
 
 Type: `string`
 
-### <a name="input_private_subnet_arns"></a> [private\_subnet\_arns](#input\_private\_subnet\_arns)
+### <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids)
 
-Description: List of private subnet ARNs to deploy internal ALB into (required if create\_internal\_alb == true)
+Description: List of private subnet IDs to deploy internal ALB into (required if create\_internal\_alb == true)
 
 Type: `list(string)`
 
-### <a name="input_public_subnet_arns"></a> [public\_subnet\_arns](#input\_public\_subnet\_arns)
+### <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids)
 
 Description: List of public subnet ARNs to deploy external ALB into (required if create\_external\_alb == true)
 
