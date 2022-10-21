@@ -320,4 +320,12 @@ Description: n/a
 Type: `string`
 
 Default: `"us-east-1"`
+
+## Outputs
+
+The following outputs are exported:
+
+### <a name="output_external_target_group_arns"></a> [external\_target\_group\_arns](#output\_external\_target\_group\_arns)
+
+Description: n/a
 <!-- END_TF_DOCS -->
