@@ -110,6 +110,12 @@ variable "launch_type" {
   default     = "EC2"
 }
 
+variable "health_check_grace_period_seconds" {
+  description = "The period of time, in seconds, that the Amazon ECS service scheduler should ignore unhealthy Elastic Load Balancing target health checks, container health checks, and Route 53 health checks after a task enters a RUNNING state."
+  type = number
+  default = 0
+}
+
 variable "load_balancer" {
   description = "Configuration block for load balancers. Consists of (target_group_arn, container_name, and container_port)"
   type        = map(any)
