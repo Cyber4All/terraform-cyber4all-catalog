@@ -212,7 +212,7 @@ module "internal-alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "8.1.0"
 
-  create_lb = true
+  create_lb = var.create_internal_alb
 
   name = "int-alb-${var.name}"
 
