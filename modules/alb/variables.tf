@@ -32,7 +32,7 @@ variable "region" {
   default = "us-east-1"
 }
 
-variable "external_instance_sg_id" {
+/* variable "external_instance_sg_id" {
   description = "The security group id of the external target instance"
   type        = string
   default     = null
@@ -42,13 +42,13 @@ variable "internal_instance_sg_id" {
   description = "The security group id of the internal target instance"
   type        = string
   default     = null
-}
+} */
 
-variable "vpc_cidr" {
+/* variable "vpc_cidr" {
   description = "The VPC CIDR block of variable.vpc_id"
   type        = string
   default     = null
-}
+} */
 
 variable "access_log_bucket" {
   description = "Name of S3 bucket to forward access logs to"

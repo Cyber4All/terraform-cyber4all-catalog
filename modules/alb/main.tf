@@ -12,7 +12,7 @@ provider "aws" {
   region = var.region
 }
 
-locals {
+/* locals {
   # dynamically sets external egress rules based on instance-sg being supplied
   external_sg_egress_with_source_security_group_id = var.external_instance_sg_id == null ? var.external_sg_egress_with_source_security_group_id : [
     {
@@ -53,7 +53,7 @@ locals {
     }
   ]
   internal_sg_egress_with_cidr_blocks = var.internal_instance_sg_id != null ? [] : var.internal_sg_egress_with_cidr_blocks
-}
+} */
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE EXTERNAL ALB SECURITY GROUP
@@ -83,8 +83,8 @@ module "external-sg" {
   ingress_with_cidr_blocks              = var.external_sg_ingress_with_cidr_blocks
   ingress_with_source_security_group_id = var.external_sg_ingress_with_source_security_group_id
 
-  egress_with_cidr_blocks              = local.external_sg_egress_with_cidr_blocks
-  egress_with_source_security_group_id = local.external_sg_egress_with_source_security_group_id
+  egress_with_cidr_blocks              = var.external_sg_egress_with_cidr_blocks
+  egress_with_source_security_group_id = var.external_sg_egress_with_source_security_group_id
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -112,11 +112,11 @@ module "internal-sg" {
   name        = "internal-alb-sg-${var.name}" # required
   description = var.internal_sg_description
 
-  ingress_with_cidr_blocks              = local.internal_sg_ingress_with_cidr_blocks
+  ingress_with_cidr_blocks              = var.internal_sg_ingress_with_cidr_blocks
   ingress_with_source_security_group_id = var.internal_sg_ingress_with_source_security_group_id
 
-  egress_with_cidr_blocks              = local.internal_sg_egress_with_cidr_blocks
-  egress_with_source_security_group_id = local.internal_sg_egress_with_source_security_group_id
+  egress_with_cidr_blocks              = var.internal_sg_egress_with_cidr_blocks
+  egress_with_source_security_group_id = var.internal_sg_egress_with_source_security_group_id
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
