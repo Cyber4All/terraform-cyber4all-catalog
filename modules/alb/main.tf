@@ -75,7 +75,7 @@ module "external-sg" {
   version = "4.13.0"
 
   create = var.create_external_alb
-  vpc_id    = var.vpc_id # required
+  vpc_id = var.vpc_id # required
 
   name        = "external-alb-sg-${var.name}" # required
   description = var.external_sg_description
@@ -107,7 +107,7 @@ module "internal-sg" {
   version = "4.13.0"
 
   create = var.create_internal_alb
-  vpc_id    = var.vpc_id # required
+  vpc_id = var.vpc_id # required
 
   name        = "internal-alb-sg-${var.name}" # required
   description = var.internal_sg_description
