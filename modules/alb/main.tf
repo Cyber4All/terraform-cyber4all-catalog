@@ -74,7 +74,7 @@ module "external-sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "4.13.0"
 
-  create_sg = var.create_external_alb
+  create = var.create_external_alb
   vpc_id    = var.vpc_id # required
 
   name        = "external-alb-sg-${var.name}" # required
@@ -106,7 +106,7 @@ module "internal-sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "4.13.0"
 
-  create_sg = var.create_internal_alb
+  create = var.create_internal_alb
   vpc_id    = var.vpc_id # required
 
   name        = "internal-alb-sg-${var.name}" # required
