@@ -146,7 +146,7 @@ module "external-alb" {
   #   External ALB should exist in public subnets
   # ----------------------------------------------------
   vpc_id          = var.vpc_id
-  subnets         = var.public_subnet_arns
+  subnets         = var.public_subnet_ids
   security_groups = [module.external-sg.security_group_id]
 
   # ----------------------------------------------------
@@ -226,7 +226,7 @@ module "internal-alb" {
   #   Internal ALB should exist in private subnets
   # ----------------------------------------------------
   vpc_id          = var.vpc_id
-  subnets         = var.private_subnet_arns
+  subnets         = var.private_subnet_ids
   security_groups = [module.internal-sg.security_group_id]
 
   # ----------------------------------------------------

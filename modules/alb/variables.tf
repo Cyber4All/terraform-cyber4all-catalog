@@ -12,13 +12,13 @@ variable "vpc_id" {
   type = string
 }
 
-variable "public_subnet_arns" {
+variable "public_subnet_ids" {
   description = "List of public subnet ARNs to deploy external ALB into (required if create_external_alb == true)"
   type        = list(string)
 }
 
-variable "private_subnet_arns" {
-  description = "List of private subnet ARNs to deploy internal ALB into (required if create_internal_alb == true)"
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs to deploy internal ALB into (required if create_internal_alb == true)"
   type        = list(string)
 }
 
