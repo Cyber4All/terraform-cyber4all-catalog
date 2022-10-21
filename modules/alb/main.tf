@@ -134,7 +134,7 @@ module "external-alb" {
 
   create_lb = var.create_external_alb
 
-  name = "external-alb-${var.name}"
+  name = "ext-alb-${var.name}"
 
   load_balancer_type               = "application"
   internal                         = false
@@ -214,7 +214,7 @@ module "internal-alb" {
 
   create_lb = true
 
-  name = "internal-alb-${var.name}"
+  name = "int-alb-${var.name}"
 
   load_balancer_type               = "application"
   internal                         = true
