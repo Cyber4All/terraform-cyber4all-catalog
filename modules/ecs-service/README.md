@@ -142,7 +142,7 @@ Description: Docker networking mode to use for containers in the task
 
 Type: `string`
 
-Default: `"awsvpc"`
+Default: `"none"`
 
 ### <a name="input_operating_system_family"></a> [operating\_system\_family](#input\_operating\_system\_family)
 
