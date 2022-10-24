@@ -12,6 +12,8 @@ resource "aws_ecs_task_definition" "task" {
   network_mode             = var.network_mode
   requires_compatibilities = var.requires_compatibilities
 
+  skip_destroy = true
+
   runtime_platform {
     operating_system_family = var.operating_system_family
     cpu_architecture        = var.cpu_architecture
@@ -44,7 +46,6 @@ resource "aws_ecs_task_definition" "task" {
   /* pid_mode = host | task */
   /* placement_constraints {} */
   /* proxy_configuration {} */
-  /* skip_destroy = false */
   /* tags = {} */
   /* volume {} */
 }
