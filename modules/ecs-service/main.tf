@@ -101,11 +101,11 @@ resource "aws_ecs_service" "service" {
   # ----------------------------------------------------
   # NETWORK CONFIG
   # ----------------------------------------------------
-  network_configuration {
+  /* network_configuration {
     subnets          = var.service_subnets
     security_groups  = [var.service_security_group_id]
     assign_public_ip = var.assign_public_ip # can be true for FARGATE
-  }
+  } */
 
   # ----------------------------------------------------
   # TASK PLACEMENT
