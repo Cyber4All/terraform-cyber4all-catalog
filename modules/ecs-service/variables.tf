@@ -23,7 +23,7 @@ variable "service_name" {
 
 variable "dns_namespace_id" {
   description = "namespace for dns"
-  type = string
+  type        = string
 }
 
 variable "cluster_arn" {

@@ -13,6 +13,7 @@ The following resources are used by this module:
 
 - [aws_ecs_service.service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) (resource)
 - [aws_ecs_task_definition.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) (resource)
+- [aws_service_discovery_service.registry](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) (resource)
 
 ## Required Inputs
 
@@ -35,6 +36,12 @@ Type: `any`
 Description: The number of instances of the given task definition to place and run
 
 Type: `number`
+
+### <a name="input_dns_namespace_id"></a> [dns\_namespace\_id](#input\_dns\_namespace\_id)
+
+Description: namespace for dns
+
+Type: `string`
 
 ### <a name="input_service_name"></a> [service\_name](#input\_service\_name)
 
@@ -165,14 +172,6 @@ Default:
   "EC2"
 ]
 ```
-
-### <a name="input_service_registry_arn"></a> [service\_registry\_arn](#input\_service\_registry\_arn)
-
-Description: n/a
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_service_registry_port"></a> [service\_registry\_port](#input\_service\_registry\_port)
 

@@ -1,12 +1,12 @@
 variable "name" {
-    type = string
+  type = string
 }
 
 variable "description" {
-    type = string
-    default = ""
+  type    = string
+  default = ""
 }
 
 variable "vpc_id" {
-    type = string
+  type = string
 }
