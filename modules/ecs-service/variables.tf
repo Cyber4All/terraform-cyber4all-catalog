@@ -104,6 +104,16 @@ variable "execution_role_arn" {
 
 # ECS SERVICE
 
+variable "service_registry_arn" {
+  type = string
+  default = null
+}
+
+variable "service_registry_port" {
+  type = string
+  default = null
+}
+
 variable "launch_type" {
   description = "Service launch type"
   type        = string # "EC2" | "FARGATE" | "EXTERNAL"

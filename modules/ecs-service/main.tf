@@ -75,6 +75,14 @@ resource "aws_ecs_service" "service" {
   health_check_grace_period_seconds = var.health_check_grace_period_seconds
 
   # ----------------------------------------------------
+  # SERVICE DISCOVERY CONFIG
+  # ----------------------------------------------------
+  service_registries {
+    registry_arn = var.service_registry_arn
+    port = var.service_registry_port
+  }
+
+  # ----------------------------------------------------
   # LOAD BALANCER CONFIG
   # ----------------------------------------------------
 
@@ -119,7 +127,6 @@ resource "aws_ecs_service" "service" {
   /* platform_version = "LATEST" */
   /* propagate_tags = null */
   /* scheduling_strategy = "REPLICA" */
-  /* service_registries {} */
   /* tags = {} */
   /* wait_for_steady_state = false */
 }
