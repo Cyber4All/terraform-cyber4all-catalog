@@ -104,11 +104,6 @@ variable "execution_role_arn" {
 
 # ECS SERVICE
 
-variable "container_name" {
-  type    = string
-  default = null
-}
-
 variable "service_registry_arn" {
   type    = string
   default = null
