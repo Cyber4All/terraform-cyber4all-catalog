@@ -105,12 +105,12 @@ variable "execution_role_arn" {
 # ECS SERVICE
 
 variable "container_name" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "container_port" {
-  type = number
+  type    = number
   default = null
 }
 

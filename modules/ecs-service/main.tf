@@ -78,8 +78,8 @@ resource "aws_ecs_service" "service" {
   # SERVICE DISCOVERY CONFIG
   # ----------------------------------------------------
   service_registries {
-    registry_arn = var.service_registry_arn
-    port         = var.service_registry_port
+    registry_arn   = var.service_registry_arn
+    port           = var.service_registry_port
     container_name = var.container_name
     container_port = var.container_port
   }
