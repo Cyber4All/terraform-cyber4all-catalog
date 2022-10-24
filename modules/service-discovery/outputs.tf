@@ -5,5 +5,5 @@ output "arn" {
 
 output "id" {
   description = "The ID of a namespace."
-  value = aws_service_discovery_private_dns_namespace.namespace.id
+  value       = aws_service_discovery_private_dns_namespace.namespace.id
 }

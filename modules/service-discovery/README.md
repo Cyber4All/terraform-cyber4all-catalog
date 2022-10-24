@@ -48,4 +48,8 @@ The following outputs are exported:
 ### <a name="output_arn"></a> [arn](#output\_arn)
 
 Description: The ARN that Amazon Route 53 assigns to the namespace when you create it.
+
+### <a name="output_id"></a> [id](#output\_id)
+
+Description: The ID of a namespace.
 <!-- END_TF_DOCS -->
