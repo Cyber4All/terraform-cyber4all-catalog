@@ -51,7 +51,7 @@ variable "service_security_group_id" {
 variable "network_mode" {
   description = "Docker networking mode to use for containers in the task"
   type        = string # "none" | "bridge" | "awsvpc" | "host"
-  default     = "awsvpc"
+  default     = "none"
 }
 
 variable "operating_system_family" {
