@@ -109,11 +109,6 @@ variable "container_name" {
   default = null
 }
 
-variable "container_port" {
-  type    = number
-  default = null
-}
-
 variable "service_registry_arn" {
   type    = string
   default = null
