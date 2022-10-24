@@ -21,6 +21,11 @@ variable "service_name" {
   type        = string
 }
 
+variable "dns_namespace_id" {
+  description = "namespace for dns"
+  type = string
+}
+
 variable "cluster_arn" {
   description = "The ARN of the cluster where the service will be located"
   type        = string
@@ -103,11 +108,6 @@ variable "execution_role_arn" {
 }
 
 # ECS SERVICE
-
-variable "service_registry_arn" {
-  type    = string
-  default = null
-}
 
 variable "service_registry_port" {
   type    = string

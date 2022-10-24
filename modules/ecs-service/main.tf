@@ -1,4 +1,24 @@
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE CLOUD MAP SERVICE DISCOVERY REGISTRY
+#
+# Terraform Docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
+# AWS Docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_service_discovery_service" "registry" {
+  name = var.service_name
+
+  dns_config {
+    namespace_id = var.dns_namespace_id
+
+    dns_records {
+      ttl  = 60
+      type = "SRV"
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE ECS TASK DEFINITION
 #
 # Terraform Docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
@@ -78,7 +98,7 @@ resource "aws_ecs_service" "service" {
   # SERVICE DISCOVERY CONFIG
   # ----------------------------------------------------
   service_registries {
-    registry_arn   = var.service_registry_arn
+    registry_arn   = aws_service_discovery_service.registry.arn
     port           = var.service_registry_port
     container_name = var.container_name
     container_port = var.container_port
