@@ -71,7 +71,7 @@ resource "aws_ecs_service" "service" {
   # ----------------------------------------------------
   desired_count                     = var.desired_count
   enable_execute_command            = false
-  force_new_deployment              = true
+  /* force_new_deployment              = true */
   health_check_grace_period_seconds = var.health_check_grace_period_seconds
 
   # ----------------------------------------------------
