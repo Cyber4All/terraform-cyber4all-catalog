@@ -105,12 +105,12 @@ variable "execution_role_arn" {
 # ECS SERVICE
 
 variable "service_registry_arn" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "service_registry_port" {
-  type = string
+  type    = string
   default = null
 }
 

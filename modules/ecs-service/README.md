@@ -166,6 +166,22 @@ Default:
 ]
 ```
 
+### <a name="input_service_registry_arn"></a> [service\_registry\_arn](#input\_service\_registry\_arn)
+
+Description: n/a
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_service_registry_port"></a> [service\_registry\_port](#input\_service\_registry\_port)
+
+Description: n/a
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_target_group_arn"></a> [target\_group\_arn](#input\_target\_group\_arn)
 
 Description: ARN of the load balancer

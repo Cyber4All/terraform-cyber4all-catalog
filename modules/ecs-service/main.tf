@@ -79,7 +79,7 @@ resource "aws_ecs_service" "service" {
   # ----------------------------------------------------
   service_registries {
     registry_arn = var.service_registry_arn
-    port = var.service_registry_port
+    port         = var.service_registry_port
   }
 
   # ----------------------------------------------------
