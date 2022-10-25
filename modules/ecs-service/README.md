@@ -43,12 +43,6 @@ Description: The ID of the namespace to use for DNS configuration.
 
 Type: `string`
 
-### <a name="input_network_configuration"></a> [network\_configuration](#input\_network\_configuration)
-
-Description: Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes.
-
-Type: `map(any)`
-
 ### <a name="input_service_name"></a> [service\_name](#input\_service\_name)
 
 Description: Name that will associate all resources.
@@ -110,6 +104,14 @@ Default: `"EC2"`
 ### <a name="input_load_balancer"></a> [load\_balancer](#input\_load\_balancer)
 
 Description: Configuration block for load balancers. Consists of (target\_group\_arn, container\_name, and container\_port)
+
+Type: `map(any)`
+
+Default: `{}`
+
+### <a name="input_network_configuration"></a> [network\_configuration](#input\_network\_configuration)
+
+Description: Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes.
 
 Type: `map(any)`
 
