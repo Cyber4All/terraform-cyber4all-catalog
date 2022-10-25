@@ -139,5 +139,5 @@ variable "load_balancer" {
 variable "network_configuration" {
   type        = map(any)
   description = "Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes."
-  deafult     = {}
+  default     = {}
 }
