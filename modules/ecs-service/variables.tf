@@ -34,8 +34,8 @@ variable "cluster_arn" {
 
 variable "desired_count" {
   type        = number
-  description = "Number of instances of the task definition to place and keep running. Defaults to 0. Do not specify if using the `DAEMON` scheduling strategy."
-  default     = 0
+  description = "Number of instances of the task definition to place and keep running. Defaults to 1. Do not specify if using the `DAEMON` scheduling strategy."
+  default     = 1
 }
 
 # --------------------------------------------------------
