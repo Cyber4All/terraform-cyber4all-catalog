@@ -63,11 +63,11 @@ Default: `null`
 
 ### <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count)
 
-Description: Number of instances of the task definition to place and keep running. Defaults to 0. Do not specify if using the `DAEMON` scheduling strategy.
+Description: Number of instances of the task definition to place and keep running. Defaults to 1. Do not specify if using the `DAEMON` scheduling strategy.
 
 Type: `number`
 
-Default: `0`
+Default: `1`
 
 ### <a name="input_ephemeral_storage"></a> [ephemeral\_storage](#input\_ephemeral\_storage)
 
