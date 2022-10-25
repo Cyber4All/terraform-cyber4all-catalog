@@ -19,13 +19,13 @@ The following input variables are required:
 
 ### <a name="input_name"></a> [name](#input\_name)
 
-Description: n/a
+Description: The name of the namespace.
 
 Type: `string`
 
 ### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
 
-Description: n/a
+Description: The ID of VPC that you want to associate the namespace with.
 
 Type: `string`
 
@@ -39,7 +39,7 @@ Description: n/a
 
 Type: `string`
 
-Default: `""`
+Default: `"Private DNS Namespace Managed by Terraform"`
 
 ## Outputs
 
