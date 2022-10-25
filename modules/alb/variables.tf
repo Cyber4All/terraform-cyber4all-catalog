@@ -7,7 +7,7 @@ variable "name" {
   description = "Name of the project the resources are associated with"
   type        = string
 }
- 
+
 variable "vpc_id" {
   type = string
 }

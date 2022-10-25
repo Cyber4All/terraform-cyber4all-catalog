@@ -52,13 +52,13 @@ variable "launch_template_description" {
 variable "ami_id" {
   type        = string
   description = "The AMI from which to launch the instance. (default: Amazon Linux AMI amzn-ami-2018.03.20220831 x86_64 ECS HVM GP2, deprecated: Fri Aug 30 2024 20:24:19 GMT-0400)"
-  default = "ami-06e07b42f153830d8"
+  default     = "ami-06e07b42f153830d8"
 }
 
 variable "instance_type" {
   type        = string
   description = "The type of the instance. If present then `instance_requirements` cannot be present."
-  default = "t2.micro"
+  default     = "t2.micro"
 }
 
 variable "block_device_mappings" {
@@ -77,7 +77,7 @@ variable "min_size" {
 variable "max_size" {
   type        = number
   description = "The maximum size of the autoscaling group."
-  default = 1
+  default     = 1
 }
 
 variable "desired_capacity" {
@@ -87,9 +87,9 @@ variable "desired_capacity" {
 }
 
 variable "enabled_metrics" {
-  type = list(string)
+  type        = list(string)
   description = "A list of metrics to collect. The allowed values are `GroupDesiredCapacity`, `GroupInServiceCapacity`, `GroupPendingCapacity`, `GroupMinSize`, `GroupMaxSize`, `GroupInServiceInstances`, `GroupPendingInstances`, `GroupStandbyInstances`, `GroupStandbyCapacity`, `GroupTerminatingCapacity`, `GroupTerminatingInstances`, `GroupTotalCapacity`, `GroupTotalInstances`."
-  default = ["GroupDesiredCapacity", "GroupInServiceCapacity", "GroupPendingCapacity", "GroupMinSize", "GroupMaxSize", "GroupInServiceInstances", "GroupPendingInstances", "GroupStandbyInstances", "GroupStandbyCapacity", "GroupTerminatingCapacity", "GroupTerminatingInstances", "GroupTotalCapacity", "GroupTotalInstances"]
+  default     = ["GroupDesiredCapacity", "GroupInServiceCapacity", "GroupPendingCapacity", "GroupMinSize", "GroupMaxSize", "GroupInServiceInstances", "GroupPendingInstances", "GroupStandbyInstances", "GroupStandbyCapacity", "GroupTerminatingCapacity", "GroupTerminatingInstances", "GroupTotalCapacity", "GroupTotalInstances"]
 }
 
 variable "capacity_rebalance" {
@@ -106,7 +106,7 @@ variable "iam_role_description" {
 }
 
 variable "iam_role_policies" {
-  type = map(string)
+  type        = map(string)
   description = "IAM policies to attach to the IAM role."
   default = {
     AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
@@ -124,15 +124,15 @@ variable "sg_description" {
 }
 
 variable "ingress_rules" {
-  type = list(string)
+  type        = list(string)
   description = "List of ingress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf)."
-  default = []
+  default     = []
 }
 
 variable "egress_rules" {
-  type = list(string)
+  type        = list(string)
   description = "List of egress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf)."
-  default = []
+  default     = []
 }
 
 variable "ingress_with_cidr_blocks" {

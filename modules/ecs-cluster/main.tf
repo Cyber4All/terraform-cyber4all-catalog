@@ -19,7 +19,7 @@ module "ecs" {
 
       log_configuration = {
         cloud_watch_encryption_enabled = true
-        cloud_watch_log_group_name = var.log_group_name
+        cloud_watch_log_group_name     = var.log_group_name
       }
     }
   } : {}
@@ -52,7 +52,7 @@ module "security_group" {
   vpc_id      = var.vpc_id
 
   ingress_rules = var.ingress_rules
-  egress_rules = var.egress_rules
+  egress_rules  = var.egress_rules
 
   ingress_with_cidr_blocks = var.ingress_with_cidr_blocks
   egress_with_cidr_blocks  = var.egress_with_cidr_blocks
@@ -122,23 +122,23 @@ module "autoscaling" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "6.5.2"
 
-  name                = "${var.project_name}-asg"
+  name = "${var.project_name}-asg"
 
   # ----------------------------------------------------
   # ASG CONFIG
   # ----------------------------------------------------
   vpc_zone_identifier = var.subnet_ids
 
-  min_size            = var.min_size
-  max_size            = var.max_size
-  desired_capacity    = var.desired_capacity
-  
-  health_check_type   = "EC2"
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_capacity
+
+  health_check_type = "EC2"
 
   protect_from_scale_in = true
   capacity_rebalance    = var.capacity_rebalance
-  
-  create_schedule       = false
+
+  create_schedule = false
 
   enabled_metrics = var.enabled_metrics
 
@@ -153,7 +153,7 @@ module "autoscaling" {
   iam_instance_profile_name   = "${var.project_name}-ip"
   iam_role_name               = "${var.project_name}-role"
   iam_role_description        = var.iam_role_description
-  iam_role_policies = var.iam_role_policies
+  iam_role_policies           = var.iam_role_policies
 
   # ----------------------------------------------------
   # LAUNCH TEMPLATE CONFIG
@@ -161,12 +161,12 @@ module "autoscaling" {
   create_launch_template      = true
   launch_template_name        = "${var.project_name}-lt"
   launch_template_description = var.launch_template_description
-  
-  image_id                    = var.ami_id
-  user_data                   = base64encode(templatefile("${path.module}/helpers/containerAgent.sh", { CLUSTER_NAME = "${var.project_name}-cluster" }))
-  update_default_version      = true
-  instance_type               = var.instance_type
-  block_device_mappings = var.block_device_mappings
+
+  image_id               = var.ami_id
+  user_data              = base64encode(templatefile("${path.module}/helpers/containerAgent.sh", { CLUSTER_NAME = "${var.project_name}-cluster" }))
+  update_default_version = true
+  instance_type          = var.instance_type
+  block_device_mappings  = var.block_device_mappings
 
   security_groups = [module.security_group.security_group_id]
 
