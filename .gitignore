@@ -3,3 +3,4 @@
 dlog.log
 log.log
 .DS_Store
+.terraform.lock.hcl
