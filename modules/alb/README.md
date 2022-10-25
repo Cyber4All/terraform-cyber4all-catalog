@@ -1,11 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-## Requirements
 
-The following requirements are needed by this module:
-
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (1.2.9)
-
-- <a name="requirement_aws"></a> [aws](#requirement\_aws) (4.29.0)
 
 ## Modules
 
