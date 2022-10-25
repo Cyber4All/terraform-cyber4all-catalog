@@ -19,7 +19,7 @@ variable "vpc_id" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "description" {
-  type           = string
+  type        = string
   description = "The description that you specify for the namespace when you create it."
-  default        = "Private DNS Namespace Managed by Terraform"
+  default     = "Private DNS Namespace Managed by Terraform"
 }

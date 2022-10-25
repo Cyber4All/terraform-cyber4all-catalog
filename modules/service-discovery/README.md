@@ -41,7 +41,7 @@ The following input variables are optional (have default values):
 
 ### <a name="input_description"></a> [description](#input\_description)
 
-Description: n/a
+Description: The description that you specify for the namespace when you create it.
 
 Type: `string`
 
