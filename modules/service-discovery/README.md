@@ -1,11 +1,17 @@
 <!-- BEGIN_TF_DOCS -->
+## Requirements
 
+The following requirements are needed by this module:
+
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.2.9)
+
+- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.36)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_aws"></a> [aws](#provider\_aws)
+- <a name="provider_aws"></a> [aws](#provider\_aws) (>= 4.36)
 
 ## Resources
 
