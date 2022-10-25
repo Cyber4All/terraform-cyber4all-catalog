@@ -119,15 +119,15 @@ variable "internal_egress_with_source_security_group_id" {
 # external application load balancer parameters
 # ----------------------------------------------------
 variable "create_external_alb" {
-  type    = bool
+  type        = bool
   description = "Controls if the External Application Load Balancer should be created"
-  default = true
+  default     = true
 }
 
 variable "public_subnet_ids" {
   description = "List of public subnet ARNs to deploy external ALB into (required if create_external_alb == true)"
   type        = list(string)
-  default = []
+  default     = []
 }
 
 variable "external_http_tcp_listeners" {
@@ -164,15 +164,15 @@ variable "external_target_groups" {
 # internal application load balancer parameters
 # ----------------------------------------------------
 variable "create_internal_alb" {
-  type    = bool
+  type        = bool
   description = "Controls if the Internal Application Load Balancer should be created"
-  default = true
+  default     = true
 }
 
 variable "private_subnet_ids" {
   description = "List of private subnet IDs to deploy internal ALB into (required if create_internal_alb == true)"
   type        = list(string)
-  default = []
+  default     = []
 }
 
 variable "internal_http_tcp_listeners" {

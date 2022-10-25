@@ -15,7 +15,7 @@ output "external_security_group_id" {
 # ----------------------------------------------------
 # internal security group outputs
 # ----------------------------------------------------
-output "internal_security_group_arn" { 
+output "internal_security_group_arn" {
   description = "The ARN of the internal alb security group"
   value       = module.internal-sg.security_group_arn
 }

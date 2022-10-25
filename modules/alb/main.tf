@@ -23,16 +23,16 @@ module "external-sg" {
 
   name        = "${var.project_name}-ext-sg"
   description = var.external_sg_description
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress_rules = var.external_ingress_rules
   egress_rules  = var.external_egress_rules
 
-  ingress_with_cidr_blocks              = var.external_ingress_with_cidr_blocks
-  egress_with_cidr_blocks              = var.external_egress_with_cidr_blocks
+  ingress_with_cidr_blocks = var.external_ingress_with_cidr_blocks
+  egress_with_cidr_blocks  = var.external_egress_with_cidr_blocks
 
   ingress_with_source_security_group_id = var.external_ingress_with_source_security_group_id
-  egress_with_source_security_group_id = var.external_egress_with_source_security_group_id
+  egress_with_source_security_group_id  = var.external_egress_with_source_security_group_id
 
   # ----------------------------------------------------
   # DEFAULTS
@@ -105,16 +105,16 @@ module "internal-sg" {
 
   name        = "${var.project_name}-int-sg"
   description = var.internal_sg_description
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress_rules = var.internal_ingress_rules
   egress_rules  = var.internal_egress_rules
 
-  ingress_with_cidr_blocks              = var.internal_ingress_with_cidr_blocks
-  egress_with_cidr_blocks              = var.internal_egress_with_cidr_blocks
+  ingress_with_cidr_blocks = var.internal_ingress_with_cidr_blocks
+  egress_with_cidr_blocks  = var.internal_egress_with_cidr_blocks
 
   ingress_with_source_security_group_id = var.internal_ingress_with_source_security_group_id
-  egress_with_source_security_group_id = var.internal_egress_with_source_security_group_id
+  egress_with_source_security_group_id  = var.internal_egress_with_source_security_group_id
 
   # ----------------------------------------------------
   # DEFAULTS
@@ -213,9 +213,9 @@ module "external-alb" {
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-  access_logs = var.access_log_bucket != null ? { 
-    bucket = var.access_log_bucket
-    prefix = "${var.project_name}-ext-alb"
+  access_logs = var.access_log_bucket != null ? {
+    bucket  = var.access_log_bucket
+    prefix  = "${var.project_name}-ext-alb"
     enabled = true
   } : {}
 
@@ -300,9 +300,9 @@ module "internal-alb" {
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-  access_logs = var.access_log_bucket != null ? { 
-    bucket = var.access_log_bucket
-    prefix = "${var.project_name}-int-alb"
+  access_logs = var.access_log_bucket != null ? {
+    bucket  = var.access_log_bucket
+    prefix  = "${var.project_name}-int-alb"
     enabled = true
   } : {}
 
