@@ -3,7 +3,7 @@
 # ----------------------------------------------------
 output "service_discovery_arn" {
   description = "The ARN of the service."
-  value = aws_service_discovery_service.registry.arn
+  value       = aws_service_discovery_service.registry.arn
 }
 
 # ----------------------------------------------------

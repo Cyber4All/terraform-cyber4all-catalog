@@ -35,7 +35,7 @@ variable "cluster_arn" {
 variable "desired_count" {
   type        = number
   description = "Number of instances of the task definition to place and keep running. Defaults to 0. Do not specify if using the `DAEMON` scheduling strategy."
-  default = 0
+  default     = 0
 }
 
 # --------------------------------------------------------
@@ -47,9 +47,9 @@ variable "desired_count" {
 # service discovery parameters
 # ----------------------------------------------------
 variable "service_discovery_description" {
-  type = string
+  type        = string
   description = "The description of the service."
-  default = "Service Discovery Managed by Terraform"
+  default     = "Service Discovery Managed by Terraform"
 }
 
 # ----------------------------------------------------
@@ -125,9 +125,9 @@ variable "health_check_grace_period_seconds" {
 }
 
 variable "service_registries" {
-  type = map(any)
+  type        = map(any)
   description = "Service discovery registries for the service. The maximum number of `service_registries` blocks is `1`."
-  default = {}
+  default     = {}
 }
 
 variable "load_balancer" {
@@ -137,7 +137,7 @@ variable "load_balancer" {
 }
 
 variable "network_configuration" {
-  type = map(any)
+  type        = map(any)
   description = "Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes."
-  deafult = {}
+  deafult     = {}
 }

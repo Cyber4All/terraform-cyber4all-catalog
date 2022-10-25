@@ -1,11 +1,17 @@
 <!-- BEGIN_TF_DOCS -->
+## Requirements
 
+The following requirements are needed by this module:
+
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.2.9)
+
+- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.36)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_aws"></a> [aws](#provider\_aws) (4.29.0)
+- <a name="provider_aws"></a> [aws](#provider\_aws) (>= 4.36)
 
 ## Resources
 
@@ -21,49 +27,31 @@ The following input variables are required:
 
 ### <a name="input_cluster_arn"></a> [cluster\_arn](#input\_cluster\_arn)
 
-Description: The ARN of the cluster where the service will be located
+Description: ARN of an ECS cluster.
 
 Type: `string`
 
 ### <a name="input_container_definitions"></a> [container\_definitions](#input\_container\_definitions)
 
-Description: A list of containers with container definitions provided as a single JSON document
+Description: A list of valid container definitions provided as a single valid JSON document. Please note that you should only provide values that are part of the container definition document. For a detailed description of what parameters are available, see the Task Definition Parameters section from the official Developer Guide.
 
 Type: `any`
 
-### <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count)
-
-Description: The number of instances of the given task definition to place and run
-
-Type: `number`
-
 ### <a name="input_dns_namespace_id"></a> [dns\_namespace\_id](#input\_dns\_namespace\_id)
 
-Description: namespace for dns
+Description: The ID of the namespace to use for DNS configuration.
 
 Type: `string`
+
+### <a name="input_network_configuration"></a> [network\_configuration](#input\_network\_configuration)
+
+Description: Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes.
+
+Type: `map(any)`
 
 ### <a name="input_service_name"></a> [service\_name](#input\_service\_name)
 
-Description: The name of the service
-
-Type: `string`
-
-### <a name="input_service_security_group_id"></a> [service\_security\_group\_id](#input\_service\_security\_group\_id)
-
-Description: The id of the security group created
-
-Type: `string`
-
-### <a name="input_service_subnets"></a> [service\_subnets](#input\_service\_subnets)
-
-Description: The list of subnets from the vpc to run the service in
-
-Type: `list(string)`
-
-### <a name="input_task_family"></a> [task\_family](#input\_task\_family)
-
-Description: The unique name for the task definition
+Description: Name that will associate all resources.
 
 Type: `string`
 
@@ -71,41 +59,25 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_assign_public_ip"></a> [assign\_public\_ip](#input\_assign\_public\_ip)
-
-Description: Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false.
-
-Type: `bool`
-
-Default: `false`
-
-### <a name="input_container_name"></a> [container\_name](#input\_container\_name)
-
-Description: The name of the container to associate with load balancer
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_container_port"></a> [container\_port](#input\_container\_port)
-
-Description: The port of the container to associate with load balancer
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_cpu_architecture"></a> [cpu\_architecture](#input\_cpu\_architecture)
 
-Description: Specify CPU architecture (required if launch type is FARGATE)
+Description: Must be set to either `X86_64` or `ARM64`; see cpu architecture.
 
 Type: `string`
 
 Default: `null`
+
+### <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count)
+
+Description: Number of instances of the task definition to place and keep running. Defaults to 0. Do not specify if using the `DAEMON` scheduling strategy.
+
+Type: `number`
+
+Default: `0`
 
 ### <a name="input_ephemeral_storage"></a> [ephemeral\_storage](#input\_ephemeral\_storage)
 
-Description: ephemeral storage block, consists (size\_in\_gib), Total amount (in GiB) of ephemeral storage to set for the task
+Description: Ephemeral storage block, consists (size\_in\_gib): The minimum supported value is `21` GiB and the maximum supported value is `200` GiB. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on AWS Fargate.
 
 Type: `map(any)`
 
@@ -121,7 +93,7 @@ Default: `null`
 
 ### <a name="input_health_check_grace_period_seconds"></a> [health\_check\_grace\_period\_seconds](#input\_health\_check\_grace\_period\_seconds)
 
-Description: The period of time, in seconds, that the Amazon ECS service scheduler should ignore unhealthy Elastic Load Balancing target health checks, container health checks, and Route 53 health checks after a task enters a RUNNING state.
+Description: Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 2147483647. Only valid for services configured to use load balancers.
 
 Type: `number`
 
@@ -129,7 +101,7 @@ Default: `0`
 
 ### <a name="input_launch_type"></a> [launch\_type](#input\_launch\_type)
 
-Description: Service launch type
+Description: Launch type on which to run your service. The valid values are `EC2`, `FARGATE`, and `EXTERNAL`. Defaults to `EC2`.
 
 Type: `string`
 
@@ -145,15 +117,15 @@ Default: `{}`
 
 ### <a name="input_network_mode"></a> [network\_mode](#input\_network\_mode)
 
-Description: Docker networking mode to use for containers in the task
+Description: Docker networking mode to use for the containers in the task. Valid values are `none`, `bridge`, `awsvpc`, and `host`.
 
 Type: `string`
 
-Default: `"none"`
+Default: `"bridge"`
 
 ### <a name="input_operating_system_family"></a> [operating\_system\_family](#input\_operating\_system\_family)
 
-Description: Specifies OS family to use (required if launch type is FARGATE)
+Description: If the requires\_compatibilities is `FARGATE` this field is required; must be set to a valid option from the operating system family in the runtime platform setting.
 
 Type: `string`
 
@@ -161,7 +133,7 @@ Default: `null`
 
 ### <a name="input_requires_compatibilities"></a> [requires\_compatibilities](#input\_requires\_compatibilities)
 
-Description: List of launch types to validate the task definition against
+Description: Set of launch types required by the task. The valid values are `EC2` and `FARGATE`.
 
 Type: `list(string)`
 
@@ -173,25 +145,25 @@ Default:
 ]
 ```
 
-### <a name="input_service_registry_port"></a> [service\_registry\_port](#input\_service\_registry\_port)
+### <a name="input_service_discovery_description"></a> [service\_discovery\_description](#input\_service\_discovery\_description)
 
-Description: n/a
-
-Type: `string`
-
-Default: `null`
-
-### <a name="input_target_group_arn"></a> [target\_group\_arn](#input\_target\_group\_arn)
-
-Description: ARN of the load balancer
+Description: The description of the service.
 
 Type: `string`
 
-Default: `null`
+Default: `"Service Discovery Managed by Terraform"`
+
+### <a name="input_service_registries"></a> [service\_registries](#input\_service\_registries)
+
+Description: Service discovery registries for the service. The maximum number of `service_registries` blocks is `1`.
+
+Type: `map(any)`
+
+Default: `{}`
 
 ### <a name="input_task_cpu"></a> [task\_cpu](#input\_task\_cpu)
 
-Description: Hard limit of CPU units for the task
+Description: Number of cpu units used by the task. If the `requires_compatibilities` is `FARGATE` this field is required.
 
 Type: `string`
 
@@ -217,35 +189,31 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_cluster"></a> [cluster](#output\_cluster)
+
+Description: ARN of cluster which service runs on.
+
+### <a name="output_desired_count"></a> [desired\_count](#output\_desired\_count)
+
+Description: Number of instances of the task definition.
+
 ### <a name="output_ecs_service_arn"></a> [ecs\_service\_arn](#output\_ecs\_service\_arn)
 
-Description: ARN generated by the service
+Description: ARN that identifies the service.
 
-### <a name="output_ecs_service_cluster"></a> [ecs\_service\_cluster](#output\_ecs\_service\_cluster)
+### <a name="output_ecs_task_arn"></a> [ecs\_task\_arn](#output\_ecs\_task\_arn)
 
-Description: ARN of cluster which service runs on
-
-### <a name="output_ecs_service_desired_count"></a> [ecs\_service\_desired\_count](#output\_ecs\_service\_desired\_count)
-
-Description: Number of instances of the task def
-
-### <a name="output_ecs_service_iam_role"></a> [ecs\_service\_iam\_role](#output\_ecs\_service\_iam\_role)
-
-Description: ARN of IAM role used for ELB
-
-### <a name="output_ecs_service_name"></a> [ecs\_service\_name](#output\_ecs\_service\_name)
-
-Description: Name of the service
-
-### <a name="output_ecs_taskdef_arn"></a> [ecs\_taskdef\_arn](#output\_ecs\_taskdef\_arn)
-
-Description: ARN generated by the task definition
+Description: Full ARN of the Task Definition (including both `family` and `revision`).
 
 ### <a name="output_ecs_taskdef_revision"></a> [ecs\_taskdef\_revision](#output\_ecs\_taskdef\_revision)
 
-Description: Revision of the task in a particular family
+Description: Revision of the task in a particular family.
 
-### <a name="output_ecs_taskdef_tags"></a> [ecs\_taskdef\_tags](#output\_ecs\_taskdef\_tags)
+### <a name="output_iam_role"></a> [iam\_role](#output\_iam\_role)
 
-Description: Map of tags assigned to task definition
+Description: ARN of IAM role used for ELB.
+
+### <a name="output_service_discovery_arn"></a> [service\_discovery\_arn](#output\_service\_discovery\_arn)
+
+Description: The ARN of the service.
 <!-- END_TF_DOCS -->

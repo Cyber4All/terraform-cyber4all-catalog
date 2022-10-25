@@ -5,7 +5,7 @@
 # aws docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
 # ---------------------------------------------------------------------------------------------------------------------
 resource "aws_service_discovery_service" "registry" {
-  name = var.service_name
+  name        = var.service_name
   description = var.service_discovery_description
 
   dns_config {
@@ -110,7 +110,7 @@ resource "aws_ecs_service" "service" {
 
     content {
       registry_arn   = aws_service_discovery_service.registry.arn
-      port           = lookup(service_registries.value, "port", null) # Port value used if your Service Discovery service specified an SRV record.
+      port           = lookup(service_registries.value, "port", null)           # Port value used if your Service Discovery service specified an SRV record.
       container_name = lookup(service_registries.value, "container_name", null) # Port value, already specified in the task definition, to be used for your service discovery service.
       container_port = lookup(service_registries.value, "container_port", null) # Container name value, already specified in the task definition, to be used for your service discovery service.
     }
@@ -124,8 +124,8 @@ resource "aws_ecs_service" "service" {
 
     content {
       target_group_arn = lookup(load_balancer.value, "target_group_arn", null) # ARN of the Load Balancer target group to associate with the service.
-      container_name   = lookup(load_balancer.value, "container_name", null) # Name of the container to associate with the load balancer (as it appears in a container definition).
-      container_port   = lookup(load_balancer.value, "container_port", null) # Port on the container to associate with the load balancer.
+      container_name   = lookup(load_balancer.value, "container_name", null)   # Name of the container to associate with the load balancer (as it appears in a container definition).
+      container_port   = lookup(load_balancer.value, "container_port", null)   # Port on the container to associate with the load balancer.
     }
   }
 
@@ -133,11 +133,11 @@ resource "aws_ecs_service" "service" {
   # NETWORK CONFIG
   # ----------------------------------------------------
   dynamic "network_configuration" {
-    for_each = length(keys(var.network_configuration)) == 0 ? []: [var.network_configuration]
+    for_each = length(keys(var.network_configuration)) == 0 ? [] : [var.network_configuration]
 
     content {
-      subnets          = lookup(network_configuration.value, "subnets", []) # Subnets associated with the task or service.
-      security_groups  = lookup(network_configuration.value, "security_groups", []) # Security groups associated with the task or service. If you do not specify a security group, the default security group for the VPC is used.
+      subnets          = lookup(network_configuration.value, "subnets", [])             # Subnets associated with the task or service.
+      security_groups  = lookup(network_configuration.value, "security_groups", [])     # Security groups associated with the task or service. If you do not specify a security group, the default security group for the VPC is used.
       assign_public_ip = lookup(network_configuration.value, "assign_public_ip", false) # Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false.
     }
   }
