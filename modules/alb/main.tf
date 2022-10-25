@@ -265,7 +265,7 @@ module "internal-alb" {
 
   create_lb = var.create_internal_alb
 
-  name = "${var.name}-int-alb"
+  name = "${var.project_name}-int-alb"
 
   load_balancer_type               = "application"
   internal                         = true
