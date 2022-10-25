@@ -87,7 +87,7 @@ variable "task_cpu" {
 
 variable "ephemeral_storage" {
   type        = map(any) # 21 <= value <= 200
-  description = "Ephemeral storage block, consists (size_in_gib): The minimum supported value is `21` GiB and the maximum supported value is `200` GiB. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on AWS Fargate."
+  description = "Ephemeral storage block, consists (size_in_gib): The minimum supported value is `21` GiB and the maximum supported value is `200` GiB. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on AWS Fargate. See main.tf"
   default     = {}
 }
 
@@ -126,18 +126,18 @@ variable "health_check_grace_period_seconds" {
 
 variable "service_registries" {
   type        = map(any)
-  description = "Service discovery registries for the service. The maximum number of `service_registries` blocks is `1`."
+  description = "Service discovery registries for the service. The maximum number of `service_registries` blocks is `1`. Consists (port, container_name, container_port). See main.tf"
   default     = {}
 }
 
 variable "load_balancer" {
   type        = map(any)
-  description = "Configuration block for load balancers. Consists of (target_group_arn, container_name, and container_port)"
+  description = "Configuration block for load balancers. Consists (target_group_arn, container_name, container_port). See main.tf"
   default     = {}
 }
 
 variable "network_configuration" {
   type        = map(any)
-  description = "Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes."
+  description = "Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes. Consists (subnets, security_groups, assign_public_ip) see main.tf."
   default     = {}
 }
