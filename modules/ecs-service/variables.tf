@@ -3,47 +3,39 @@
 # You must provide a value for each of these parameters.
 # --------------------------------------------------------
 
-# ECS TASK DEFINITION
-variable "task_family" {
-  description = "The unique name for the task definition"
-  type        = string
-}
-
-variable "container_definitions" {
-  description = "A list of containers with container definitions provided as a single JSON document"
-  type        = any
-}
-
-# ECS SERVICE
-
 variable "service_name" {
-  description = "The name of the service"
   type        = string
+  description = "Name that will associate all resources."
 }
 
+# ----------------------------------------------------
+# service discovery parameters
+# ----------------------------------------------------
 variable "dns_namespace_id" {
-  description = "namespace for dns"
   type        = string
+  description = "The ID of the namespace to use for DNS configuration."
 }
 
+# ----------------------------------------------------
+# ecs task-definition parameters
+# ----------------------------------------------------
+variable "container_definitions" {
+  type        = any
+  description = "A list of valid container definitions provided as a single valid JSON document. Please note that you should only provide values that are part of the container definition document. For a detailed description of what parameters are available, see the Task Definition Parameters section from the official Developer Guide."
+}
+
+# ----------------------------------------------------
+# ecs service parameters
+# ----------------------------------------------------
 variable "cluster_arn" {
-  description = "The ARN of the cluster where the service will be located"
   type        = string
+  description = "ARN of an ECS cluster."
 }
 
 variable "desired_count" {
-  description = "The number of instances of the given task definition to place and run"
   type        = number
-}
-
-variable "service_subnets" {
-  description = "The list of subnets from the vpc to run the service in"
-  type        = list(string)
-}
-
-variable "service_security_group_id" {
-  description = "The id of the security group created"
-  type        = string
+  description = "Number of instances of the task definition to place and keep running. Defaults to 0. Do not specify if using the `DAEMON` scheduling strategy."
+  default = 0
 }
 
 # --------------------------------------------------------
@@ -51,107 +43,101 @@ variable "service_security_group_id" {
 # These parameters have reasonable defaults.
 # --------------------------------------------------------
 
-# ECS TASK DEF
+# ----------------------------------------------------
+# service discovery parameters
+# ----------------------------------------------------
+variable "service_discovery_description" {
+  type = string
+  description = "The description of the service."
+  default = "Service Discovery Managed by Terraform"
+}
 
+# ----------------------------------------------------
+# ecs task-definition parameters
+# ----------------------------------------------------
 variable "network_mode" {
-  description = "Docker networking mode to use for containers in the task"
   type        = string # "none" | "bridge" | "awsvpc" | "host"
-  default     = "none"
+  description = "Docker networking mode to use for the containers in the task. Valid values are `none`, `bridge`, `awsvpc`, and `host`."
+  default     = "bridge"
+}
+
+variable "requires_compatibilities" {
+  type        = list(string)
+  description = "Set of launch types required by the task. The valid values are `EC2` and `FARGATE`."
+  default     = ["EC2"]
 }
 
 variable "operating_system_family" {
-  description = "Specifies OS family to use (required if launch type is FARGATE)"
   type        = string
+  description = "If the requires_compatibilities is `FARGATE` this field is required; must be set to a valid option from the operating system family in the runtime platform setting."
   default     = null
 }
 
 variable "cpu_architecture" {
-  description = "Specify CPU architecture (required if launch type is FARGATE)"
   type        = string # "X86_64" | "ARM64"
+  description = "Must be set to either `X86_64` or `ARM64`; see cpu architecture."
   default     = null
 }
 
 variable "task_cpu" {
-  description = "Hard limit of CPU units for the task"
   type        = string # can be expressed as integer ('1024' for 1024 units) or a string for vCPUs ('1 vcpu' for 1 vcpu)
+  description = "Number of cpu units used by the task. If the `requires_compatibilities` is `FARGATE` this field is required."
   default     = null
 }
 
-variable "requires_compatibilities" {
-  description = "List of launch types to validate the task definition against"
-  type        = list(string)
-  default     = ["EC2"]
-}
-
 variable "ephemeral_storage" {
-  description = "ephemeral storage block, consists (size_in_gib), Total amount (in GiB) of ephemeral storage to set for the task"
   type        = map(any) # 21 <= value <= 200
+  description = "Ephemeral storage block, consists (size_in_gib): The minimum supported value is `21` GiB and the maximum supported value is `200` GiB. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on AWS Fargate."
   default     = {}
 }
 
 variable "task_memory" {
-  description = "Amount (in MiB) of memory used for the task. Killed if exceeded. Required if requires_compatibilities is FARGATE"
   type        = string # can be expressed as integer ('1024' for 1024 MiBs) or a string using GB ('1GB' for 1 GB of memory)
+  description = "Amount (in MiB) of memory used for the task. Killed if exceeded. Required if requires_compatibilities is FARGATE"
   default     = null
 }
 
 variable "task_role_arn" {
-  description = "ARN of IAM role that allows containers to make calls to other AWS sevices"
   type        = string
+  description = "ARN of IAM role that allows containers to make calls to other AWS sevices"
   default     = null
 }
 
 variable "execution_role_arn" {
-  description = "ARN of task execution role that container or daemon can assume"
   type        = string
+  description = "ARN of task execution role that container or daemon can assume"
   default     = null
 }
 
-# ECS SERVICE
-
-variable "service_registry_port" {
-  type    = string
-  default = null
-}
-
+# ----------------------------------------------------
+# ecs service parameters
+# ----------------------------------------------------
 variable "launch_type" {
-  description = "Service launch type"
   type        = string # "EC2" | "FARGATE" | "EXTERNAL"
+  description = "Launch type on which to run your service. The valid values are `EC2`, `FARGATE`, and `EXTERNAL`. Defaults to `EC2`."
   default     = "EC2"
 }
 
 variable "health_check_grace_period_seconds" {
-  description = "The period of time, in seconds, that the Amazon ECS service scheduler should ignore unhealthy Elastic Load Balancing target health checks, container health checks, and Route 53 health checks after a task enters a RUNNING state."
   type        = number
+  description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 2147483647. Only valid for services configured to use load balancers."
   default     = 0
 }
 
+variable "service_registries" {
+  type = map(any)
+  description = "Service discovery registries for the service. The maximum number of `service_registries` blocks is `1`."
+  default = {}
+}
+
 variable "load_balancer" {
-  description = "Configuration block for load balancers. Consists of (target_group_arn, container_name, and container_port)"
   type        = map(any)
+  description = "Configuration block for load balancers. Consists of (target_group_arn, container_name, and container_port)"
   default     = {}
 }
 
-variable "target_group_arn" {
-  description = "ARN of the load balancer"
-  type        = string
-  default     = null
-}
-
-variable "container_name" {
-  description = "The name of the container to associate with load balancer"
-  type        = string
-  default     = null
-}
-
-variable "container_port" {
-  description = "The port of the container to associate with load balancer"
-  type        = string
-  default     = null
-}
-
-variable "assign_public_ip" {
-  description = "Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false."
-  type        = bool
-  default     = false
+variable "network_configuration" {
+  type = map(any)
+  description = "Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes."
+  deafult = {}
 }
