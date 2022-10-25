@@ -71,7 +71,7 @@ Default: `1`
 
 ### <a name="input_ephemeral_storage"></a> [ephemeral\_storage](#input\_ephemeral\_storage)
 
-Description: Ephemeral storage block, consists (size\_in\_gib): The minimum supported value is `21` GiB and the maximum supported value is `200` GiB. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on AWS Fargate.
+Description: Ephemeral storage block, consists (size\_in\_gib): The minimum supported value is `21` GiB and the maximum supported value is `200` GiB. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on AWS Fargate. See main.tf
 
 Type: `map(any)`
 
@@ -103,7 +103,7 @@ Default: `"EC2"`
 
 ### <a name="input_load_balancer"></a> [load\_balancer](#input\_load\_balancer)
 
-Description: Configuration block for load balancers. Consists of (target\_group\_arn, container\_name, and container\_port)
+Description: Configuration block for load balancers. Consists (target\_group\_arn, container\_name, container\_port). See main.tf
 
 Type: `map(any)`
 
@@ -111,7 +111,7 @@ Default: `{}`
 
 ### <a name="input_network_configuration"></a> [network\_configuration](#input\_network\_configuration)
 
-Description: Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes.
+Description: Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes. Consists (subnets, security\_groups, assign\_public\_ip) see main.tf.
 
 Type: `map(any)`
 
@@ -157,7 +157,7 @@ Default: `"Service Discovery Managed by Terraform"`
 
 ### <a name="input_service_registries"></a> [service\_registries](#input\_service\_registries)
 
-Description: Service discovery registries for the service. The maximum number of `service_registries` blocks is `1`.
+Description: Service discovery registries for the service. The maximum number of `service_registries` blocks is `1`. Consists (port, container\_name, container\_port). See main.tf
 
 Type: `map(any)`
 
