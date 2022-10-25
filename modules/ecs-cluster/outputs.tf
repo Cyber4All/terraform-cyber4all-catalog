@@ -1,5 +1,5 @@
 # ----------------------------------------------------
-# ecs cluster parameters
+# ecs cluster outputs
 # ----------------------------------------------------
 
 output "cluster_arn" {
@@ -18,7 +18,7 @@ output "cluster_name" {
 }
 
 # ----------------------------------------------------
-# auto scaling group parameters
+# auto scaling group outputs
 # ----------------------------------------------------
 
 output "launch_template_id" {
@@ -56,7 +56,7 @@ output "iam_role_arn" {
 }
 
 # ----------------------------------------------------
-# security group parameters
+# security group outputs
 # ----------------------------------------------------
 
 output "security_group_arn" {
