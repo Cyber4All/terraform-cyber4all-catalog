@@ -26,24 +26,20 @@ variable "vpc_id" {
   description = "VPC id to create the cluster in"
 }
 
-variable "s3_log_bucket_name" {
-  type        = string
-  description = "s3 bucket name for logging"
-}
 ########################################
 # Optional vars
 ########################################
 
-variable "managed_scaling" {
-  type        = any
-  description = "variables for managing scaling"
-  default     = {}
+variable "cluster_logging" {
+  type        = bool
+  description = "Set to True to enable logging to cloud watch (cloud watch log-group must exist already)"
+  default     = false
 }
 
-variable "default_capacity_provider_strategy" {
-  type        = any
-  description = "capacity provider strategy"
-  default     = {}
+variable "cloud_watch_log_group_name" {
+  type        = string
+  description = "Name of the cloud watch log group (required when cluster_logging == true)"
+  default     = null
 }
 
 variable "asg_min_size" {
@@ -64,15 +60,9 @@ variable "iam_role_description" {
   default     = ""
 }
 
-variable "public_subnets" {
+variable "subnets" {
   type        = list(string)
-  description = "the list of public subnets from the vpc"
-  default     = []
-}
-
-variable "private_subnets" {
-  type        = list(string)
-  description = "the list of public subnets from the vpc"
+  description = "the list of subnets from the vpc to run the EC2 instances in"
   default     = []
 }
 

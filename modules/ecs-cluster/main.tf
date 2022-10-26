@@ -1,54 +1,38 @@
 #################################
 # ecs
-# https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest
+# https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/latest#inputs
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster
 #################################
 module "ecs" {
   source  = "terraform-aws-modules/ecs/aws"
   version = "4.1.1"
 
-  default_capacity_provider_use_fargate = false
-
   cluster_name = "${var.project_name}-cluster"
 
-  cluster_configuration = {
+  # Cluster Logging Configuration
+  cluster_configuration = var.cluster_logging ? {
     execute_command_configuration = {
       logging = "OVERRIDE"
+
       log_configuration = {
-        s3_bucket_encryption_enabled = true
-        s3_bucket_name               = var.s3_log_bucket_name
+        cloud_watch_encryption_enabled = true
+        cloud_watch_log_group_name     = var.cloud_watch_log_group_name
       }
     }
-  }
-
-  autoscaling_capacity_providers = {
-    one = {
-      auto_scaling_group_arn = module.autoscaling.autoscaling_group_arn
-
-      managed_termination_protection = "ENABLED"
-
-      managed_scaling = var.managed_scaling
-
-      default_capacity_provider_strategy = var.default_capacity_provider_strategy
-    }
-  }
-
-  cluster_settings = {
-    "name" : "containerInsights",
-    "value" : "enabled"
-  }
+  } : {}
 
   ##################################
   # Defaults
   ##################################
-  # autoscaling_capacity_providers = {}
-  # cluster_configuration = {}
-  # cluster_name = ""
-  # cluster_settings = { "name": "containerInsights", "value": "enabled" }
-  # create = true
-  # default_capacity_provider_use_fargate = true
-  # fargate_capacity_providers = {}
-  # tags = {}
+  /* autoscaling_capacity_providers = {} */
+  /* cluster_settings = {
+    "name": "containerInsights",
+    "value": "enabled"
+  } */
+  /* create = true */
+  /* default_capacity_provider_use_fargate = true */
+  /* fargate_capacity_providers = {} */
+  /* tags = {} */
 }
 
 ##################################
@@ -70,7 +54,6 @@ module "security_group" {
   ingress_with_cidr_blocks = var.ingress_with_cidr_blocks
   egress_with_cidr_blocks  = var.egress_with_cidr_blocks
 
-
   ##################################
   # Defaults
   ##################################
@@ -89,12 +72,10 @@ module "security_group" {
   # create_sg = true
   # create_timeout = "10m"
   # delete_timeout = "15m"
-  # description = "Security Group managed by Terraform"
   # egress_cidr_blocks = [ "0.0.0.0/0" ]
   # egress_ipv6_cidr_blocks = [ "::/0" ]
   # egress_prefix_list_ids = []
   # egress_rules = []
-  # egress_with_cidr_blocks = []
   # egress_with_ipv6_cidr_blocks = []
   # egress_with_self = []
   # egress_with_source_security_group_id = []
@@ -102,11 +83,9 @@ module "security_group" {
   # ingress_ipv6_cidr_blocks = []
   # ingress_prefix_list_ids = []
   # ingress_rules = []
-  # ingress_with_cidr_blocks = []
   # ingress_with_ipv6_cidr_blocks = []
   # ingress_with_self = []
   # ingress_with_source_security_group_id = []
-  # name = null
   # number_of_computed_egress_rules = 0
   # number_of_computed_egress_with_cidr_blocks = 0
   # number_of_computed_egress_with_ipv6_cidr_blocks = 0
@@ -123,8 +102,6 @@ module "security_group" {
   # security_group_id = null
   # tags = {}
   # use_name_prefix = true
-  # vpc_id = null
-
 }
 
 #################################
@@ -136,7 +113,7 @@ module "autoscaling" {
   version = "6.5.2"
 
   name                = "${var.project_name}-asg"
-  vpc_zone_identifier = concat(var.private_subnets, var.public_subnets)
+  vpc_zone_identifier = var.subnets
   min_size            = var.asg_min_size
   max_size            = var.asg_max_size
   desired_capacity    = var.desired_capacity

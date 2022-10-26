@@ -12,13 +12,13 @@ variable "vpc_id" {
   type = string
 }
 
-variable "public_subnet_arns" {
+variable "public_subnet_ids" {
   description = "List of public subnet ARNs to deploy external ALB into (required if create_external_alb == true)"
   type        = list(string)
 }
 
-variable "private_subnet_arns" {
-  description = "List of private subnet ARNs to deploy internal ALB into (required if create_internal_alb == true)"
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs to deploy internal ALB into (required if create_internal_alb == true)"
   type        = list(string)
 }
 
@@ -32,7 +32,7 @@ variable "region" {
   default = "us-east-1"
 }
 
-variable "external_instance_sg_id" {
+/* variable "external_instance_sg_id" {
   description = "The security group id of the external target instance"
   type        = string
   default     = null
@@ -42,18 +42,18 @@ variable "internal_instance_sg_id" {
   description = "The security group id of the internal target instance"
   type        = string
   default     = null
-}
+} */
 
-variable "vpc_cidr" {
+/* variable "vpc_cidr" {
   description = "The VPC CIDR block of variable.vpc_id"
   type        = string
   default     = null
-}
+} */
 
 variable "access_log_bucket" {
   description = "Name of S3 bucket to forward access logs to"
   type        = string
-  deafult     = null
+  default     = null
 }
 
 # ----------------------------------------------------

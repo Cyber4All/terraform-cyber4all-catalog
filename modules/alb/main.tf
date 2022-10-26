@@ -1,60 +1,3 @@
-terraform {
-  required_version = "1.2.9"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "4.29.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.region
-}
-
-locals {
-  # dynamically sets external egress rules based on instance-sg being supplied
-  external_sg_egress_with_source_security_group_id = !var.external_instance_sg_id ? var.external_sg_egress_with_source_security_group_id : [
-    {
-      source_security_group_id = var.external_instance_sg_id
-      description              = "Allow all HTTP outbound traffic to instances on the instance listener and healthcheck port"
-      from_port                = 80
-      to_port                  = 80
-      protocol                 = "tcp"
-    },
-    {
-      source_security_group_id = var.external_instance_sg_id
-      description              = "Allow all HTTPS outbound traffic to instances on the instance listener and healthcheck port"
-      from_port                = 443
-      to_port                  = 443
-      protocol                 = "tcp"
-    }
-  ]
-  external_sg_egress_with_cidr_blocks = var.external_instance_sg_id ? [] : var.external_sg_egress_with_cidr_blocks
-
-
-  # dynamically sets internal ingress rules based on vpc_cidr being supplied
-  internal_sg_ingress_with_cidr_blocks = !var.vpc_cidr ? var.internal_sg_ingress_with_cidr_blocks : [{
-    cidr_blocks = var.vpc_cidr
-    description = "Allow all inbound traffic from the VPC CIDR on the load balancer listener port"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-  }]
-
-  # dynamically sets internal egress rules based on internal_instance_sg_id being supplied
-  internal_sg_egress_with_source_security_group_id = !var.internal_instance_sg_id ? var.internal_sg_egress_with_source_security_group_id : [
-    {
-      source_security_group_id = var.internal_instance_sg_id
-      description              = "Allow all HTTP outbound traffic to instances on the instance listener and healthcheck port"
-      from_port                = 80
-      to_port                  = 80
-      protocol                 = "tcp"
-    }
-  ]
-  internal_sg_egress_with_cidr_blocks = var.internal_instance_sg_id ? [] : var.internal_sg_egress_with_cidr_blocks
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE EXTERNAL ALB SECURITY GROUP
 # https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/4.13.0
@@ -74,8 +17,8 @@ module "external-sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "4.13.0"
 
-  create_sg = var.create_external_alb
-  vpc_id    = var.vpc_id # required
+  create = var.create_external_alb
+  vpc_id = var.vpc_id # required
 
   name        = "external-alb-sg-${var.name}" # required
   description = var.external_sg_description
@@ -83,8 +26,8 @@ module "external-sg" {
   ingress_with_cidr_blocks              = var.external_sg_ingress_with_cidr_blocks
   ingress_with_source_security_group_id = var.external_sg_ingress_with_source_security_group_id
 
-  egress_with_cidr_blocks              = local.external_sg_egress_with_cidr_blocks
-  egress_with_source_security_group_id = local.external_sg_egress_with_source_security_group_id
+  egress_with_cidr_blocks              = var.external_sg_egress_with_cidr_blocks
+  egress_with_source_security_group_id = var.external_sg_egress_with_source_security_group_id
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -106,17 +49,17 @@ module "internal-sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "4.13.0"
 
-  create_sg = var.create_internal_alb
-  vpc_id    = var.vpc_id # required
+  create = var.create_internal_alb
+  vpc_id = var.vpc_id # required
 
   name        = "internal-alb-sg-${var.name}" # required
   description = var.internal_sg_description
 
-  ingress_with_cidr_blocks              = local.internal_sg_ingress_with_cidr_blocks
+  ingress_with_cidr_blocks              = var.internal_sg_ingress_with_cidr_blocks
   ingress_with_source_security_group_id = var.internal_sg_ingress_with_source_security_group_id
 
-  egress_with_cidr_blocks              = local.internal_sg_egress_with_cidr_blocks
-  egress_with_source_security_group_id = local.internal_sg_egress_with_source_security_group_id
+  egress_with_cidr_blocks              = var.internal_sg_egress_with_cidr_blocks
+  egress_with_source_security_group_id = var.internal_sg_egress_with_source_security_group_id
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -134,7 +77,7 @@ module "external-alb" {
 
   create_lb = var.create_external_alb
 
-  name = "external-alb-${var.name}"
+  name = "ext-alb-${var.name}"
 
   load_balancer_type               = "application"
   internal                         = false
@@ -146,7 +89,7 @@ module "external-alb" {
   #   External ALB should exist in public subnets
   # ----------------------------------------------------
   vpc_id          = var.vpc_id
-  subnets         = var.public_subnet_arns
+  subnets         = var.public_subnet_ids
   security_groups = [module.external-sg.security_group_id]
 
   # ----------------------------------------------------
@@ -169,7 +112,7 @@ module "external-alb" {
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-  access_logs = var.access_log_bucket ? { bucket = var.access_log_bucket } : null
+  access_logs = var.access_log_bucket != null ? { bucket = var.access_log_bucket } : {}
 
   # ----------------------------------------------------
   # DEFAULTS
@@ -212,9 +155,9 @@ module "internal-alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "8.1.0"
 
-  create_lb = true
+  create_lb = var.create_internal_alb
 
-  name = "internal-alb-${var.name}"
+  name = "int-alb-${var.name}"
 
   load_balancer_type               = "application"
   internal                         = true
@@ -226,7 +169,7 @@ module "internal-alb" {
   #   Internal ALB should exist in private subnets
   # ----------------------------------------------------
   vpc_id          = var.vpc_id
-  subnets         = var.private_subnet_arns
+  subnets         = var.private_subnet_ids
   security_groups = [module.internal-sg.security_group_id]
 
   # ----------------------------------------------------
@@ -249,7 +192,7 @@ module "internal-alb" {
   # ----------------------------------------------------
   # LOGGING
   # ----------------------------------------------------
-  access_logs = var.access_log_bucket ? { bucket = var.access_log_bucket } : null
+  access_logs = var.access_log_bucket != null ? { bucket = var.access_log_bucket } : {}
 
   # ----------------------------------------------------
   # DEFAULTS

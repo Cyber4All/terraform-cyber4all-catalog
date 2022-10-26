@@ -1,15 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-## Requirements
 
-The following requirements are needed by this module:
-
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (1.2.9)
-
-- <a name="requirement_aws"></a> [aws](#requirement\_aws) (4.29.0)
-
-## Providers
-
-No providers.
 
 ## Modules
 
@@ -39,10 +29,6 @@ Source: terraform-aws-modules/security-group/aws
 
 Version: 4.13.0
 
-## Resources
-
-No resources.
-
 ## Required Inputs
 
 The following input variables are required:
@@ -53,13 +39,13 @@ Description: Name of the project the resources are associated with
 
 Type: `string`
 
-### <a name="input_private_subnet_arns"></a> [private\_subnet\_arns](#input\_private\_subnet\_arns)
+### <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids)
 
-Description: List of private subnet ARNs to deploy internal ALB into (required if create\_internal\_alb == true)
+Description: List of private subnet IDs to deploy internal ALB into (required if create\_internal\_alb == true)
 
 Type: `list(string)`
 
-### <a name="input_public_subnet_arns"></a> [public\_subnet\_arns](#input\_public\_subnet\_arns)
+### <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids)
 
 Description: List of public subnet ARNs to deploy external ALB into (required if create\_external\_alb == true)
 
@@ -74,6 +60,14 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_access_log_bucket"></a> [access\_log\_bucket](#input\_access\_log\_bucket)
+
+Description: Name of S3 bucket to forward access logs to
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_create_external_alb"></a> [create\_external\_alb](#input\_create\_external\_alb)
 
@@ -90,14 +84,6 @@ Description: n/a
 Type: `bool`
 
 Default: `true`
-
-### <a name="input_external_access_logs"></a> [external\_access\_logs](#input\_external\_access\_logs)
-
-Description: Map containing access logging configuration for load balancer.
-
-Type: `map(string)`
-
-Default: `{}`
 
 ### <a name="input_external_http_tcp_listener_rules"></a> [external\_http\_tcp\_listener\_rules](#input\_external\_http\_tcp\_listener\_rules)
 
@@ -130,14 +116,6 @@ Description: A list of maps describing the HTTPS listeners for this ALB. Require
 Type: `any`
 
 Default: `[]`
-
-### <a name="input_external_instance_sg_id"></a> [external\_instance\_sg\_id](#input\_external\_instance\_sg\_id)
-
-Description: The security group id of the external target instance
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_external_sg_description"></a> [external\_sg\_description](#input\_external\_sg\_description)
 
@@ -225,14 +203,6 @@ Type: `any`
 
 Default: `[]`
 
-### <a name="input_internal_access_logs"></a> [internal\_access\_logs](#input\_internal\_access\_logs)
-
-Description: Map containing access logging configuration for load balancer.
-
-Type: `map(string)`
-
-Default: `{}`
-
 ### <a name="input_internal_http_tcp_listener_rules"></a> [internal\_http\_tcp\_listener\_rules](#input\_internal\_http\_tcp\_listener\_rules)
 
 Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http\_tcp\_listener\_index (default to http\_tcp\_listeners[count.index])
@@ -264,14 +234,6 @@ Description: A list of maps describing the HTTPS listeners for this ALB. Require
 Type: `any`
 
 Default: `[]`
-
-### <a name="input_internal_instance_sg_id"></a> [internal\_instance\_sg\_id](#input\_internal\_instance\_sg\_id)
-
-Description: The security group id of the internal target instance
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_internal_sg_description"></a> [internal\_sg\_description](#input\_internal\_sg\_description)
 
@@ -353,15 +315,11 @@ Type: `string`
 
 Default: `"us-east-1"`
 
-### <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr)
-
-Description: The VPC CIDR block of variable.vpc\_id
-
-Type: `string`
-
-Default: `null`
-
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_external_target_group_arns"></a> [external\_target\_group\_arns](#output\_external\_target\_group\_arns)
+
+Description: n/a
 <!-- END_TF_DOCS -->
