@@ -5,7 +5,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.0.0)
 
-- <a name="requirement_aws"></a> [aws](#requirement\_aws) (4.29.0)
+- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.27.0)
 
 ## Modules
 
@@ -33,17 +33,11 @@ Version: 8.1.0
 
 Source: terraform-aws-modules/security-group/aws
 
-Version: 4.13.0
+Version: 4.15.0
 
 ## Required Inputs
 
 The following input variables are required:
-
-### <a name="input_access_log_bucket"></a> [access\_log\_bucket](#input\_access\_log\_bucket)
-
-Description: Name of S3 bucket to forward access logs to
-
-Type: `string`
 
 ### <a name="input_project_name"></a> [project\_name](#input\_project\_name)
 

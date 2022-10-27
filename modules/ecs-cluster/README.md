@@ -27,7 +27,7 @@ Version: 4.1.1
 
 Source: terraform-aws-modules/security-group/aws
 
-Version: ~> 4.0
+Version: 4.15.0
 
 ## Required Inputs
 
@@ -35,29 +35,15 @@ The following input variables are required:
 
 ### <a name="input_project_name"></a> [project\_name](#input\_project\_name)
 
-Description: maximum size of the autoscaling group
+Description: Name that will prepend all resources.
 
-Type: `number`
+Type: `string`
 
-### <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type)
-
-Description: the type of instance to launch (e.g. t2.micro)
+### <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids)
 
 Description: A list of subnet IDs to launch resources in. Subnets automatically determine which availability zones the group will reside.
 
 Type: `list(string)`
-
-### <a name="input_s3_log_bucket_name"></a> [s3\_log\_bucket\_name](#input\_s3\_log\_bucket\_name)
-
-Description: s3 bucket name for logging
-
-Type: `string`
-
-### <a name="input_s3_log_bucket_name"></a> [s3\_log\_bucket\_name](#input\_s3\_log\_bucket\_name)
-
-Description: s3 bucket name for logging
-
-Type: `string`
 
 ### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
 
@@ -79,7 +65,7 @@ Default: `"ami-06e07b42f153830d8"`
 
 ### <a name="input_block_device_mappings"></a> [block\_device\_mappings](#input\_block\_device\_mappings)
 
-Description: Specify volumes to attach to the instance besides the volumes specified by the AMI
+Description: Specify volumes to attach to the instance besides the volumes specified by the AMI.
 
 Type: `list(any)`
 
@@ -95,11 +81,11 @@ Default: `true`
 
 ### <a name="input_desired_capacity"></a> [desired\_capacity](#input\_desired\_capacity)
 
-Description: capacity provider strategy
+Description: The number of Amazon EC2 instances that should be running in the autoscaling group.
 
-Type: `any`
+Type: `number`
 
-Default: `{}`
+Default: `1`
 
 ### <a name="input_egress_rules"></a> [egress\_rules](#input\_egress\_rules)
 
@@ -200,9 +186,11 @@ Default: `"Launch template managed by Terraform"`
 
 ### <a name="input_log_group_name"></a> [log\_group\_name](#input\_log\_group\_name)
 
-Description: variables for managing scaling
+Description: The name of the CloudWatch log group to send logs to.
 
-Type: `any`
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_max_size"></a> [max\_size](#input\_max\_size)
 
@@ -247,14 +235,6 @@ Description: The autoscaling group id
 ### <a name="output_cluster_arn"></a> [cluster\_arn](#output\_cluster\_arn)
 
 Description: ARN that identifies the cluster
-
-### <a name="output_cluster_arn"></a> [cluster\_arn](#output\_cluster\_arn)
-
-Description: The ARN of the ECS cluster
-
-### <a name="output_cluster_arn"></a> [cluster\_arn](#output\_cluster\_arn)
-
-Description: The ARN of the ECS cluster
 
 ### <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id)
 
