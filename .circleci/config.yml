@@ -18,6 +18,8 @@ jobs:
             chmod +x terraform-docs
             sudo mv terraform-docs /bin
 
+            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
             pip install pre-commit
             pre-commit install
             pre-commit run --all-files 
