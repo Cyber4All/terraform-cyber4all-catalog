@@ -1,18 +1,6 @@
-terraform {
-  required_version = "1.2.9"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 4.0.0"
-    }
-  }
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE AWS S3 BUCKET IN PROVIDED REGION
+# AWS S3 BUCKET IN GIVEN REGION
 # ---------------------------------------------------------------------------------------------------------------------
-
 provider "aws" {
   region = var.region
 }
@@ -22,7 +10,7 @@ resource "aws_s3_bucket" "backend" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CONGFIGURE BUCKET WITH PRIVATE ACL (Prevents Public Access)
+# S3 BUCKET ACL
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_s3_bucket_acl" "backend" {
@@ -81,7 +69,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# Provisions IAM Role with a custom policy that can access the S3 backend bucket
+# IAM POLICY WITH ACCESS TO S3 BUCKET
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_iam_policy_document" "tf_s3_backend_policy" {
@@ -114,22 +102,4 @@ resource "aws_iam_policy" "tf_s3_backend_policy" {
   description = "Policy that permits backend permissions needed for terraform apply"
 
   policy = data.aws_iam_policy_document.tf_s3_backend_policy.json
-}
-
-module "iam_assumable_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version = "5.4.0"
-
-  trusted_role_services = [
-    "s3.amazonaws.com"
-  ]
-
-  create_role = true
-
-  role_name        = "S3RemoteBackendRole"
-  role_description = "Role permits updating tfstate files for terraform IaC"
-
-  custom_role_policy_arns = [
-    aws_iam_policy.tf_s3_backend_policy.arn
-  ]
 }

@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE CLOUD MAP SERVICE DISCOVERY REGISTRY
+# CLOUD MAP SERVICE DISCOVERY REGISTRY
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service
 #
-# Terraform Docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
-# AWS Docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
+# aws docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
 # ---------------------------------------------------------------------------------------------------------------------
-
 resource "aws_service_discovery_service" "registry" {
-  name = var.service_name
+  name        = var.service_name
+  description = var.service_discovery_description
 
   dns_config {
     namespace_id = var.dns_namespace_id
@@ -16,17 +16,26 @@ resource "aws_service_discovery_service" "registry" {
       type = "SRV"
     }
   }
+
+  # ----------------------------------------------------
+  # DEFAULTS
+  # ----------------------------------------------------
+
+  /* health_check_config {} */
+  /* force_destroy = false */
+  /* health_check_custom_config {} */
+  /* namespace_id = null */
+  /* tags = {} */
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE ECS TASK DEFINITION
+# ECS TASK DEFINITION
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
 #
-# Terraform Docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
-# AWS Docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
+# aws docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
 # ---------------------------------------------------------------------------------------------------------------------
-
 resource "aws_ecs_task_definition" "task" {
-  family                = var.task_family
+  family                = var.service_name
   container_definitions = var.container_definitions
 
   network_mode             = var.network_mode
@@ -71,12 +80,11 @@ resource "aws_ecs_task_definition" "task" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE ECS SERVICE
-#
-# Terraform Docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
-# AWS Docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service_definition_parameters.html
+# ECS SERVICE
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+# 
+# aws docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service_definition_parameters.html
 # ---------------------------------------------------------------------------------------------------------------------
-
 resource "aws_ecs_service" "service" {
   name = var.service_name
 
@@ -97,35 +105,42 @@ resource "aws_ecs_service" "service" {
   # ----------------------------------------------------
   # SERVICE DISCOVERY CONFIG
   # ----------------------------------------------------
-  service_registries {
-    registry_arn   = aws_service_discovery_service.registry.arn
-    port           = var.service_registry_port
-    container_name = var.container_name
-    container_port = var.container_port
+  dynamic "service_registries" {
+    for_each = length(keys(var.service_registries)) == 0 ? [] : [var.service_registries]
+
+    content {
+      registry_arn   = aws_service_discovery_service.registry.arn
+      port           = lookup(service_registries.value, "port", null)           # Port value used if your Service Discovery service specified an SRV record.
+      container_name = lookup(service_registries.value, "container_name", null) # Port value, already specified in the task definition, to be used for your service discovery service.
+      container_port = lookup(service_registries.value, "container_port", null) # Container name value, already specified in the task definition, to be used for your service discovery service.
+    }
   }
 
   # ----------------------------------------------------
   # LOAD BALANCER CONFIG
   # ----------------------------------------------------
-
   dynamic "load_balancer" {
     for_each = length(keys(var.load_balancer)) == 0 ? [] : [var.load_balancer]
 
     content {
-      target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
-      container_name   = lookup(load_balancer.value, "container_name", null)
-      container_port   = lookup(load_balancer.value, "container_port", null)
+      target_group_arn = lookup(load_balancer.value, "target_group_arn", null) # ARN of the Load Balancer target group to associate with the service.
+      container_name   = lookup(load_balancer.value, "container_name", null)   # Name of the container to associate with the load balancer (as it appears in a container definition).
+      container_port   = lookup(load_balancer.value, "container_port", null)   # Port on the container to associate with the load balancer.
     }
   }
 
   # ----------------------------------------------------
   # NETWORK CONFIG
   # ----------------------------------------------------
-  /* network_configuration {
-    subnets          = var.service_subnets
-    security_groups  = [var.service_security_group_id]
-    assign_public_ip = var.assign_public_ip # can be true for FARGATE
-  } */
+  dynamic "network_configuration" {
+    for_each = length(keys(var.network_configuration)) == 0 ? [] : [var.network_configuration]
+
+    content {
+      subnets          = lookup(network_configuration.value, "subnets", [])             # Subnets associated with the task or service.
+      security_groups  = lookup(network_configuration.value, "security_groups", [])     # Security groups associated with the task or service. If you do not specify a security group, the default security group for the VPC is used.
+      assign_public_ip = lookup(network_configuration.value, "assign_public_ip", false) # Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false.
+    }
+  }
 
   # ----------------------------------------------------
   # TASK PLACEMENT
@@ -144,7 +159,7 @@ resource "aws_ecs_service" "service" {
   /* deployment_controller {} */
   /* deployment_maximum_percent = 200 */
   /* deployment_minimum_healthy_percent = 100 */
-  /* iam_role = null */
+  /* ordered_placement_strategy {} */
   /* placement_constraints {} */
   /* platform_version = "LATEST" */
   /* propagate_tags = null */

@@ -1,11 +1,17 @@
 <!-- BEGIN_TF_DOCS -->
+## Requirements
 
+The following requirements are needed by this module:
+
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.2.9)
+
+- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.36)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_aws"></a> [aws](#provider\_aws)
+- <a name="provider_aws"></a> [aws](#provider\_aws) (>= 4.36)
 
 ## Resources
 
@@ -19,13 +25,13 @@ The following input variables are required:
 
 ### <a name="input_name"></a> [name](#input\_name)
 
-Description: n/a
+Description: The name of the namespace.
 
 Type: `string`
 
 ### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
 
-Description: n/a
+Description: The ID of VPC that you want to associate the namespace with.
 
 Type: `string`
 
@@ -35,11 +41,11 @@ The following input variables are optional (have default values):
 
 ### <a name="input_description"></a> [description](#input\_description)
 
-Description: n/a
+Description: The description that you specify for the namespace when you create it.
 
 Type: `string`
 
-Default: `""`
+Default: `"Private DNS Namespace Managed by Terraform"`
 
 ## Outputs
 

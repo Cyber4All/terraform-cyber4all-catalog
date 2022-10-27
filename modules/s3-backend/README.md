@@ -3,25 +3,15 @@
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (1.2.9)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.2.9)
 
-- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.0.0)
+- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.36)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_aws"></a> [aws](#provider\_aws) (>= 4.0.0)
-
-## Modules
-
-The following Modules are called:
-
-### <a name="module_iam_assumable_role"></a> [iam\_assumable\_role](#module\_iam\_assumable\_role)
-
-Source: terraform-aws-modules/iam/aws//modules/iam-assumable-role
-
-Version: 5.4.0
+- <a name="provider_aws"></a> [aws](#provider\_aws) (>= 4.36)
 
 ## Resources
 
