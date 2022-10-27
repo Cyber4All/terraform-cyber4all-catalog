@@ -4,3 +4,8 @@ repos:
     hooks:
       - id: terraform-fmt
       - id: tflint
+  - repo: https://github.com/terraform-docs/terraform-docs
+    rev: "v0.16.0"
+    hooks:
+      - id: terraform-docs-system
+        args: ["markdown", "document", "--output-file", "README.md", "--output-mode", "replace", "--hide-empty", "--recursive", "."]

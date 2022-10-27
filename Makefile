@@ -5,4 +5,5 @@
 
 init:
 	brew install pre-commit
+	brew install terraform-docs
 	pre-commit install
