@@ -3,7 +3,7 @@
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (1.2.9)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.0.0)
 
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (4.29.0)
 
@@ -21,7 +21,7 @@ Version: 8.1.0
 
 Source: terraform-aws-modules/security-group/aws
 
-Version: 4.13.0
+Version: 4.15.0
 
 ### <a name="module_internal-alb"></a> [internal-alb](#module\_internal-alb)
 
@@ -45,27 +45,15 @@ Description: Name of S3 bucket to forward access logs to
 
 Type: `string`
 
-### <a name="input_name"></a> [name](#input\_name)
+### <a name="input_project_name"></a> [project\_name](#input\_project\_name)
 
-Description: Name of the project the resources are associated with
+Description: Name that will prepend all resources.
 
 Type: `string`
 
-### <a name="input_private_subnet_arns"></a> [private\_subnet\_arns](#input\_private\_subnet\_arns)
-
-Description: List of private subnet ARNs to deploy internal ALB into (required if create\_internal\_alb == true)
-
-Type: `list(string)`
-
-### <a name="input_public_subnet_arns"></a> [public\_subnet\_arns](#input\_public\_subnet\_arns)
-
-Description: List of public subnet ARNs to deploy external ALB into (required if create\_external\_alb == true)
-
-Type: `list(string)`
-
 ### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
 
-Description: n/a
+Description: ID of the VPC where to create security group.
 
 Type: `string`
 
@@ -73,9 +61,17 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
+### <a name="input_access_log_bucket"></a> [access\_log\_bucket](#input\_access\_log\_bucket)
+
+Description: The S3 bucket name to store the logs in.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_create_external_alb"></a> [create\_external\_alb](#input\_create\_external\_alb)
 
-Description: n/a
+Description: Controls if the External Application Load Balancer should be created
 
 Type: `bool`
 
@@ -83,15 +79,39 @@ Default: `true`
 
 ### <a name="input_create_internal_alb"></a> [create\_internal\_alb](#input\_create\_internal\_alb)
 
-Description: n/a
+Description: Controls if the Internal Application Load Balancer should be created
 
 Type: `bool`
 
 Default: `true`
 
+### <a name="input_external_egress_rules"></a> [external\_egress\_rules](#input\_external\_egress\_rules)
+
+Description: List of egress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf).
+
+Type: `list(string)`
+
+Default: `[]`
+
+### <a name="input_external_egress_with_cidr_blocks"></a> [external\_egress\_with\_cidr\_blocks](#input\_external\_egress\_with\_cidr\_blocks)
+
+Description: List of egress rules to create where 'cidr\_blocks' is used.
+
+Type: `list(map(string))`
+
+Default: `[]`
+
+### <a name="input_external_egress_with_source_security_group_id"></a> [external\_egress\_with\_source\_security\_group\_id](#input\_external\_egress\_with\_source\_security\_group\_id)
+
+Description: List of egress rules to create where 'source\_security\_group\_id' is used.
+
+Type: `list(map(string))`
+
+Default: `[]`
+
 ### <a name="input_external_http_tcp_listener_rules"></a> [external\_http\_tcp\_listener\_rules](#input\_external\_http\_tcp\_listener\_rules)
 
-Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http\_tcp\_listener\_index (default to http\_tcp\_listeners[count.index])
+Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http\_tcp\_listener\_index (default to http\_tcp\_listeners[count.index]).
 
 Type: `any`
 
@@ -99,7 +119,7 @@ Default: `[]`
 
 ### <a name="input_external_http_tcp_listeners"></a> [external\_http\_tcp\_listeners](#input\_external\_http\_tcp\_listeners)
 
-Description: A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target\_group\_index (defaults to http\_tcp\_listeners[count.index])
+Description: A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target\_group\_index (defaults to http\_tcp\_listeners[count.index]).
 
 Type: `any`
 
@@ -107,7 +127,7 @@ Default: `[]`
 
 ### <a name="input_external_https_listener_rules"></a> [external\_https\_listener\_rules](#input\_external\_https\_listener\_rules)
 
-Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https\_listener\_index (default to https\_listeners[count.index])
+Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https\_listener\_index (default to https\_listeners[count.index]).
 
 Type: `any`
 
@@ -115,109 +135,79 @@ Default: `[]`
 
 ### <a name="input_external_https_listeners"></a> [external\_https\_listeners](#input\_external\_https\_listeners)
 
-Description: A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate\_arn. Optional key/values: ssl\_policy (defaults to ELBSecurityPolicy-2016-08), target\_group\_index (defaults to https\_listeners[count.index])
+Description: A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate\_arn. Optional key/values: ssl\_policy (defaults to ELBSecurityPolicy-2016-08), target\_group\_index (defaults to https\_listeners[count.index]).
 
 Type: `any`
 
 Default: `[]`
 
-### <a name="input_external_instance_sg_id"></a> [external\_instance\_sg\_id](#input\_external\_instance\_sg\_id)
+### <a name="input_external_ingress_rules"></a> [external\_ingress\_rules](#input\_external\_ingress\_rules)
 
-Description: The security group id of the external target instance
+Description: List of ingress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf).
 
-Type: `string`
+Type: `list(string)`
 
-Default: `null`
+Default: `[]`
+
+### <a name="input_external_ingress_with_cidr_blocks"></a> [external\_ingress\_with\_cidr\_blocks](#input\_external\_ingress\_with\_cidr\_blocks)
+
+Description: List of ingress rules to create where 'cidr\_blocks' is used.
+
+Type: `list(map(string))`
+
+Default: `[]`
+
+### <a name="input_external_ingress_with_source_security_group_id"></a> [external\_ingress\_with\_source\_security\_group\_id](#input\_external\_ingress\_with\_source\_security\_group\_id)
+
+Description: List of ingress rules to create where 'source\_security\_group\_id' is used.
+
+Type: `list(map(string))`
+
+Default: `[]`
 
 ### <a name="input_external_sg_description"></a> [external\_sg\_description](#input\_external\_sg\_description)
 
-Description: n/a
+Description: Description of security group.
 
 Type: `string`
 
-Default: `"Security group attached to external alb managed by terraform"`
-
-### <a name="input_external_sg_egress_with_cidr_blocks"></a> [external\_sg\_egress\_with\_cidr\_blocks](#input\_external\_sg\_egress\_with\_cidr\_blocks)
-
-Description: List of egress rules to create where 'cidr\_blocks' is used (set to [] if using external\_sg\_egress\_with\_source\_security\_group\_id, see main.tf locals)
-
-Type: `list(map(string))`
-
-Default:
-
-```json
-[
-  {
-    "cidr_blocks": "0.0.0.0/0",
-    "description": "Allow all HTTP outbound traffic to instances on the instance listener and healthcheck port",
-    "from_port": 80,
-    "protocol": "tcp",
-    "to_port": 80
-  },
-  {
-    "cidr_blocks": "0.0.0.0/0",
-    "description": "Allow all HTTPS outbound traffic to instances on the instance listener and healthcheck port",
-    "from_port": 443,
-    "protocol": "tcp",
-    "to_port": 443
-  }
-]
-```
-
-### <a name="input_external_sg_egress_with_source_security_group_id"></a> [external\_sg\_egress\_with\_source\_security\_group\_id](#input\_external\_sg\_egress\_with\_source\_security\_group\_id)
-
-Description: List of egress rules to create where 'source\_security\_group\_id' is used (external\_sg\_egress\_with\_cidr\_blocks set to [] if using this variable, see main.tf locals)
-
-Type: `list(map(string))`
-
-Default: `[]`
-
-### <a name="input_external_sg_ingress_with_cidr_blocks"></a> [external\_sg\_ingress\_with\_cidr\_blocks](#input\_external\_sg\_ingress\_with\_cidr\_blocks)
-
-Description: List of ingress rules to create where 'cidr\_blocks' is used
-
-Type: `list(map(string))`
-
-Default:
-
-```json
-[
-  {
-    "cidr_blocks": "0.0.0.0/0",
-    "description": "Allow all HTTP inbound traffic on the load balancer listener port",
-    "from_port": 80,
-    "protocol": "tcp",
-    "to_port": 80
-  },
-  {
-    "cidr_blocks": "0.0.0.0/0",
-    "description": "Allow all HTTPS inbound traffic on the load balancer listener port",
-    "from_port": 443,
-    "protocol": "tcp",
-    "to_port": 443
-  }
-]
-```
-
-### <a name="input_external_sg_ingress_with_source_security_group_id"></a> [external\_sg\_ingress\_with\_source\_security\_group\_id](#input\_external\_sg\_ingress\_with\_source\_security\_group\_id)
-
-Description: List of ingress rules to create where 'source\_security\_group\_id' is used
-
-Type: `list(map(string))`
-
-Default: `[]`
+Default: `"External ALB Security Group managed by Terraform"`
 
 ### <a name="input_external_target_groups"></a> [external\_target\_groups](#input\_external\_target\_groups)
 
-Description: A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend\_protocol, backend\_port
+Description: A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend\_protocol, backend\_port.
 
 Type: `any`
+
+Default: `[]`
+
+### <a name="input_internal_egress_rules"></a> [internal\_egress\_rules](#input\_internal\_egress\_rules)
+
+Description: List of egress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf).
+
+Type: `list(string)`
+
+Default: `[]`
+
+### <a name="input_internal_egress_with_cidr_blocks"></a> [internal\_egress\_with\_cidr\_blocks](#input\_internal\_egress\_with\_cidr\_blocks)
+
+Description: List of egress rules to create where 'cidr\_blocks' is used.
+
+Type: `list(map(string))`
+
+Default: `[]`
+
+### <a name="input_internal_egress_with_source_security_group_id"></a> [internal\_egress\_with\_source\_security\_group\_id](#input\_internal\_egress\_with\_source\_security\_group\_id)
+
+Description: List of egress rules to create where 'source\_security\_group\_id' is used.
+
+Type: `list(map(string))`
 
 Default: `[]`
 
 ### <a name="input_internal_http_tcp_listener_rules"></a> [internal\_http\_tcp\_listener\_rules](#input\_internal\_http\_tcp\_listener\_rules)
 
-Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http\_tcp\_listener\_index (default to http\_tcp\_listeners[count.index])
+Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http\_tcp\_listener\_index (default to http\_tcp\_listeners[count.index].
 
 Type: `any`
 
@@ -225,7 +215,7 @@ Default: `[]`
 
 ### <a name="input_internal_http_tcp_listeners"></a> [internal\_http\_tcp\_listeners](#input\_internal\_http\_tcp\_listeners)
 
-Description: A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target\_group\_index (defaults to http\_tcp\_listeners[count.index])
+Description: A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target\_group\_index (defaults to http\_tcp\_listeners[count.index]).
 
 Type: `any`
 
@@ -233,7 +223,7 @@ Default: `[]`
 
 ### <a name="input_internal_https_listener_rules"></a> [internal\_https\_listener\_rules](#input\_internal\_https\_listener\_rules)
 
-Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https\_listener\_index (default to https\_listeners[count.index])
+Description: A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https\_listener\_index (default to https\_listeners[count.index]).
 
 Type: `any`
 
@@ -241,105 +231,133 @@ Default: `[]`
 
 ### <a name="input_internal_https_listeners"></a> [internal\_https\_listeners](#input\_internal\_https\_listeners)
 
-Description: A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate\_arn. Optional key/values: ssl\_policy (defaults to ELBSecurityPolicy-2016-08), target\_group\_index (defaults to https\_listeners[count.index])
+Description: A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate\_arn. Optional key/values: ssl\_policy (defaults to ELBSecurityPolicy-2016-08), target\_group\_index (defaults to https\_listeners[count.index]).
 
 Type: `any`
 
 Default: `[]`
 
-### <a name="input_internal_instance_sg_id"></a> [internal\_instance\_sg\_id](#input\_internal\_instance\_sg\_id)
+### <a name="input_internal_ingress_rules"></a> [internal\_ingress\_rules](#input\_internal\_ingress\_rules)
 
-Description: The security group id of the internal target instance
+Description: List of ingress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf).
 
-Type: `string`
+Type: `list(string)`
 
-Default: `null`
+Default: `[]`
+
+### <a name="input_internal_ingress_with_cidr_blocks"></a> [internal\_ingress\_with\_cidr\_blocks](#input\_internal\_ingress\_with\_cidr\_blocks)
+
+Description: List of ingress rules to create where 'cidr\_blocks' is used.
+
+Type: `list(map(string))`
+
+Default: `[]`
+
+### <a name="input_internal_ingress_with_source_security_group_id"></a> [internal\_ingress\_with\_source\_security\_group\_id](#input\_internal\_ingress\_with\_source\_security\_group\_id)
+
+Description: List of ingress rules to create where 'source\_security\_group\_id' is used.
+
+Type: `list(map(string))`
+
+Default: `[]`
 
 ### <a name="input_internal_sg_description"></a> [internal\_sg\_description](#input\_internal\_sg\_description)
 
-Description: n/a
+Description: Description of security group.
 
 Type: `string`
 
-Default: `"Security group attached to internal alb managed by terraform"`
-
-### <a name="input_internal_sg_egress_with_cidr_blocks"></a> [internal\_sg\_egress\_with\_cidr\_blocks](#input\_internal\_sg\_egress\_with\_cidr\_blocks)
-
-Description: List of egress rules to create where 'cidr\_blocks' is used (set to [] if using internal\_sg\_egress\_with\_source\_security\_group\_id, see main.tf locals)
-
-Type: `list(map(string))`
-
-Default:
-
-```json
-[
-  {
-    "cidr_blocks": "0.0.0.0/0",
-    "description": "Allow all HTTP outbound traffic to instances on the instance listener and healthcheck port",
-    "from_port": 80,
-    "protocol": "tcp",
-    "to_port": 80
-  }
-]
-```
-
-### <a name="input_internal_sg_egress_with_source_security_group_id"></a> [internal\_sg\_egress\_with\_source\_security\_group\_id](#input\_internal\_sg\_egress\_with\_source\_security\_group\_id)
-
-Description: List of egress rules to create where 'source\_security\_group\_id' is used (internal\_sg\_egress\_with\_cidr\_blocks set to [] if using this variable, see main.tf locals)
-
-Type: `list(map(string))`
-
-Default: `[]`
-
-### <a name="input_internal_sg_ingress_with_cidr_blocks"></a> [internal\_sg\_ingress\_with\_cidr\_blocks](#input\_internal\_sg\_ingress\_with\_cidr\_blocks)
-
-Description: List of ingress rules to create where 'cidr\_blocks' is used (if vpc\_cidr is set, default rules set with cidr\_blocks, see main.tf locals)
-
-Type: `list(map(string))`
-
-Default:
-
-```json
-[
-  {
-    "cidr_blocks": "0.0.0.0/0",
-    "description": "Allow all HTTP inbound traffic on the load balancer listener port",
-    "from_port": 80,
-    "protocol": "tcp",
-    "to_port": 80
-  }
-]
-```
-
-### <a name="input_internal_sg_ingress_with_source_security_group_id"></a> [internal\_sg\_ingress\_with\_source\_security\_group\_id](#input\_internal\_sg\_ingress\_with\_source\_security\_group\_id)
-
-Description: List of ingress rules to create where 'source\_security\_group\_id' is used
-
-Type: `list(map(string))`
-
-Default: `[]`
+Default: `"External ALB Security Group managed by Terraform"`
 
 ### <a name="input_internal_target_groups"></a> [internal\_target\_groups](#input\_internal\_target\_groups)
 
-Description: A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend\_protocol, backend\_port
+Description: A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend\_protocol, backend\_port.
 
 Type: `any`
 
 Default: `[]`
 
-### <a name="input_region"></a> [region](#input\_region)
+### <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids)
 
-Description: n/a
+Description: List of private subnet IDs to deploy internal ALB into (required if create\_internal\_alb == true)
 
-Type: `string`
+Type: `list(string)`
 
-Default: `"us-east-1"`
+Default: `[]`
 
-### <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr)
+### <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids)
 
-Description: The VPC CIDR block of variable.vpc\_id
+Description: List of public subnet ARNs to deploy external ALB into (required if create\_external\_alb == true)
 
-Type: `string`
+Type: `list(string)`
 
-Default: `null`
+Default: `[]`
+
+## Outputs
+
+The following outputs are exported:
+
+### <a name="output_external_lb_arn"></a> [external\_lb\_arn](#output\_external\_lb\_arn)
+
+Description: The ID and ARN of the load balancer we created.
+
+### <a name="output_external_lb_dns_name"></a> [external\_lb\_dns\_name](#output\_external\_lb\_dns\_name)
+
+Description: The DNS name of the load balancer.
+
+### <a name="output_external_lb_id"></a> [external\_lb\_id](#output\_external\_lb\_id)
+
+Description: The ID and ARN of the load balancer we created.
+
+### <a name="output_external_security_group_arn"></a> [external\_security\_group\_arn](#output\_external\_security\_group\_arn)
+
+Description: The ARN of the external alb security group
+
+### <a name="output_external_security_group_id"></a> [external\_security\_group\_id](#output\_external\_security\_group\_id)
+
+Description: The ID of the external alb security group
+
+### <a name="output_external_target_group_arn_suffixes"></a> [external\_target\_group\_arn\_suffixes](#output\_external\_target\_group\_arn\_suffixes)
+
+Description: ARN suffixes of our target groups - can be used with CloudWatch.
+
+### <a name="output_external_target_group_arns"></a> [external\_target\_group\_arns](#output\_external\_target\_group\_arns)
+
+Description: ARNs of the target groups. Useful for passing to your Auto Scaling group.
+
+### <a name="output_external_target_group_names"></a> [external\_target\_group\_names](#output\_external\_target\_group\_names)
+
+Description: Name of the target group. Useful for passing to your CodeDeploy Deployment Group.
+
+### <a name="output_internal_lb_arn"></a> [internal\_lb\_arn](#output\_internal\_lb\_arn)
+
+Description: The ID and ARN of the load balancer we created.
+
+### <a name="output_internal_lb_dns_name"></a> [internal\_lb\_dns\_name](#output\_internal\_lb\_dns\_name)
+
+Description: The DNS name of the load balancer.
+
+### <a name="output_internal_lb_id"></a> [internal\_lb\_id](#output\_internal\_lb\_id)
+
+Description: The ID and ARN of the load balancer we created.
+
+### <a name="output_internal_security_group_arn"></a> [internal\_security\_group\_arn](#output\_internal\_security\_group\_arn)
+
+Description: The ARN of the internal alb security group
+
+### <a name="output_internal_security_group_id"></a> [internal\_security\_group\_id](#output\_internal\_security\_group\_id)
+
+Description: The ID of the internal alb security group
+
+### <a name="output_internal_target_group_arn_suffixes"></a> [internal\_target\_group\_arn\_suffixes](#output\_internal\_target\_group\_arn\_suffixes)
+
+Description: ARN suffixes of our target groups - can be used with CloudWatch.
+
+### <a name="output_internal_target_group_arns"></a> [internal\_target\_group\_arns](#output\_internal\_target\_group\_arns)
+
+Description: ARNs of the target groups. Useful for passing to your Auto Scaling group.
+
+### <a name="output_internal_target_group_names"></a> [internal\_target\_group\_names](#output\_internal\_target\_group\_names)
+
+Description: Name of the target group. Useful for passing to your CodeDeploy Deployment Group.
 <!-- END_TF_DOCS -->
