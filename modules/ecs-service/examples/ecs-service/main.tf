@@ -71,8 +71,8 @@ module "ecs-cluster" {
   ]
 }
 
-module "ecs-taskdef-and-service" {
-  source = "../../modules/ecs-taskdef-and-service"
+module "ecs-service" {
+  source = "../../modules/ecs-service"
 
   # Task Definition Parameters
   ecs_taskdef_family                = "${local.project_name}-taskdef"
