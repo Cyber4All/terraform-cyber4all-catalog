@@ -9,3 +9,4 @@ repos:
     hooks:
       - id: terraform-docs-system
         args: ["markdown", "document", "--output-file", "README.md", "--output-mode", "replace", "--hide-empty", "--recursive", "."]
+        stages: [commit]

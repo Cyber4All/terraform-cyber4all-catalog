@@ -22,7 +22,12 @@ jobs:
 
             pip install pre-commit
             pre-commit install
-            pre-commit run --all-files 
+            
+            myArray=("tflint" "terraform-fmt")
+
+            for str in ${myArray[@]}; do
+              pre-commit run $str --all-files
+            done
 
 workflows:
   continuous-integration:
