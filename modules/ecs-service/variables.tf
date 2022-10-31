@@ -19,10 +19,6 @@ variable "dns_namespace_id" {
 # ----------------------------------------------------
 # ecs task-definition parameters
 # ----------------------------------------------------
-variable "container_definitions" {
-  type        = any
-  description = "A list of valid container definitions provided as a single valid JSON document. Please note that you should only provide values that are part of the container definition document. For a detailed description of what parameters are available, see the Task Definition Parameters section from the official Developer Guide."
-}
 
 variable "image" {
   type        = string
