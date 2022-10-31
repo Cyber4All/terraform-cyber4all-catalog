@@ -25,7 +25,7 @@ variable "container_definitions" {
 }
 
 variable "image" {
-  type = string
+  type        = string
   description = "The image used to start a container. This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default. You can also specify other repositories with either `repository-url/image:tag` or `repository-url/image@digest`. Up to 255 letters (uppercase and lowercase), numbers, hyphens, underscores, colons, periods, forward slashes, and number signs are allowed."
 }
 
@@ -62,27 +62,27 @@ variable "service_discovery_description" {
 # ----------------------------------------------------
 
 variable "port_mappings" {
-  type = list(any)
+  type        = list(any)
   description = "Port mappings allow containers to access ports on the host container instance to send or receive traffic. For task definitions that use the `awsvpc` network mode, only specify the containerPort. The `hostPort` can be left blank or it must be the same value as the `containerPort`. Consists (containerPort, hostPort, protocol)"
-  default = [] 
+  default     = []
 }
 
 variable "environment" {
-  type = list(any)
+  type        = list(any)
   description = "The environment variables to pass to a container. This parameter maps to the --env option to docker run. Consists (name, value)"
-  default = []
+  default     = []
 }
 
 variable "environment_files" {
-  type = list(any)
+  type        = list(any)
   description = "A list of files containing the environment variables to pass to a container. This parameter maps to the `--env-file` option to `docker run`. Consists (value, type = \"s3\")"
-  default = []
+  default     = []
 }
 
 variable "secrets" {
-  type = list(any)
+  type        = list(any)
   description = "An object representing the secret to expose to your container. For more information, see [Passing sensitive data to a container](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html). Consists (name, valueFrom)"
-  default = []
+  default     = []
 }
 
 variable "network_mode" {

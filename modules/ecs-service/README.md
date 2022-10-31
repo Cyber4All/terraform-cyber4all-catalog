@@ -17,6 +17,7 @@ The following providers are used by this module:
 
 The following resources are used by this module:
 
+- [aws_cloudwatch_log_group.logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) (resource)
 - [aws_ecs_service.service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) (resource)
 - [aws_ecs_task_definition.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) (resource)
 - [aws_service_discovery_service.registry](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) (resource)
@@ -40,6 +41,12 @@ Type: `any`
 ### <a name="input_dns_namespace_id"></a> [dns\_namespace\_id](#input\_dns\_namespace\_id)
 
 Description: The ID of the namespace to use for DNS configuration.
+
+Type: `string`
+
+### <a name="input_image"></a> [image](#input\_image)
+
+Description: The image used to start a container. This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default. You can also specify other repositories with either `repository-url/image:tag` or `repository-url/image@digest`. Up to 255 letters (uppercase and lowercase), numbers, hyphens, underscores, colons, periods, forward slashes, and number signs are allowed.
 
 Type: `string`
 
@@ -68,6 +75,22 @@ Description: Number of instances of the task definition to place and keep runnin
 Type: `number`
 
 Default: `1`
+
+### <a name="input_environment"></a> [environment](#input\_environment)
+
+Description: The environment variables to pass to a container. This parameter maps to the --env option to docker run. Consists (name, value)
+
+Type: `list(any)`
+
+Default: `[]`
+
+### <a name="input_environment_files"></a> [environment\_files](#input\_environment\_files)
+
+Description: A list of files containing the environment variables to pass to a container. This parameter maps to the `--env-file` option to `docker run`. Consists (value, type = "s3")
+
+Type: `list(any)`
+
+Default: `[]`
 
 ### <a name="input_ephemeral_storage"></a> [ephemeral\_storage](#input\_ephemeral\_storage)
 
@@ -133,6 +156,14 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_port_mappings"></a> [port\_mappings](#input\_port\_mappings)
+
+Description: Port mappings allow containers to access ports on the host container instance to send or receive traffic. For task definitions that use the `awsvpc` network mode, only specify the containerPort. The `hostPort` can be left blank or it must be the same value as the `containerPort`. Consists (containerPort, hostPort, protocol)
+
+Type: `list(any)`
+
+Default: `[]`
+
 ### <a name="input_requires_compatibilities"></a> [requires\_compatibilities](#input\_requires\_compatibilities)
 
 Description: Set of launch types required by the task. The valid values are `EC2` and `FARGATE`.
@@ -146,6 +177,14 @@ Default:
   "EC2"
 ]
 ```
+
+### <a name="input_secrets"></a> [secrets](#input\_secrets)
+
+Description: An object representing the secret to expose to your container. For more information, see [Passing sensitive data to a container](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html). Consists (name, valueFrom)
+
+Type: `list(any)`
+
+Default: `[]`
 
 ### <a name="input_service_discovery_description"></a> [service\_discovery\_description](#input\_service\_discovery\_description)
 

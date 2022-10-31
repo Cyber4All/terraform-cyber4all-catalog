@@ -57,22 +57,22 @@ resource "aws_ecs_task_definition" "task" {
     aws_cloudwatch_log_group.logs
   ]
 
-  family                = var.service_name
+  family = var.service_name
   container_definitions = jsonencode([
     {
-      name = var.service_name
-      image = var.image
-      cpu = var.task_cpu
-      memory = var.task_memory
-      portMappings = var.port_mappings
-      environment = var.environment
+      name             = var.service_name
+      image            = var.image
+      cpu              = var.task_cpu
+      memory           = var.task_memory
+      portMappings     = var.port_mappings
+      environment      = var.environment
       environmentFiles = var.environmentFiles
-      secrets = var.secrets
+      secrets          = var.secrets
       logConfiguration = {
         logDriver = "awslogs"
         options = {
           awslogs-region = var.region
-          awslogs-group = "/ecs/${var.service_name}"
+          awslogs-group  = "/ecs/${var.service_name}"
         }
       }
     }
