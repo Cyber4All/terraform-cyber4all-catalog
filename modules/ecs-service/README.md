@@ -98,7 +98,7 @@ Default: `1`
 
 Description: Set to true if service discovery should not be configured. Otherwise either set the service\_registries block or provide values for service\_name, and container\_port.
 
-Type: `boolean`
+Type: `bool`
 
 Default: `false`
 
