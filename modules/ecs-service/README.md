@@ -54,6 +54,22 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
+### <a name="input_container_cpu"></a> [container\_cpu](#input\_container\_cpu)
+
+Description: The hard limit of CPU units to present for the task. For tasks that use the Fargate launch type (both Linux and Windows containers), this field is required.
+
+Type: `number`
+
+Default: `256`
+
+### <a name="input_container_memory"></a> [container\_memory](#input\_container\_memory)
+
+Description: The amount (in MiB) of memory to present to the container. [container\_definition\_memory](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_memory)
+
+Type: `number`
+
+Default: `256`
+
 ### <a name="input_cpu_architecture"></a> [cpu\_architecture](#input\_cpu\_architecture)
 
 Description: Must be set to either `X86_64` or `ARM64`; see cpu architecture.
