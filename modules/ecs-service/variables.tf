@@ -81,6 +81,12 @@ variable "secrets" {
   default     = []
 }
 
+variable "region" {
+  type = string
+  description = "Aws region for cloud watch logs to exist in."
+  default = "us-east-1"
+}
+
 variable "network_mode" {
   type        = string # "none" | "bridge" | "awsvpc" | "host"
   description = "Docker networking mode to use for the containers in the task. Valid values are `none`, `bridge`, `awsvpc`, and `host`."
