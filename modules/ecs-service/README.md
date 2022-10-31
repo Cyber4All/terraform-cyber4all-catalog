@@ -158,6 +158,14 @@ Type: `list(any)`
 
 Default: `[]`
 
+### <a name="input_region"></a> [region](#input\_region)
+
+Description: Aws region for cloud watch logs to exist in.
+
+Type: `string`
+
+Default: `"us-east-1"`
+
 ### <a name="input_requires_compatibilities"></a> [requires\_compatibilities](#input\_requires\_compatibilities)
 
 Description: Set of launch types required by the task. The valid values are `EC2` and `FARGATE`.

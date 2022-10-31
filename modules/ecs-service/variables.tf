@@ -82,9 +82,9 @@ variable "secrets" {
 }
 
 variable "region" {
-  type = string
+  type        = string
   description = "Aws region for cloud watch logs to exist in."
-  default = "us-east-1"
+  default     = "us-east-1"
 }
 
 variable "network_mode" {
