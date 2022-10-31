@@ -28,6 +28,24 @@ resource "aws_service_discovery_service" "registry" {
   /* tags = {} */
 }
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CLOUDWATCH LOG GROUP
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group
+# ---------------------------------------------------------------------------------------------------------------------
+resource "aws_cloudwatch_log_group" "logs" {
+  name = "/ecs/${var.service_name}"
+
+  retention_in_days = 180
+
+  # ----------------------------------------------------
+  # DEFAULTS
+  # ----------------------------------------------------
+
+  /* kms_key_id = "" */
+  /* tags = {} */
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # ECS TASK DEFINITION
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
@@ -35,8 +53,30 @@ resource "aws_service_discovery_service" "registry" {
 # aws docs: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
 # ---------------------------------------------------------------------------------------------------------------------
 resource "aws_ecs_task_definition" "task" {
+  depends_on = [
+    aws_cloudwatch_log_group.logs
+  ]
+
   family                = var.service_name
-  container_definitions = var.container_definitions
+  container_definitions = jsonencode([
+    {
+      name = var.service_name
+      image = var.image
+      cpu = var.task_cpu
+      memory = var.task_memory
+      portMappings = var.port_mappings
+      environment = var.environment
+      environmentFiles = var.environmentFiles
+      secrets = var.secrets
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-region = var.region
+          awslogs-group = "/ecs/${var.service_name}"
+        }
+      }
+    }
+  ])
 
   network_mode             = var.network_mode
   requires_compatibilities = var.requires_compatibilities
