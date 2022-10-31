@@ -66,7 +66,7 @@ resource "aws_ecs_task_definition" "task" {
       memory           = var.task_memory
       portMappings     = var.port_mappings
       environment      = var.environment
-      environmentFiles = var.environmentFiles
+      environmentFiles = var.environment_files
       secrets          = var.secrets
       logConfiguration = {
         logDriver = "awslogs"
