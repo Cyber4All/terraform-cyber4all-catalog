@@ -69,10 +69,22 @@ variable "container_memory" {
   default     = 256
 }
 
+variable "container_port" {
+  type = number
+  description = "The port number on the container that's bound to the user-specified or automatically assigned host port."
+  default = null
+}
+
 variable "port_mappings" {
   type        = list(any)
   description = "Port mappings allow containers to access ports on the host container instance to send or receive traffic. For task definitions that use the `awsvpc` network mode, only specify the containerPort. The `hostPort` can be left blank or it must be the same value as the `containerPort`. Consists (containerPort, hostPort, protocol)"
   default     = []
+}
+
+variable "disable_service_discovery" {
+  type = boolean
+  description = "Set to true if service discovery should not be configured. Otherwise either set the service_registries block or provide values for service_name, and container_port."
+  default = false
 }
 
 variable "environment" {
