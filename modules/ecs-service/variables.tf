@@ -82,7 +82,7 @@ variable "port_mappings" {
 }
 
 variable "disable_service_discovery" {
-  type        = boolean
+  type        = bool
   description = "Set to true if service discovery should not be configured. Otherwise either set the service_registries block or provide values for service_name, and container_port."
   default     = false
 }
