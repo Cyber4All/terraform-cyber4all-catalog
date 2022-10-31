@@ -32,12 +32,6 @@ Description: ARN of an ECS cluster.
 
 Type: `string`
 
-### <a name="input_container_definitions"></a> [container\_definitions](#input\_container\_definitions)
-
-Description: A list of valid container definitions provided as a single valid JSON document. Please note that you should only provide values that are part of the container definition document. For a detailed description of what parameters are available, see the Task Definition Parameters section from the official Developer Guide.
-
-Type: `any`
-
 ### <a name="input_dns_namespace_id"></a> [dns\_namespace\_id](#input\_dns\_namespace\_id)
 
 Description: The ID of the namespace to use for DNS configuration.
