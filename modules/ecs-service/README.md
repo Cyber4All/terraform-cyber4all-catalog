@@ -70,6 +70,14 @@ Type: `number`
 
 Default: `256`
 
+### <a name="input_container_port"></a> [container\_port](#input\_container\_port)
+
+Description: The port number on the container that's bound to the user-specified or automatically assigned host port.
+
+Type: `number`
+
+Default: `null`
+
 ### <a name="input_cpu_architecture"></a> [cpu\_architecture](#input\_cpu\_architecture)
 
 Description: Must be set to either `X86_64` or `ARM64`; see cpu architecture.
@@ -85,6 +93,14 @@ Description: Number of instances of the task definition to place and keep runnin
 Type: `number`
 
 Default: `1`
+
+### <a name="input_disable_service_discovery"></a> [disable\_service\_discovery](#input\_disable\_service\_discovery)
+
+Description: Set to true if service discovery should not be configured. Otherwise either set the service\_registries block or provide values for service\_name, and container\_port.
+
+Type: `boolean`
+
+Default: `false`
 
 ### <a name="input_environment"></a> [environment](#input\_environment)
 

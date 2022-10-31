@@ -60,13 +60,13 @@ resource "aws_ecs_task_definition" "task" {
   family = var.service_name
   container_definitions = jsonencode([
     {
-      name             = var.service_name
-      image            = var.image
-      cpu              = var.container_cpu
-      memory           = var.container_memory
-      portMappings     = length(var.port_mappings) > 0 ? var.port_mappings : [
+      name   = var.service_name
+      image  = var.image
+      cpu    = var.container_cpu
+      memory = var.container_memory
+      portMappings = length(var.port_mappings) > 0 ? var.port_mappings : [
         {
-          "containerPort": var.container_port
+          "containerPort" : var.container_port
         }
       ]
       environment      = var.environment
@@ -154,8 +154,8 @@ resource "aws_ecs_service" "service" {
 
     content {
       registry_arn   = aws_service_discovery_service.registry.arn
-      port           = lookup(service_registries.value, "port", null)           # Port value used if your Service Discovery service specified an SRV record.
-      container_name = lookup(service_registries.value, "container_name", var.service_name) # Port value, already specified in the task definition, to be used for your service discovery service.
+      port           = lookup(service_registries.value, "port", null)                         # Port value used if your Service Discovery service specified an SRV record.
+      container_name = lookup(service_registries.value, "container_name", var.service_name)   # Port value, already specified in the task definition, to be used for your service discovery service.
       container_port = lookup(service_registries.value, "container_port", var.container_port) # Container name value, already specified in the task definition, to be used for your service discovery service.
     }
   }
@@ -167,9 +167,9 @@ resource "aws_ecs_service" "service" {
     for_each = length(keys(var.load_balancer)) == 0 ? [] : [var.load_balancer]
 
     content {
-      target_group_arn = lookup(load_balancer.value, "target_group_arn", null) # ARN of the Load Balancer target group to associate with the service.
+      target_group_arn = lookup(load_balancer.value, "target_group_arn", null)             # ARN of the Load Balancer target group to associate with the service.
       container_name   = lookup(load_balancer.value, "container_name", var.service_name)   # Name of the container to associate with the load balancer (as it appears in a container definition).
-      container_port   = lookup(load_balancer.value, "container_port", var.container_port)   # Port on the container to associate with the load balancer.
+      container_port   = lookup(load_balancer.value, "container_port", var.container_port) # Port on the container to associate with the load balancer.
     }
   }
 

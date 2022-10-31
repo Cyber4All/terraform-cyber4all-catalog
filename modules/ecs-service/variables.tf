@@ -70,9 +70,9 @@ variable "container_memory" {
 }
 
 variable "container_port" {
-  type = number
+  type        = number
   description = "The port number on the container that's bound to the user-specified or automatically assigned host port."
-  default = null
+  default     = null
 }
 
 variable "port_mappings" {
@@ -82,9 +82,9 @@ variable "port_mappings" {
 }
 
 variable "disable_service_discovery" {
-  type = boolean
+  type        = boolean
   description = "Set to true if service discovery should not be configured. Otherwise either set the service_registries block or provide values for service_name, and container_port."
-  default = false
+  default     = false
 }
 
 variable "environment" {
