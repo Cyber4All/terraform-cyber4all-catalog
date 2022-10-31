@@ -62,8 +62,8 @@ resource "aws_ecs_task_definition" "task" {
     {
       name             = var.service_name
       image            = var.image
-      cpu              = var.task_cpu
-      memory           = var.task_memory
+      cpu              = var.container_cpu
+      memory           = var.container_memory
       portMappings     = var.port_mappings
       environment      = var.environment
       environmentFiles = var.environment_files

@@ -57,6 +57,18 @@ variable "service_discovery_description" {
 # ecs task-definition parameters
 # ----------------------------------------------------
 
+variable "container_cpu" {
+  type        = number
+  description = "The hard limit of CPU units to present for the task. For tasks that use the Fargate launch type (both Linux and Windows containers), this field is required. "
+  default     = 256
+}
+
+variable "container_memory" {
+  type        = number
+  description = "The amount (in MiB) of memory to present to the container. [container_definition_memory](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_memory)"
+  default     = 256
+}
+
 variable "port_mappings" {
   type        = list(any)
   description = "Port mappings allow containers to access ports on the host container instance to send or receive traffic. For task definitions that use the `awsvpc` network mode, only specify the containerPort. The `hostPort` can be left blank or it must be the same value as the `containerPort`. Consists (containerPort, hostPort, protocol)"
