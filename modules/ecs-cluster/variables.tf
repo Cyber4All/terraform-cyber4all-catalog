@@ -15,16 +15,16 @@ variable "subnet_ids" {
   type        = list(string)
   description = "A list of subnet IDs to launch resources in. Subnets automatically determine which availability zones the group will reside."
 }
-            
+
 # ----------------------------------------------------
 # security group parameters
 # ----------------------------------------------------
 variable "vpc_id" {
-  type        =   string
-      description = "ID of the VPC where to create security group."
+  type        = string
+  description = "ID of the VPC where to create security group."
 }
 
- # ---------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These parameters have reasonable defaults.
 # ---------------------------------------------------------------------------------------------------------------------

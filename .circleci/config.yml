@@ -13,21 +13,11 @@ jobs:
             echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
             sudo apt update && sudo apt install terraform
 
-            curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/v0.16.0/terraform-docs-v0.16.0-$(uname)-amd64.tar.gz
-            tar -xzf terraform-docs.tar.gz
-            chmod +x terraform-docs
-            sudo mv terraform-docs /bin
-
             curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 
             pip install pre-commit
             pre-commit install
-            
-            myArray=("tflint" "terraform-fmt")
-
-            for str in ${myArray[@]}; do
-              pre-commit run $str --all-files
-            done
+            pre-commit run --all-files
 
 workflows:
   continuous-integration:
