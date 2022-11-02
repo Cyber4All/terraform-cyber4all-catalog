@@ -54,6 +54,30 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
+### <a name="input_container_cpu"></a> [container\_cpu](#input\_container\_cpu)
+
+Description: The hard limit of CPU units to present for the task. For tasks that use the Fargate launch type (both Linux and Windows containers), this field is required.
+
+Type: `number`
+
+Default: `256`
+
+### <a name="input_container_memory"></a> [container\_memory](#input\_container\_memory)
+
+Description: The amount (in MiB) of memory to present to the container. [container\_definition\_memory](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_memory)
+
+Type: `number`
+
+Default: `256`
+
+### <a name="input_container_port"></a> [container\_port](#input\_container\_port)
+
+Description: The port number on the container that's bound to the user-specified or automatically assigned host port.
+
+Type: `number`
+
+Default: `null`
+
 ### <a name="input_cpu_architecture"></a> [cpu\_architecture](#input\_cpu\_architecture)
 
 Description: Must be set to either `X86_64` or `ARM64`; see cpu architecture.
@@ -69,6 +93,14 @@ Description: Number of instances of the task definition to place and keep runnin
 Type: `number`
 
 Default: `1`
+
+### <a name="input_disable_service_discovery"></a> [disable\_service\_discovery](#input\_disable\_service\_discovery)
+
+Description: Set to true if service discovery should not be configured. Otherwise either set the service\_registries block or provide values for service\_name, and container\_port.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_environment"></a> [environment](#input\_environment)
 
