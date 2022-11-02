@@ -1,23 +1,13 @@
 version: 2.1
 
-jobs:
-  tflint:
-    machine:
-      image: ubuntu-2004:current
-    steps:
-      - checkout
-      - run:
-          command: |
-            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-      - run:
-          command: |
-            for i in $(./.githooks/scripts/get-terraform-dirs.py)
-            do
-              tflint $i
-            done
+orbs:
+  cyber4all: cyber4all/orb@1.3
 
 workflows:
-  continuous-integration:
+  cd:
+    when: # runs when merge into main
+      equal: [ main, << pipeline.git.branch >> ]
     jobs:
-      # - tflint
-      - tfsec
+      - cyber4all/release:
+          context: [Github]
+          tag: "v$(./version.sh -r)"
