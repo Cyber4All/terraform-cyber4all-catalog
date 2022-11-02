@@ -19,9 +19,10 @@ variable "dns_namespace_id" {
 # ----------------------------------------------------
 # ecs task-definition parameters
 # ----------------------------------------------------
-variable "container_definitions" {
-  type        = any
-  description = "A list of valid container definitions provided as a single valid JSON document. Please note that you should only provide values that are part of the container definition document. For a detailed description of what parameters are available, see the Task Definition Parameters section from the official Developer Guide."
+
+variable "image" {
+  type        = string
+  description = "The image used to start a container. This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default. You can also specify other repositories with either `repository-url/image:tag` or `repository-url/image@digest`. Up to 255 letters (uppercase and lowercase), numbers, hyphens, underscores, colons, periods, forward slashes, and number signs are allowed."
 }
 
 # ----------------------------------------------------
@@ -55,6 +56,61 @@ variable "service_discovery_description" {
 # ----------------------------------------------------
 # ecs task-definition parameters
 # ----------------------------------------------------
+
+variable "container_cpu" {
+  type        = number
+  description = "The hard limit of CPU units to present for the task. For tasks that use the Fargate launch type (both Linux and Windows containers), this field is required. "
+  default     = 256
+}
+
+variable "container_memory" {
+  type        = number
+  description = "The amount (in MiB) of memory to present to the container. [container_definition_memory](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_memory)"
+  default     = 256
+}
+
+variable "container_port" {
+  type        = number
+  description = "The port number on the container that's bound to the user-specified or automatically assigned host port."
+  default     = null
+}
+
+variable "port_mappings" {
+  type        = list(any)
+  description = "Port mappings allow containers to access ports on the host container instance to send or receive traffic. For task definitions that use the `awsvpc` network mode, only specify the containerPort. The `hostPort` can be left blank or it must be the same value as the `containerPort`. Consists (containerPort, hostPort, protocol)"
+  default     = []
+}
+
+variable "disable_service_discovery" {
+  type        = bool
+  description = "Set to true if service discovery should not be configured. Otherwise either set the service_registries block or provide values for service_name, and container_port."
+  default     = false
+}
+
+variable "environment" {
+  type        = list(any)
+  description = "The environment variables to pass to a container. This parameter maps to the --env option to docker run. Consists (name, value)"
+  default     = []
+}
+
+variable "environment_files" {
+  type        = list(any)
+  description = "A list of files containing the environment variables to pass to a container. This parameter maps to the `--env-file` option to `docker run`. Consists (value, type = \"s3\")"
+  default     = []
+}
+
+variable "secrets" {
+  type        = list(any)
+  description = "An object representing the secret to expose to your container. For more information, see [Passing sensitive data to a container](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html). Consists (name, valueFrom)"
+  default     = []
+}
+
+variable "region" {
+  type        = string
+  description = "Aws region for cloud watch logs to exist in."
+  default     = "us-east-1"
+}
+
 variable "network_mode" {
   type        = string # "none" | "bridge" | "awsvpc" | "host"
   description = "Docker networking mode to use for the containers in the task. Valid values are `none`, `bridge`, `awsvpc`, and `host`."
