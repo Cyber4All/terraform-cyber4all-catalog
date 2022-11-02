@@ -10,4 +10,4 @@ workflows:
     jobs:
       - cyber4all/release:
           context: [Github]
-          tag: "v$(./version.sh -r)"
+          tag: "$(./version.sh -r)"
