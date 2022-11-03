@@ -17,6 +17,7 @@ The following providers are used by this module:
 
 The following resources are used by this module:
 
+- [aws_cloudwatch_log_group.logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) (resource)
 - [aws_ecs_service.service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) (resource)
 - [aws_ecs_task_definition.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) (resource)
 - [aws_service_discovery_service.registry](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) (resource)
@@ -31,15 +32,15 @@ Description: ARN of an ECS cluster.
 
 Type: `string`
 
-### <a name="input_container_definitions"></a> [container\_definitions](#input\_container\_definitions)
-
-Description: A list of valid container definitions provided as a single valid JSON document. Please note that you should only provide values that are part of the container definition document. For a detailed description of what parameters are available, see the Task Definition Parameters section from the official Developer Guide.
-
-Type: `any`
-
 ### <a name="input_dns_namespace_id"></a> [dns\_namespace\_id](#input\_dns\_namespace\_id)
 
 Description: The ID of the namespace to use for DNS configuration.
+
+Type: `string`
+
+### <a name="input_image"></a> [image](#input\_image)
+
+Description: The image used to start a container. This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default. You can also specify other repositories with either `repository-url/image:tag` or `repository-url/image@digest`. Up to 255 letters (uppercase and lowercase), numbers, hyphens, underscores, colons, periods, forward slashes, and number signs are allowed.
 
 Type: `string`
 
@@ -52,6 +53,30 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_container_cpu"></a> [container\_cpu](#input\_container\_cpu)
+
+Description: The hard limit of CPU units to present for the task. For tasks that use the Fargate launch type (both Linux and Windows containers), this field is required.
+
+Type: `number`
+
+Default: `256`
+
+### <a name="input_container_memory"></a> [container\_memory](#input\_container\_memory)
+
+Description: The amount (in MiB) of memory to present to the container. [container\_definition\_memory](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_memory)
+
+Type: `number`
+
+Default: `256`
+
+### <a name="input_container_port"></a> [container\_port](#input\_container\_port)
+
+Description: The port number on the container that's bound to the user-specified or automatically assigned host port.
+
+Type: `number`
+
+Default: `null`
 
 ### <a name="input_cpu_architecture"></a> [cpu\_architecture](#input\_cpu\_architecture)
 
@@ -68,6 +93,30 @@ Description: Number of instances of the task definition to place and keep runnin
 Type: `number`
 
 Default: `1`
+
+### <a name="input_disable_service_discovery"></a> [disable\_service\_discovery](#input\_disable\_service\_discovery)
+
+Description: Set to true if service discovery should not be configured. Otherwise either set the service\_registries block or provide values for service\_name, and container\_port.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_environment"></a> [environment](#input\_environment)
+
+Description: The environment variables to pass to a container. This parameter maps to the --env option to docker run. Consists (name, value)
+
+Type: `list(any)`
+
+Default: `[]`
+
+### <a name="input_environment_files"></a> [environment\_files](#input\_environment\_files)
+
+Description: A list of files containing the environment variables to pass to a container. This parameter maps to the `--env-file` option to `docker run`. Consists (value, type = "s3")
+
+Type: `list(any)`
+
+Default: `[]`
 
 ### <a name="input_ephemeral_storage"></a> [ephemeral\_storage](#input\_ephemeral\_storage)
 
@@ -133,6 +182,22 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_port_mappings"></a> [port\_mappings](#input\_port\_mappings)
+
+Description: Port mappings allow containers to access ports on the host container instance to send or receive traffic. For task definitions that use the `awsvpc` network mode, only specify the containerPort. The `hostPort` can be left blank or it must be the same value as the `containerPort`. Consists (containerPort, hostPort, protocol)
+
+Type: `list(any)`
+
+Default: `[]`
+
+### <a name="input_region"></a> [region](#input\_region)
+
+Description: Aws region for cloud watch logs to exist in.
+
+Type: `string`
+
+Default: `"us-east-1"`
+
 ### <a name="input_requires_compatibilities"></a> [requires\_compatibilities](#input\_requires\_compatibilities)
 
 Description: Set of launch types required by the task. The valid values are `EC2` and `FARGATE`.
@@ -146,6 +211,14 @@ Default:
   "EC2"
 ]
 ```
+
+### <a name="input_secrets"></a> [secrets](#input\_secrets)
+
+Description: An object representing the secret to expose to your container. For more information, see [Passing sensitive data to a container](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html). Consists (name, valueFrom)
+
+Type: `list(any)`
+
+Default: `[]`
 
 ### <a name="input_service_discovery_description"></a> [service\_discovery\_description](#input\_service\_discovery\_description)
 
