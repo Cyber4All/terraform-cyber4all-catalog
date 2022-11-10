@@ -26,7 +26,8 @@ locals {
 # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
 #################################
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.18.1"
 
   name = "${local.project_name}-vpc"
   cidr = "10.99.0.0/18"

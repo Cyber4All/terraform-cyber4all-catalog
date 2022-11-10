@@ -21,8 +21,6 @@ terraform {
 //One should absolutely define their own acl's if one were
 //to use this example
 locals {
-  region = "eu-west-1"
-
   network_acls = {
     default_inbound = [
       {

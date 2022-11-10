@@ -20,10 +20,21 @@ make
 ## Other OS Setup
 
 1. Follow the [Hashicorp Terraform Install CLI Guide](https://learn.hashicorp.com/tutorials/terraform/install-cli)
-2. Change the git config to look at the new git hook directory
+2. Install the pre-commit framework:
+
+### Using pip:
 
 ```console
-git config core.hooksPath .githooks
+pip install pre-commit
 ```
 
-3. Install TFlint following their [installation guide](https://github.com/terraform-linters/tflint#installation)
+### Using Conda (via conda-forge):
+```console
+conda install -c conda-forge pre-commit
+```
+
+3.  Install the git hook scripts:
+
+```console
+pre-commit install
+```
