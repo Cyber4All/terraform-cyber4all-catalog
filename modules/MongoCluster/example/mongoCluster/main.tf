@@ -17,9 +17,9 @@ resource "mongodbatlas_cluster" "cluster-test" {
   name       = "cluster-test-global"
 
   # Provider Settings "block"
-  provider_name         = "TENANT"
-  backing_provider_name = "AWS"
-  provider_region_name  = "US_EAST_1"
+  provider_name               = "TENANT"
+  backing_provider_name       = "AWS"
+  provider_region_name        = "US_EAST_1"
   provider_instance_size_name = "M2"
 }
 
