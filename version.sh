@@ -7,7 +7,7 @@ help_usage() {
   echo "-w                write the new SEMVER of the project\n"
 }
 
-FILE=version.txt
+FILE=VERSION
 
 read_file() {
   if [ -f "$FILE" ]; then

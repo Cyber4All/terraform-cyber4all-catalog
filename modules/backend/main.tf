@@ -1,9 +1,6 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# AWS S3 BUCKET IN GIVEN REGION
+# AWS S3 BUCKET
 # ---------------------------------------------------------------------------------------------------------------------
-provider "aws" {
-  region = var.region
-}
 
 resource "aws_s3_bucket" "backend" {
   bucket = var.bucket_name
@@ -84,9 +81,9 @@ data "aws_iam_policy_document" "tf_s3_backend_policy" {
     ]
 
     resources = [
-      "arn:aws:s3:::competency-service-terraform-state/*",
-      "arn:aws:s3:::competency-service-terraform-state",
-      "arn:aws:dynamodb:us-east-1:317620868823:table/competency-service-terraform-locks"
+      "arn:aws:s3:::${var.bucket_name}/*",
+      "arn:aws:s3:::${var.bucket_name}",
+      aws_dynamodb_table.arn
     ]
   }
 
@@ -97,8 +94,7 @@ data "aws_iam_policy_document" "tf_s3_backend_policy" {
 }
 
 resource "aws_iam_policy" "tf_s3_backend_policy" {
-  name        = "${var.environment}_s3_backend_policy"
-  path        = var.path
+  name        = "${var.bucket_name}_s3_backend"
   description = "Policy that permits backend permissions needed for terraform apply"
 
   policy = data.aws_iam_policy_document.tf_s3_backend_policy.json
