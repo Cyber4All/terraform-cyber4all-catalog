@@ -64,38 +64,3 @@ resource "aws_dynamodb_table" "terraform_locks" {
     type = "S"
   }
 }
-
-# ---------------------------------------------------------------------------------------------------------------------
-# IAM POLICY WITH ACCESS TO S3 BUCKET
-# ---------------------------------------------------------------------------------------------------------------------
-
-data "aws_iam_policy_document" "tf_s3_backend_policy" {
-  statement {
-    actions = [
-      "s3:PutObject",
-      "s3:GetObject",
-      "dynamodb:PutItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:GetItem",
-      "s3:ListBucket"
-    ]
-
-    resources = [
-      "arn:aws:s3:::${var.bucket_name}/*",
-      "arn:aws:s3:::${var.bucket_name}",
-      aws_dynamodb_table.arn
-    ]
-  }
-
-  statement {
-    actions   = ["sts:GetCallerIdentity"]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "tf_s3_backend_policy" {
-  name        = "${var.bucket_name}_s3_backend"
-  description = "Policy that permits backend permissions needed for terraform apply"
-
-  policy = data.aws_iam_policy_document.tf_s3_backend_policy.json
-}
