@@ -18,8 +18,8 @@ locals {
 }
 
 module "backend" {
-  source  = "github.com/Cyber4All/terraform-module//modules/s3-backend?ref=v1.0.0"
+  source = "github.com/Cyber4All/terraform-module//modules/s3-backend?ref=v1.0.0"
 
-  bucket_name = locals.project_name
-  dynamodb_table_name = locals.project_name
+  bucket_name         = local.project_name
+  dynamodb_table_name = local.project_name
 }
