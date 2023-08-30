@@ -1,32 +1,88 @@
 version: 2.1
 
-jobs:
-  precommit:
-    docker:
-      - image: cimg/python:3.10.1
-    steps:
-      - checkout
-      - run:
-          name: Precommit Strategy
-          command: |
-            wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
-            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-            sudo apt update && sudo apt install terraform
+env: &env
+  environment:
+    GO111MODULE: auto
 
-            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-
-            pip install pre-commit
-            pre-commit install
-            pre-commit run --all-files
 orbs:
   cyber4all: cyber4all/orb@2.0.0
+  go: circleci/go@1.8.0
+  python: circleci/python@2.1.1
+  terraform: circleci/terraform@3.2.1
+  tfsec: mycodeself/tfsec@1.1.0
+
+jobs:
+  # integration-tests:
+
+  pre-commit:
+    executor: python/default
+    steps:
+      - terraform/install
+      - run:
+          name: Install TFlint
+          command: |
+            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      - checkout
+      - run:
+          name: Install Pre-Commit
+          command: |
+            pip3 install --user pre-commit
+      - run:
+          name: Run-all Pre-Commit
+          command: |
+            pre-commit run --all-files
+
+  tfsec:
+    executor: tfsec/default
+    steps:
+      - checkout
+      - tfsec/scan:
+          directory: modules
+
+  unit-tests:
+    <<: *env
+    executor:
+      name: go/default
+      tag: '1.20'
+    resource_class: large
+    steps:
+      - checkout
+      - terraform/install:
+          version: 1.5.5
+      - run:
+          name: Install Terratest Log Parser
+          command: |
+            go install github.com/gruntwork-io/terratest/cmd/terratest_log_parser@latest
+      - run:
+          name: Setup Log Directory
+          command: |
+            mkdir -p /tmp/logs 
+      - run:
+          # These tests can be slow to create/delete, so we massively increase
+          # the test timeout to ensure cleanup jobs run correctly.
+          # Also specify a CircleCI timeout of 5400 seconds (90m)
+          name: run tests
+          command: |
+            go test --path ./test --timeout 2h --packages . | (tee /tmp/logs/all.log || true)
+          no_output_timeout: 5400s
+      - run:
+          name: Parse Terratest Logs
+          command: |
+            terratest_log_parser -testlog /tmp/logs/test_output.log --outputdir /tmp/logs
+          when: always
+      # Store test result and log artifacts for browsing purposes
+      - store_artifacts:
+          path: /tmp/logs
+      - store_test_results:
+          path: /tmp/logs
 
 workflows:
   cd:
     when: # runs when merge into main
       equal: [ main, << pipeline.git.branch >> ]
     jobs:
-      - precommit
+      - pre-commit
+      - tfsec
       - cyber4all/release:
           context: [Github]
           tag: "$(./version.sh -r)"
