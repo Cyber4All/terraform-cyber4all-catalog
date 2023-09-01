@@ -12,7 +12,42 @@ orbs:
   tfsec: mycodeself/tfsec@1.1.0
 
 jobs:
-  # integration-tests:
+  integration-tests:
+    <<: *env
+    executor:
+      name: go/default
+      tag: "1.20"
+    resource_class: large
+    steps:
+      - checkout
+      - terraform/install:
+          terraform_version: 1.5.5
+      - run:
+          name: Install Terratest Log Parser
+          command: |
+            go install github.com/gruntwork-io/terratest/cmd/terratest_log_parser@latest
+      - run:
+          name: Setup Log Directory
+          command: |
+            mkdir -p /tmp/logs
+      - run:
+          # These tests can be slow to create/delete, so we massively increase
+          # the test timeout to ensure cleanup jobs run correctly.
+          # Also specify a CircleCI timeout of 5400 seconds (90m)
+          name: run tests
+          command: |
+            go test --path ./test --timeout 2h --packages . | (tee /tmp/logs/all.log || true)
+          no_output_timeout: 5400s
+      - run:
+          name: Parse Terratest Logs
+          command: |
+            terratest_log_parser -testlog /tmp/logs/test_output.log --outputdir /tmp/logs
+          when: always
+      # Store test result and log artifacts for browsing purposes
+      - store_artifacts:
+          path: /tmp/logs
+      - store_test_results:
+          path: /tmp/logs
 
   pre-commit:
     executor: python/default
@@ -39,50 +74,18 @@ jobs:
       - tfsec/scan:
           directory: modules
 
-  unit-tests:
-    <<: *env
-    executor:
-      name: go/default
-      tag: '1.20'
-    resource_class: large
-    steps:
-      - checkout
-      - terraform/install:
-          version: 1.5.5
-      - run:
-          name: Install Terratest Log Parser
-          command: |
-            go install github.com/gruntwork-io/terratest/cmd/terratest_log_parser@latest
-      - run:
-          name: Setup Log Directory
-          command: |
-            mkdir -p /tmp/logs 
-      - run:
-          # These tests can be slow to create/delete, so we massively increase
-          # the test timeout to ensure cleanup jobs run correctly.
-          # Also specify a CircleCI timeout of 5400 seconds (90m)
-          name: run tests
-          command: |
-            go test --path ./test --timeout 2h --packages . | (tee /tmp/logs/all.log || true)
-          no_output_timeout: 5400s
-      - run:
-          name: Parse Terratest Logs
-          command: |
-            terratest_log_parser -testlog /tmp/logs/test_output.log --outputdir /tmp/logs
-          when: always
-      # Store test result and log artifacts for browsing purposes
-      - store_artifacts:
-          path: /tmp/logs
-      - store_test_results:
-          path: /tmp/logs
-
 workflows:
-  cd:
+  continuous-integration:
+    - pre-commit
+    - tfsec
+    - integration-tests:
+        requires: [pre-commit, tfsec]
+
+  delivery:
     when: # runs when merge into main
-      equal: [ main, << pipeline.git.branch >> ]
+      equal: [main, << pipeline.git.branch >>]
     jobs:
-      - pre-commit
-      - tfsec
       - cyber4all/release:
           context: [Github]
+          requires: [integration-tests]
           tag: "$(./version.sh -r)"
