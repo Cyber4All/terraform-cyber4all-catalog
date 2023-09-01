@@ -76,16 +76,18 @@ jobs:
 
 workflows:
   continuous-integration:
-    - pre-commit
-    - tfsec
-    - integration-tests:
-        requires: [pre-commit, tfsec]
-
-  delivery:
-    when: # runs when merge into main
-      equal: [main, << pipeline.git.branch >>]
     jobs:
+      - pre-commit
+
+      - tfsec
+
+      - integration-tests:
+          requires: [pre-commit, tfsec]
+
       - cyber4all/release:
           context: [Github]
           requires: [integration-tests]
           tag: "$(./version.sh -r)"
+          filters:
+            branches:
+              only: /main/
