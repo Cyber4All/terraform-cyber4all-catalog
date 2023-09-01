@@ -174,6 +174,10 @@ module "autoscaling" {
     cpu_credits = "standard"
   }
 
+  metadata_options = {
+    http_tokens = "required"
+  }
+
   # ----------------------------------------------------
   # DEFAULTS
   # ----------------------------------------------------

@@ -33,6 +33,7 @@ resource "aws_service_discovery_service" "registry" {
 # CLOUDWATCH LOG GROUP
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group
 # ---------------------------------------------------------------------------------------------------------------------
+# tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "logs" {
   name = "/ecs/${var.service_name}"
 

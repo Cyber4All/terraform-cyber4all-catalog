@@ -178,12 +178,14 @@ module "external-alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "8.1.0"
 
+  drop_invalid_header_fields = true
+
   create_lb = var.create_external_alb
 
   name = "${var.project_name}-ext-alb"
 
   load_balancer_type               = "application"
-  internal                         = false
+  internal                         = false # tfsec:ignore:aws-elb-alb-not-public
   enable_cross_zone_load_balancing = true
 
   # ----------------------------------------------------
@@ -262,6 +264,8 @@ module "external-alb" {
 module "internal-alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "8.1.0"
+
+  drop_invalid_header_fields = true
 
   create_lb = var.create_internal_alb
 
