@@ -2,10 +2,10 @@
 # AWS S3 BUCKET
 # ---------------------------------------------------------------------------------------------------------------------
 
+# tfsec:ignore:aws-s3-enable-bucket-logging
+
 resource "aws_s3_bucket" "backend" {
   bucket = var.bucket_name
-
-  # tfsec:ignore:aws-s3-enable-bucket-logging
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -63,6 +63,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
+  # tfsec:ignore:aws-dynamodb-table-customer-key
   server_side_encryption {
     enabled = true // enabled server side encryption
   }

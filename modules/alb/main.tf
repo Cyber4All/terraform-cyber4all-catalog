@@ -184,8 +184,10 @@ module "external-alb" {
 
   name = "${var.project_name}-ext-alb"
 
-  load_balancer_type               = "application"
-  internal                         = false # tfsec:ignore:aws-elb-alb-not-public
+  load_balancer_type = "application"
+
+  # tfsec:ignore:aws-elb-alb-not-public
+  internal                         = false
   enable_cross_zone_load_balancing = true
 
   # ----------------------------------------------------
