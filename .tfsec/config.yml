@@ -1,4 +1,0 @@
----
-exclude:
-  - aws-s3-enable-bucket-logging
-  - aws-elb-alb-not-public

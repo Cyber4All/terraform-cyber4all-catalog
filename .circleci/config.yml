@@ -73,6 +73,7 @@ jobs:
       - checkout
       - tfsec/scan:
           directory: modules
+          exclude-checks: "aws-s3-enable-bucket-logging,aws-elb-alb-not-public"
 
 workflows:
   continuous-integration:
