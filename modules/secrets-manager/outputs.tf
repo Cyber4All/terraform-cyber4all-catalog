@@ -1,6 +1,5 @@
-# TODO add more outputs
-
 output "secret_arn_references" {
+  description = "List of ARNs with appended references that can be used in other services such as ECS."
   # append key to the end of the secret ARN
   value = flatten([
     for i in range(length(var.secrets)) :
@@ -9,8 +8,4 @@ output "secret_arn_references" {
       "${aws_secretsmanager_secret_version.secret[i].arn}:${key}::"
     ]
   ])
-}
-
-output "decoded_string" {
-  value = jsondecode(data.aws_secretsmanager_secret_version.secret[0].secret_string)
 }
