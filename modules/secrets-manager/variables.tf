@@ -15,7 +15,10 @@ variable "secrets" {
   type = list(object({
     name        = string
     description = optional(string)
-    keys        = list(string)
+    environment = list(object({
+      name  = string
+      value = string
+    }))
   }))
-  description = "List of secrets that can be used to initialize the secret and its environment variables managed by the secret."
+  description = "List of secrets that can be used to maintain the secret and its environment variables managed by the secret."
 }

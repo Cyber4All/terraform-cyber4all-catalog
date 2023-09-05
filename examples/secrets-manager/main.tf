@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.region
 }
 
 module "secrets-manager" {
@@ -16,17 +16,29 @@ module "secrets-manager" {
 
   secrets = [
     {
-      name = "testing/example/service"
-      keys = [
-        "NODE_ENV",
-        "SOME_SECRET",
+      name = "testing/example/service${var.random_id}"
+      environment = [
+        {
+          name  = "NODE_ENV",
+          value = "prod"
+        },
+        {
+          name  = "SOME_SECRET",
+          value = "stuff",
+        }
       ]
     },
     {
-      name = "testing/example/database"
-      keys = [
-        "DB_USERNAME",
-        "DB_PASSWORD"
+      name = "testing/example/database${var.random_id}"
+      environment = [
+        {
+          name  = "DB_USERNAME",
+          value = "admin"
+        },
+        {
+          name  = "DB_PASSWORD",
+          value = "password123",
+        }
       ]
     }
   ]

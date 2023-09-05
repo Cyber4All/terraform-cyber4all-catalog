@@ -29,12 +29,14 @@ module "secrets-manager" {
     # REQUIRED VARIABLES
     # --------------------------------------------------------------------------------------------------
 
-    # List of secrets that can be used to initialize the secret and its environment variables
-    # managed by the secret.
+    # List of secrets that can be used to maintain the secret and its environment variables managed by the secret.
     secrets = <list(object(
         name        = string
         description = optional(string)
-        keys        = list(string)
+        environment = list(object(
+            name  = string
+            value = string
+        ))
     ))>
 
 }
@@ -51,7 +53,7 @@ The following input variables are required:
 
 #### <a name="input_secrets"></a> [secrets](#input\_secrets)
 
-Description: List of secrets that can be used to initialize the secret and its environment variables managed by the secret.
+Description: List of secrets that can be used to maintain the secret and its environment variables managed by the secret.
 
 Type:
 
@@ -59,7 +61,10 @@ Type:
 list(object({
     name        = string
     description = optional(string)
-    keys        = list(string)
+    environment = list(object({
+      name  = string
+      value = string
+    }))
   }))
 ```
 
@@ -71,6 +76,10 @@ No optional inputs.
 
 The following outputs are exported:
 
-### <a name="output_secret_arn_references"></a> [secret\_arn\_references](#output\_secret\_arn\_references)
+#### <a name="output_secret_arn_references"></a> [secret\_arn\_references](#output\_secret\_arn\_references)
 
 Description: List of ARNs with appended references that can be used in other services such as ECS.
+
+#### <a name="output_secret_arns"></a> [secret\_arns](#output\_secret\_arns)
+
+Description: List of ARNs for the secrets managed by the module.

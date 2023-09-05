@@ -1,9 +1,8 @@
 # -------------------------------------------------------------------------------------
 # MANAGE SECRETS IN SECRETS MANAGER
 # 
-# This module will create a secret and initialize the secret keys with an empty string.
-# Keys that have already been initialized in a secret will not overwrite the existing
-# value. The module includes the following:
+# This module will create a secret and maintain the key/value pairs that are associated.
+# The module includes the following:
 # - Secrets Manager Secret
 # - Secrets Manager Secret Version
 # -------------------------------------------------------------------------------------
@@ -36,22 +35,12 @@ resource "aws_secretsmanager_secret" "secret" {
   description = var.secrets[count.index].description
 
   recovery_window_in_days = 0
+
 }
 
 
 # -------------------------------------------
-# GET THE CURRENT SECRET VERSIONS
-# -------------------------------------------
-
-data "aws_secretsmanager_secret_version" "secret" {
-  count = length(var.secrets)
-
-  secret_id = aws_secretsmanager_secret.secret[count.index].id
-}
-
-
-# -------------------------------------------
-# INITIALIZE NEW SECRET VERSION
+# CREATE NEW SECRET VERSION
 # -------------------------------------------
 
 resource "aws_secretsmanager_secret_version" "secret" {
@@ -60,27 +49,11 @@ resource "aws_secretsmanager_secret_version" "secret" {
   secret_id = aws_secretsmanager_secret.secret[count.index].id
 
   secret_string = jsonencode(
-    merge(
-      # Initialize all the keys to an empty string
-      { for key in var.secrets[count.index].keys : key => "" },
-
-      # Overwrite the keys with existing values. However, if the
-      # if a key is removed then the key -> value pair should also
-      # be removed even when a value is present. 
-      {
-        for k, v in jsondecode(data.aws_secretsmanager_secret_version.secret[count.index].secret_string) :
-        k => v
-        if contains(
-          keys(jsondecode(data.aws_secretsmanager_secret_version.secret[count.index].secret_string)),
-          var.secrets[count.index].keys
-        )
-      }
-    )
+    {
+      # Converts the objects into a single map
+      for s in var.secrets[count.index].environment :
+      s["name"] => sensitive(s["value"])
+    }
   )
 
-  depends_on = [
-    # We want to ensure that all CURRENT versions are retrieved prior
-    # to performing logic.
-    data.aws_secretsmanager_secret_version.secret
-  ]
 }
