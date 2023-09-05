@@ -16,11 +16,17 @@ module "secrets-manager" {
 
   secrets = [
     {
-      name = "just/chuck/testa"
+      name = "testing/example/service"
       keys = [
-        "JOSUE_IS_CUTE",
-        "MIKE_IS_COOL",
-        "CHRIS_YEP"
+        "NODE_ENV",
+        "SOME_SECRET",
+      ]
+    },
+    {
+      name = "testing/example/database"
+      keys = [
+        "DB_USERNAME",
+        "DB_PASSWORD"
       ]
     }
   ]
