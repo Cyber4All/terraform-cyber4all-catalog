@@ -22,7 +22,7 @@ jobs:
         steps:
             - checkout
             - aws-cli/setup:
-                  role-arn: ${AWS_OIDC_ROLE_ARN}
+                  role_arn: ${AWS_OIDC_ROLE_ARN}
             - terraform/install:
                   terraform_version: 1.5.5
             - run:
