@@ -25,6 +25,17 @@ terraform {
 
 
 # -------------------------------------------
+# CREATE A CUSTOMER MANAGED KEY TO ENCRYPT W/
+# -------------------------------------------
+
+resource "aws_kms_key" "secret" {
+  description         = "CMK for Secrets Manager Encryption"
+  enable_key_rotation = true
+
+}
+
+
+# -------------------------------------------
 # CREATE THE SECRETS MANAGER SECRETS
 # -------------------------------------------
 
@@ -33,6 +44,8 @@ resource "aws_secretsmanager_secret" "secret" {
 
   name        = var.secrets[count.index].name
   description = var.secrets[count.index].description
+
+  kms_key_id = aws_kms_key.secret.arn
 
   recovery_window_in_days = 0
 
