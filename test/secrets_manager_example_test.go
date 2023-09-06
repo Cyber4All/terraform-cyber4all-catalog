@@ -1,10 +1,12 @@
 package test
 
 import (
+	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
-	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
@@ -46,7 +48,8 @@ func deployUsingTerraform(t *testing.T, awsRegion string, workingDir string) {
 	// A unique ID we can use to namespace resources so we don't clash with anything already in the AWS account or
 	// tests running in parallel
 	uniqueID := random.UniqueId()
-
+	secretKey := fmt.Sprint("secret_key_", uniqueID)
+	secretValue := fmt.Sprint("secret_value_", uniqueID)
 	// Construct the terraform options with default retryable errors to handle the most common retryable errors in
 	// terraform testing.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
@@ -55,8 +58,10 @@ func deployUsingTerraform(t *testing.T, awsRegion string, workingDir string) {
 
 		// Variables to pass to our Terraform code using -var options
 		Vars: map[string]interface{}{
-			"random_id": uniqueID,
-			"region":    awsRegion,
+			"random_id":    uniqueID,
+			"region":       awsRegion,
+			"secret_key":   secretKey,
+			"secret_value": secretValue,
 		},
 	})
 
@@ -74,23 +79,38 @@ func validateSecretsContainSecrets(t *testing.T, workingDir string) {
 
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
 
-	secret_arns := terraform.OutputList(t, terraformOptions, "secret_arns")
-
 	// Check that two secrets were created
+	secret_arns := terraform.OutputList(t, terraformOptions, "secret_arns")
 	assert.Len(t, secret_arns, 2)
+
+	// Assert that the two secret names are correct
+	names := terraform.OutputList(t, terraformOptions, "secret_names")
+	assert.Len(t, names, 2)
+
+	secretKey := terraformOptions.Vars["secret_key"].(string)
+	secretValue := terraformOptions.Vars["secret_value"].(string)
 
 	// Check that each of the secrets can be retrieved
 	for _, arn := range secret_arns {
-		secret := aws.GetSecretValue(t, awsRegion, arn)
-		logger.Log(t, secret)
+		var secret map[string]string
+		secretStr := aws.GetSecretValue(t, awsRegion, arn)
+		json.Unmarshal([]byte(secretStr), &secret)
 
 		// Check that the keys all exist in the secret
+		assert.Len(t, secret, 2, "Secret does not contain %d keys. got: %d", 2, len(secret))
 
+		// Check that the keys have the expected prefix
+		for k := range secret {
+			assert.True(t, strings.HasPrefix(k, secretKey), "Secret key %s does not have prefix %s", k, secretKey)
+
+			value := secret[k]
+			assert.True(t, strings.HasPrefix(value, secretValue), "Secret value %s does not have prefix %s", value, secretValue)
+		}
 	}
 
 	// Run `terraform output` to get the value of an output variable
 	secret_arn_references := terraform.OutputList(t, terraformOptions, "secret_arn_references")
 
 	// Ensure the secret_arn_references format is as expected
-	assert.Len(t, secret_arn_references, 4)
+	assert.Len(t, secret_arn_references, 4, "Expected %d secret_arn_references, got: %d", 4, len(secret_arn_references))
 }

@@ -9,3 +9,15 @@ variable "random_id" {
   type        = string
   default     = ""
 }
+
+variable "secret_key" {
+  description = "The key of the secret"
+  type        = string
+  default     = "key"
+}
+
+variable "secret_value" {
+  description = "The value of the secret"
+  type        = string
+  default     = "value"
+}
