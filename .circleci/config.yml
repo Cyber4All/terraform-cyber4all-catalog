@@ -36,7 +36,7 @@ jobs:
           # Also specify a CircleCI timeout of 5400 seconds (90m)
           name: run tests
           command: |
-            go test --path ./test --timeout 2h --packages . | (tee /tmp/logs/all.log || true)
+            go test --path ./test --timeout 2h --packages ./test | (tee /tmp/logs/all.log || true)
           no_output_timeout: 5400s
       - run:
           name: Parse Terratest Logs
