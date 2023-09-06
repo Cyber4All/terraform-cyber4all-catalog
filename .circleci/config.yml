@@ -45,7 +45,7 @@ jobs:
             - run:
                   name: Parse Terratest Logs
                   command: |
-                      terratest_log_parser -testlog /tmp/logs/test_output.log --outputdir /tmp/logs
+                      terratest_log_parser -testlog /tmp/logs/all.log --outputdir /tmp/logs
                   when: always
             # Store test result and log artifacts for browsing purposes
             - store_artifacts:
