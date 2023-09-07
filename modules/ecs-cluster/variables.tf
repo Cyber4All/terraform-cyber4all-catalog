@@ -1,148 +1,106 @@
-# ---------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# MODULE PARAMETERS
+#
+# These values are expected to be set by the operator when calling the module
+# -----------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------
 # REQUIRED PARAMETERS
-# You must provide a value for each of these parameters.
-# ---------------------------------------------------------------------------------------------------------------------
+#
+# These values are required by the module and have no default values
+# --------------------------------------------------------------------
 
-variable "project_name" {
+variable "cluster_name" {
   type        = string
-  description = "Name that will prepend all resources."
+  description = "The name of the ECS cluster."
 }
 
-# ----------------------------------------------------
-# auto scaling group parameters
-# ----------------------------------------------------
-variable "subnet_ids" {
-  type        = list(string)
-  description = "A list of subnet IDs to launch resources in. Subnets automatically determine which availability zones the group will reside."
-}
-
-# ----------------------------------------------------
-# security group parameters
-# ----------------------------------------------------
 variable "vpc_id" {
   type        = string
-  description = "ID of the VPC where to create security group."
+  description = "The ID of the VPC in which the ECS cluster should be launched."
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
+variable "vpc_subnet_ids" {
+  type        = string
+  description = "The IDs of the subnets in which to deploy the ECS cluster instances."
+}
+
+
+# --------------------------------------------------------------------
 # OPTIONAL PARAMETERS
-# These parameters have reasonable defaults.
-# ---------------------------------------------------------------------------------------------------------------------
+#
+# These values are optional and have default values provided
+# --------------------------------------------------------------------
 
-# ----------------------------------------------------
-# ecs cluster parameters
-# ----------------------------------------------------
-variable "log_group_name" {
-  type        = string
-  description = "The name of the CloudWatch log group to send logs to."
-  default     = null
-}
-
-# ----------------------------------------------------
-# auto scaling group parameters
-# ----------------------------------------------------
-
-# launch template
-variable "launch_template_description" {
-  type        = string
-  description = "Description of the launch template."
-  default     = "Launch template managed by Terraform"
-}
-
-variable "ami_id" {
-  type        = string
-  description = "The AMI from which to launch the instance. (default: Amazon Linux AMI amzn-ami-2018.03.20220831 x86_64 ECS HVM GP2, deprecated: Fri Aug 30 2024 20:24:19 GMT-0400)"
-  default     = "ami-06e07b42f153830d8"
-}
-
-variable "instance_type" {
-  type        = string
-  description = "The type of the instance. If present then `instance_requirements` cannot be present."
-  default     = "t2.micro"
-}
-
-variable "block_device_mappings" {
-  type        = list(any)
-  description = "Specify volumes to attach to the instance besides the volumes specified by the AMI."
+variable "autoscaling_sns_topic_arns" {
+  type        = list(string)
+  description = "The ARNs of SNS topics where failed Autoscaling notifications should be sent to."
   default     = []
 }
 
-# auto scaling group
-variable "min_size" {
-  type        = number
-  description = "The minimum size of the autoscaling group."
-  default     = 1
-}
-
-variable "max_size" {
-  type        = number
-  description = "The maximum size of the autoscaling group."
-  default     = 1
-}
-
-variable "desired_capacity" {
-  type        = number
-  description = "The number of Amazon EC2 instances that should be running in the autoscaling group."
-  default     = 1
-}
-
-variable "enabled_metrics" {
-  type        = list(string)
-  description = "A list of metrics to collect. The allowed values are `GroupDesiredCapacity`, `GroupInServiceCapacity`, `GroupPendingCapacity`, `GroupMinSize`, `GroupMaxSize`, `GroupInServiceInstances`, `GroupPendingInstances`, `GroupStandbyInstances`, `GroupStandbyCapacity`, `GroupTerminatingCapacity`, `GroupTerminatingInstances`, `GroupTotalCapacity`, `GroupTotalInstances`."
-  default     = ["GroupDesiredCapacity", "GroupInServiceCapacity", "GroupPendingCapacity", "GroupMinSize", "GroupMaxSize", "GroupInServiceInstances", "GroupPendingInstances", "GroupStandbyInstances", "GroupStandbyCapacity", "GroupTerminatingCapacity", "GroupTerminatingInstances", "GroupTotalCapacity", "GroupTotalInstances"]
-}
-
-variable "capacity_rebalance" {
+variable "autoscaling_termination_protection" {
   type        = bool
-  description = "Indicates whether capacity rebalance is enabled."
+  description = "Protect EC2 instances running ECS tasks from being terminated due to scale in (spot instances do not support lifecycle modifications). Note that the behavior of termination protection differs between clusters with capacity providers and clusters without. When capacity providers is turned on and this flag is true, only instances that have 0 ECS tasks running will be scaled in, regardless of capacity_provider_target. If capacity providers is turned off and this flag is true, this will prevent ANY instances from being scaled in."
   default     = true
 }
 
-# iam role
-variable "iam_role_description" {
+variable "capacity_provider_max_scale_step" {
+  type        = number
+  description = "Maximum step adjustment size to the ASG's desired instance count. A number between 1 and 10000. It is better to overestimate this value."
+  default     = 2
+}
+
+variable "capacity_provider_min_scale_step" {
+  type        = number
+  description = "Minimum step adjustment size to the ASG's desired instance count. A number between 1 and 10000. It is better to underestimate this value."
+  default     = 1
+}
+
+variable "capacity_provider_target" {
+  type        = number
+  description = "Target cluster utilization for the ASG capacity provider; a number from 1 to 100. This number influences when scale out happens, and when instances should be scaled in. For example, a setting of 90 means that new instances will be provisioned when all instances are at 90% utilization, while instances that are only 10% utilized (CPU and Memory usage from tasks = 10%) will be scaled in."
+  default     = 75
+}
+
+variable "cluster_egress_access_ports" {
+  type = list(object({
+    from_port = number
+    to_port   = number
+    cidr_ipv4 = string
+  }))
+  description = "Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through egress traffic. By default terraform removes the default rule of `ALLOW ALL` egress traiffic, the default value adds this rule back."
+  default = [{
+    from_port = 0
+    to_port   = 0
+    cidr_ipv4 = "0.0.0.0/0"
+  }]
+}
+
+variable "cluster_ingress_access_ports" {
+  type = list(object({
+    from_port = number
+    to_port   = number
+    cidr_ipv4 = string
+  }))
+  description = "Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic."
+  default     = []
+}
+
+variable "cluster_instance_type" {
   type        = string
-  description = "Description of the role."
-  default     = "IAM Role managed by Terraform"
+  description = "The size of the EC2 instance."
+  default     = "t2.micro"
 }
 
-variable "iam_role_policies" {
-  type        = map(string)
-  description = "IAM policies to attach to the IAM role."
-  default = {
-    AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-    AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  }
+variable "cluster_max_size" {
+  type        = number
+  description = "The maximum number of instances to run in the ECS cluster."
+  default     = 10
 }
 
-# ----------------------------------------------------
-# security group parameters
-# ----------------------------------------------------
-variable "sg_description" {
-  type        = string
-  description = "Description of security group."
-  default     = "Security Group managed by Terraform"
-}
-
-variable "ingress_rules" {
-  type        = list(string)
-  description = "List of ingress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf)."
-  default     = []
-}
-
-variable "egress_rules" {
-  type        = list(string)
-  description = "List of egress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf)."
-  default     = []
-}
-
-variable "ingress_with_cidr_blocks" {
-  type        = list(map(string))
-  description = "List of ingress rules to create where 'cidr_blocks' is used."
-  default     = []
-}
-
-variable "egress_with_cidr_blocks" {
-  type        = list(map(string))
-  description = "List of egress rules to create where 'cidr_blocks' is used."
-  default     = []
+variable "cluster_min_size" {
+  type        = number
+  description = "The minimum number of instances to run in the ECS cluster"
+  default     = 1
 }

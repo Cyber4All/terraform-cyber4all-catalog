@@ -1,246 +1,456 @@
-# ---------------------------------------------------------------------------------------------------------------------
-# ECS CLUSTER CONFIG
-# https://registry.terraform.io/modules/terraform-aws-modules/ecs/aws/4.1.1
+# -------------------------------------------------------------------------------------
+# ELASTIC CONTAINER SERVICE (ECS) CLUSTER
 # 
-# aws_ecs_cluster: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster
-# ---------------------------------------------------------------------------------------------------------------------
-module "ecs" {
-  source  = "terraform-aws-modules/ecs/aws"
-  version = "4.1.1"
+# This module will create an ECS Cluster that supports both EC2 and Fargate as available
+# capacity providers. The module uses an EC2 auto scaling group (ASG) as the default 
+# strategy for cluster auto scaling (CAS)
+#
+# The module uses instance refresh for any updates to the ASG's launch template. This
+# ensures that the cluster is always running the latest version of the ECS AMI.
+# 
+# The module will optionally provision an external application load balancer (ALB)
+# and route53 record to provide external access to the cluster if deployed in private
+# subnets. Service mesh connectivity will be managed with ECS Service Connect. The default
+# namespace for the cluster will also be the cluster name.
+#
+# The module includes the following:
+#
+# - ECS Cluster
+# - ECS Cluster's CloudWatch Log Group
+# - ECS Cluster's CloudMap Namespace
+# - ECS Cluster's Capacity Provider Strategy
+# - ECS Cluster's Capacity Provider
+# - ECS Cluster's Auto Scaling Group
+# - (Optional) ECS Cluster's Auto Scaling Group SNS Notifications
+# - ECS Cluster's Launch Template
+# - ECS Cluster's Launch Template's Security Group
+# - ECS Cluster's Launch Template's IAM Role/Instance Profile
+# - (Optional) External Application Load Balancer
+# - (Optional) External Application Load Balancer Route53 Record
+#
+# -------------------------------------------------------------------------------------
 
-  cluster_name = "${var.project_name}-cluster"
 
-  # ----------------------------------------------------
-  # LOGGING CONFIG
-  # ----------------------------------------------------
-  cluster_configuration = var.log_group_name != null ? {
-    execute_command_configuration = {
+# -------------------------------------------
+# SET TERRAFORM REQUIREMENTS TO RUN MODULE
+# -------------------------------------------
+
+terraform {
+  required_version = ">= 1.5.5"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0"
+    }
+  }
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CREATE THE ECS CLUSTER
+
+# AND ASSOCIATED RESOURCES (LOG GROUP, NAMESPACE).
+
+# ------------------------------------------------------------
+
+
+# -------------------------------------------
+# CREATE CLUSTER
+# -------------------------------------------
+
+resource "aws_ecs_cluster" "cluster" {
+  name = var.cluster_name
+
+  configuration {
+    execute_command_configuration {
       logging = "OVERRIDE"
-
-      log_configuration = {
-        cloud_watch_encryption_enabled = true
-        cloud_watch_log_group_name     = var.log_group_name
+      log_configuration {
+        cloud_watch_log_group_name = aws_cloudwatch_log_group.cluster.name
       }
     }
-  } : {}
+  }
 
-  # ----------------------------------------------------
-  # DEFAULTS
-  # ----------------------------------------------------
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
 
-  /* autoscaling_capacity_providers = {} */
-  /* cluster_settings = { "name": "containerInsights", "value": "enabled" } */
-  /* create = true */
-  /* default_capacity_provider_use_fargate = true */
-  /* fargate_capacity_providers = {} */
-  /* tags = {} */
+  service_connect_defaults {
+    # For any service that is deployed to this cluster, it'll automatically
+    # use this namespace for Service Connect when unspecified.
+    namespace = aws_service_discovery_http_namespace.cluster.arn
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.cluster,
+    aws_service_discovery_http_namespace.cluster
+  ]
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# SECURITY GROUP (SG) FOR ASG
-# https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/4.15.0
-#
-# aws_security_group: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
-# aws_security_group_rule: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule
-# ---------------------------------------------------------------------------------------------------------------------
-module "security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "4.15.0"
 
-  name        = "${var.project_name}-sg"
-  description = var.sg_description
-  vpc_id      = var.vpc_id
+# -------------------------------------------
+# CREATE LOG GROUP FOR CLUSTER
+# -------------------------------------------
 
-  ingress_rules = var.ingress_rules
-  egress_rules  = var.egress_rules
+resource "aws_cloudwatch_log_group" "cluster" {
+  name = "${var.cluster_name}-logs"
 
-  ingress_with_cidr_blocks = var.ingress_with_cidr_blocks
-  egress_with_cidr_blocks  = var.egress_with_cidr_blocks
-
-  # ----------------------------------------------------
-  # DEFAULTS
-  # ----------------------------------------------------
-
-  /* auto_groups (see registry page, too long to include) */
-  /* computed_egress_rules = [] */
-  /* computed_egress_with_cidr_blocks = [] */
-  /* computed_egress_with_ipv6_cidr_blocks = [] */
-  /* computed_egress_with_self = [] */
-  /* computed_egress_with_source_security_group_id = [] */
-  /* computed_ingress_rules = [] */
-  /* computed_ingress_with_cidr_blocks = [] */
-  /* computed_ingress_with_ipv6_cidr_blocks = [] */
-  /* computed_ingress_with_self = [] */
-  /* computed_ingress_with_source_security_group_id = [] */
-  /* create = true */
-  /* create_sg = true */
-  /* create_timeout = "10m" */
-  /* delete_timeout = "15m" */
-  /* egress_cidr_blocks = [ "0.0.0.0/0" ] */
-  /* egress_ipv6_cidr_blocks = [ "::/0" ] */
-  /* egress_prefix_list_ids = [] */
-  /* egress_with_ipv6_cidr_blocks = [] */
-  /* egress_with_self = [] */
-  /* egress_with_source_security_group_id = [] */
-  /* ingress_cidr_blocks = [] */
-  /* ingress_ipv6_cidr_blocks = [] */
-  /* ingress_prefix_list_ids = [] */
-  /* ingress_with_ipv6_cidr_blocks = [] */
-  /* ingress_with_self = [] */
-  /* ingress_with_source_security_group_id = [] */
-  /* number_of_computed_egress_rules = 0 */
-  /* number_of_computed_egress_with_cidr_blocks = 0 */
-  /* number_of_computed_egress_with_ipv6_cidr_blocks = 0 */
-  /* number_of_computed_egress_with_self = 0 */
-  /* number_of_computed_egress_with_source_security_group_id = 0 */
-  /* number_of_computed_ingress_rules = 0 */
-  /* number_of_computed_ingress_with_cidr_blocks = 0 */
-  /* number_of_computed_ingress_with_ipv6_cidr_blocks = 0 */
-  /* number_of_computed_ingress_with_self = 0 */
-  /* number_of_computed_ingress_with_source_security_group_id = 0 */
-  /* putin_khuylo = true */
-  /* revoke_rules_on_delete = false */
-  /* rules (see registry page, too long to include) */
-  /* security_group_id = null */
-  /* tags = {} */
-  /* use_name_prefix = true */
+  retention_in_days = 90
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# AUTO SCALING GROUP (ASG)
-# https://registry.terraform.io/modules/terraform-aws-modules/autoscaling/aws/6.5.2
-#
-# aws_autoscaling_group: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group
-# aws_autoscaling_policy: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_policy
-# aws_autoscaling_schedule: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_schedule
-# aws_iam_instance_profile: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile
-# aws_iam_role: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role
-# aws_iam_role_policy_attachment: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment
-# aws_launch_template: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template
-# ---------------------------------------------------------------------------------------------------------------------
-module "autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
-  version = "6.5.2"
 
-  name = "${var.project_name}-asg"
+# -------------------------------------------
+# CREATE NAMESPACE FOR SERVICE CONNECT 
+# -------------------------------------------
 
-  # ----------------------------------------------------
-  # ASG CONFIG
-  # ----------------------------------------------------
-  vpc_zone_identifier = var.subnet_ids
+resource "aws_service_discovery_http_namespace" "cluster" {
+  name        = var.cluster_name
+  description = "Terraform managed namespace to enabled ECS Service Connect for ${var.cluster_name}"
+}
 
-  min_size         = var.min_size
-  max_size         = var.max_size
-  desired_capacity = var.desired_capacity
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CREATE THE CAPACITY 
+
+# PROVIDER STRATEGY FOR THE CLUSTER. THIS PROVIDER USES THE
+
+# AUTO SCALING GROUP TO MANAGE THE CLUSTER CAPACITY.
+
+# ------------------------------------------------------------
+
+
+# -------------------------------------------
+# CREATE CLUSTER CAPACITY PROVIDER STRATEGY
+# -------------------------------------------
+
+resource "aws_ecs_cluster_capacity_providers" "cluster" {
+  cluster_name = aws_ecs_cluster.cluster.name
+
+  capacity_providers = [
+    "FARGATE",
+    aws_ecs_capacity_provider.cluster.name
+  ]
+
+  default_capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.cluster.name
+
+    # Since only one provider is being set, it'll place the 1st task
+    # according to this provider. For all remaining tasks it'll place
+    # in a 1:1 ratio to its self.
+    #
+    # If another provider strategy was added the weight would define
+    # the ratio. For example, a FARGATE default capacity provider
+    # with base = 0 (only one base can be defined) and a weight of 2
+    # would imply that all remaining tasks after the first placed task
+    # will split a 1:2 ratio between the EC2 provider and FARGATE provider
+    base   = 1
+    weight = 1
+  }
+
+  depends_on = [
+    aws_ecs_capacity_provider.cluster
+  ]
+}
+
+# -------------------------------------------
+# CREATE CLUSTER CAPACITY PROVIDER
+# -------------------------------------------
+
+resource "aws_ecs_capacity_provider" "cluster" {
+  name = "${var.cluster_name}-cp"
+
+  auto_scaling_group_provider {
+    auto_scaling_group_arn         = aws_autoscaling_group.cluster.arn
+    managed_termination_protection = var.autoscaling_termination_protection ? "ENABLED" : "DISABLED"
+
+    managed_scaling {
+      # The default warmup is 300s (5m). This value slows down scaling behaviors.
+      # This value may need adjustment as expirementation occurs. Since no life-
+      # cycles are defined, and no ELB association to the instance directly our
+      # speed should be limited to the OS boot time of the AMI.
+      instance_warmup_period = 30
+
+      maximum_scaling_step_size = var.capacity_provider_max_scale_step
+      minimum_scaling_step_size = var.capacity_provider_min_scale_step
+      target_capacity           = var.capacity_provider_target
+
+      status = "ENABLED"
+    }
+  }
+
+  depends_on = [
+    aws_autoscaling_group.cluster,
+    aws_ecs_aws_ecs_cluster.cluster
+  ]
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CREATE THE AUTO SCALING 
+
+# GROUP FOR THE ECS CLUSTER AND AN OPTIONAL SNS NOTIFICATION
+
+# ------------------------------------------------------------
+
+
+# -------------------------------------------
+# CREATE THE LAUNCH TEMPLATE FOR THE ASG
+# -------------------------------------------
+
+resource "aws_autoscaling_group" "cluster" {
+  name = "${var.cluster_name}-asg"
+
+  max_size = var.cluster_max_size
+  min_size = var.cluster_min_size
+
+  vpc_zone_identifier = var.vpc_subnet_ids
+
+  # The default cooldown of 60s is being used to denote that scale out/in requests
+  # should wait 60 seconds between the next request. This is the same time interval
+  # as ECS sending metrics to CloudWatch. This ideally, should sync the scaling
+  # process with CloudWatch alarm responses. 
+  default_cooldown = 60
+
+  # This value matches the instance_warmup_period defined by the ecs capacity
+  # provider managed scaling configuration.
+  default_instance_warmup = 30
 
   health_check_type = "EC2"
 
-  protect_from_scale_in = true
-  capacity_rebalance    = var.capacity_rebalance
-
-  create_schedule = false
-
-  enabled_metrics = var.enabled_metrics
-
-  autoscaling_group_tags = {
-    AmazonECSManaged = true
+  launch_template {
+    id      = aws_launch_template.cluster.id
+    version = aws_launch_template.cluster.latest_version
   }
 
-  # ----------------------------------------------------
-  # IAM CONFIG
-  # ----------------------------------------------------
-  create_iam_instance_profile = true
-  iam_instance_profile_name   = "${var.project_name}-ip"
-  iam_role_name               = "${var.project_name}-role"
-  iam_role_description        = var.iam_role_description
-  iam_role_policies           = var.iam_role_policies
+  protect_from_scale_in = var.autoscaling_termination_protection
 
-  # ----------------------------------------------------
-  # LAUNCH TEMPLATE CONFIG
-  # ----------------------------------------------------
-  create_launch_template      = true
-  launch_template_name        = "${var.project_name}-lt"
-  launch_template_description = var.launch_template_description
+  instance_refresh {
+    strategy = "Rolling"
 
-  image_id               = var.ami_id
-  user_data              = base64encode(templatefile("${path.module}/helpers/containerAgent.sh", { CLUSTER_NAME = "${var.project_name}-cluster" }))
+    preferences {
+      # After a number of instances are replaced and a checkpoint is
+      # reached, the value of checkpoint_delay in seconds will elapse
+      # before the next replacement occurs.
+      checkpoint_delay = 300
+
+      # This forces that instance refresh will occur one instance at a
+      # time. This is ideal for an ASG that manages a small number of
+      # instances. Suppose 5 instances are being replaced with a 300s
+      # delay and 30s warmup; the refresh would total 27.5m.
+      min_healthy_percentage = 100
+
+      # Since we are using a launch_template that maintains versions,
+      # when an instance refresh fails it'll automatically rollback the
+      # changes being made.
+      auto_rollback = true
+    }
+  }
+
+  tag {
+    key                 = "AmazonECSManaged"
+    value               = true
+    propagate_at_launch = true
+  }
+}
+
+
+# -------------------------------------------
+# CREATE AUTO SCALING NOTIFICATIONS
+# -------------------------------------------
+
+resource "aws_autoscaling_notifications" "cluster" {
+  count = length(var.autoscaling_sns_topic_arns)
+
+  group_names = [
+    aws_autoscaling_group.cluster.name
+  ]
+
+  notifications = [
+    "autoscaling:EC2_INSTANCE_LAUNCH",
+    "autoscaling:EC2_INSTANCE_TERMINATE",
+    "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
+    "autoscaling:EC2_INSTANCE_TERMINATE_ERROR",
+  ]
+
+  topic_arn = var.autoscaling_sns_topic_arns[count.index]
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CREATE THE LAUNCH TEMPLATE 
+
+# FOR THE ASG AND ASSOCIATED RESOURCES.
+
+# ------------------------------------------------------------
+
+
+# -------------------------------------------
+# CREATE THE LAUNCH TEMPLATE FOR THE ASG
+# -------------------------------------------
+
+resource "aws_launch_template" "cluster" {
   update_default_version = true
-  instance_type          = var.instance_type
-  block_device_mappings  = var.block_device_mappings
 
-  security_groups = [module.security_group.security_group_id]
+  name        = "${var.name}-lt"
+  description = "Terraform managed launch template for ${var.name}"
 
-  credit_specification = {
+  image_id      = data.aws_ami.ecs.image_id
+  instance_type = var.cluster_instance_type
+
+  vpc_security_group_ids = [aws_security_group.cluster.id]
+
+  user_data = base64encode(templatefile(
+    "${path.module}/scripts/user_data.sh",
+    { CLUSTER_NAME = local.cluster_name }
+  ))
+
+  iam_instance_profile {
+    arn  = aws_iam_instance_profile.cluster.arn
+    name = aws_iam_instance_profile.cluster.name
+  }
+
+  credit_specification {
     cpu_credits = "standard"
   }
 
-  metadata_options = {
+  maintenance_options {
+    auto_recovery = "default"
+  }
+
+  metadata_options {
     http_tokens = "required"
   }
 
-  # ----------------------------------------------------
-  # DEFAULTS
-  # ----------------------------------------------------
-
-  /* availability_zones = null */
-  /* capacity_reservation_specification = {} */
-  /* cpu_options = {} */
-  /* create = true */
-  /* create_scaling_policy = true */
-  /* default_cooldown = null */
-  /* default_version = null */
-  /* delete_timeout = null */
-  /* disable_api_termination = null */
-  /* ebs_optimized = null */
-  /* elastic_gpu_specifications = {} */
-  /* elastic_inference_accelerator = {} */
-  /* enable_monitoring = true */
-  /* enclave_options = {} */
-  /* force_delete = null */
-  /* health_check_grace_period = null */
-  /* hibernation_options = {} */
-  /* iam_instance_profile_arn = null */
-  /* iam_role_path = null */
-  /* iam_role_permissions_boundary = null */
-  /* iam_role_tags = {} */
-  /* iam_role_use_name_prefix = true */
-  /* ignore_desired_capacity_changes = false */
-  /* initial_lifecycle_hooks = [] */
-  /* instance_initiated_shutdown_behavior = null */
-  /* instance_market_options = {} */
-  /* instance_name = "" */
-  /* instance_refresh = {} */
-  /* instance_requirements = {} */
-  /* kernel_id = null */
-  /* key_name = null */
-  /* launch_template = null */
-  /* launch_template_use_name_prefix = true */
-  /* launch_template_version = null */
-  /* license_specifications = {} */
-  /* load_balancers = [] */
-  /* maintenance_options = {} */
-  /* max_instance_lifetime = null */
-  /* metadata_options = {} */
-  /* metrics_granularity = null */
-  /* min_elb_capacity = null */
-  /* mixed_instances_policy = null */
-  /* network_interfaces = [] */
-  /* placement = {} */
-  /* placement_group = null */
-  /* private_dns_name_options = {} */
-  /* putin_khuylo = true */
-  /* ram_disk_id = null */
-  /* scaling_policies = {} */
-  /* schedules = {} */
-  /* service_linked_role_arn = null */
-  /* suspended_processes = [] */
-  /* tag_specifications = [] */
-  /* tags = {} */
-  /* target_group_arns = [] */
-  /* termination_policies = [] */
-  /* use_mixed_instances_policy = false */
-  /* use_name_prefix = true */
-  /* wait_for_capacity_timeout = null */
-  /* wait_for_elb_capacity = null */
-  /* warm_pool = {} */
 }
+
+
+# -------------------------------------------
+# RETRIEVE THE LATEST VERSION OF THE ECS AMI
+# -------------------------------------------
+
+data "aws_ami" "ecs" {
+  owners      = ["amazon"]
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-ecs-hvm-2.0"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
+
+# -------------------------------------------
+# CREATE SECURITY GROUP FOR ASG
+# -------------------------------------------
+
+resource "aws_security_group" "cluster" {
+  name = "${var.cluster_name}-sg"
+
+  vpc_id = var.vpc_id
+}
+
+resource "aws_vpc_security_group_egress_rule" "cluster" {
+  for_each = var.cluster_egress_access_ports
+
+  security_group_id = aws_security_group.cluster.id
+
+  cidr_ipv4   = each.value.cidr_ipv4
+  from_port   = each.value.from_port
+  ip_protocol = "tcp"
+  to_port     = each.value.to_port
+}
+
+resource "aws_vpc_security_group_ingress_rule" "cluster" {
+  for_each = var.cluster_ingress_access_ports
+
+  security_group_id = aws_security_group.cluster.id
+
+  cidr_ipv4   = each.value.cidr_ipv4
+  from_port   = each.value.from_port
+  ip_protocol = "tcp"
+  to_port     = each.value.to_port
+}
+
+
+# -------------------------------------------
+# CREATE IAM ROLE/INSTANCE PROFILE
+# -------------------------------------------
+
+data "aws_partition" "current" {}
+
+data "aws_iam_policy_document" "cluster" {
+  statement {
+    sid     = "EC2AssumeRole"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.${data.aws_partition.current.dns_suffix}"]
+    }
+  }
+}
+
+resource "aws_iam_role" "cluster" {
+  name = var.name
+
+  description = "Terraform managed IAM role for ${var.name}"
+
+  assume_role_policy    = data.aws_iam_policy_document.cluster[0].json
+  force_detach_policies = true
+}
+
+resource "aws_iam_role_policy_attachment" "cluster" {
+  count = length(["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"])
+
+  policy_arn = local.iam_role_policies[count.index]
+  role       = aws_iam_role.cluster.name
+}
+
+resource "aws_iam_instance_profile" "cluster" {
+  name = var.name
+  role = aws_iam_role.cluster.name
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO OPTIONALY CREATE AN 
+
+# EXTERNAL APPLICATION LOAD BALANCER AND ROUTE53 RECORD.
+
+# ------------------------------------------------------------
+
+
+# -------------------------------------------
+# CREATE EXTERNAL APPLICATION LOAD BALANCER
+# -------------------------------------------
+
+# TODO: Add support for HTTPS
+
+# resource "aws_lb" "cluster" {}
+
+# -------------------------------------------
+# CREATE SECURITY GROUP FOR EXTERNAL ALB
+# -------------------------------------------
+
+# resource "aws_security_group" "cluster" {}
+
+# resource "aws_vpc_security_group_egress_rule" "cluster" {}
+
+# resource "aws_vpc_security_group_ingress_rule" "cluster" {}
+
+# -------------------------------------------
+# CREATE ROUTE53 RECORD FOR EXTERNAL ALB
+# -------------------------------------------
+
+# resource "aws_route53_record" "cluster" {}
