@@ -354,7 +354,8 @@ data "aws_ami" "ecs" {
 # -------------------------------------------
 
 resource "aws_security_group" "cluster" {
-  name = "${var.cluster_name}-sg"
+  name        = "${var.cluster_name}-sg"
+  description = "Terraform managed security group for ${var.cluster_name} ECS container instances."
 
   vpc_id = var.vpc_id
 }
