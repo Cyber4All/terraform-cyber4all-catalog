@@ -121,6 +121,17 @@ resource "aws_s3_bucket_public_access_block" "s3_artifact" {
   restrict_public_buckets = true
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "s3_artifact" {
+  bucket = aws_s3_bucket.s3_artifact.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_artifact.arn
+    }
+  }
+}
+
 # -------------------------------------------
 # CREATE S3 REPLICATION CONFIGURATION
 # -------------------------------------------
@@ -193,6 +204,27 @@ resource "aws_iam_role_policy_attachment" "s3_artifact_replica" {
 resource "aws_s3_bucket" "s3_artifact_replica" {
   provider = aws.replica
   bucket   = "tf-test-bucket-source-12345"
+}
+
+resource "aws_s3_bucket_public_access_block" "s3_artifact_replica" {
+  bucket = aws_s3_bucket.s3_artifact_replica.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "s3_artifact_replica" {
+  provider = aws.replica
+  bucket   = aws_s3_bucket.s3_artifact_replica.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_artifact.arn
+    }
+  }
 }
 
 resource "aws_s3_bucket_acl" "s3_artifact_replica" {
