@@ -113,4 +113,25 @@ func validateSecretsContainSecrets(t *testing.T, workingDir string) {
 
 	// Ensure the secret_arn_references format is as expected
 	assert.Len(t, secret_arn_references, 4, "Expected %d secret_arn_references, got: %d", 4, len(secret_arn_references))
+
+	// Validate the format of the secret_arn_references matches: secret_arn:secret_key::
+	for _, arn_ref := range secret_arn_references {
+		assert.True(t, strings.HasSuffix(arn_ref, "::"), "Secret arn reference %s does not end with ::", arn_ref)
+		// Assert that the secret arn reference matches one of the secret arns
+		correct_arn := false
+		var prefix string
+		for _, arn := range secret_arns {
+			if strings.HasPrefix(arn_ref, arn) {
+				correct_arn = true
+				prefix = arn
+			}
+		}
+		assert.True(t, correct_arn, "Secret arn reference %s does not match any of the secret arns", arn_ref)
+		// Remove prefix and suffix to get the secret key
+		key := strings.TrimPrefix(arn_ref, fmt.Sprintf("%s:", prefix))
+		key = strings.TrimSuffix(key, "::")
+
+		// Assert that the secret key starts with the expected secret key (Secret Key ends with a number for uniqueness)
+		assert.True(t, strings.HasPrefix(key, secretKey), "Secret key %s does not have prefix %s", key, secretKey)
+	}
 }
