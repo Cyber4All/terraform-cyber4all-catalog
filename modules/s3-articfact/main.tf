@@ -136,7 +136,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "s3_artifact" {
 # CREATE S3 REPLICATION CONFIGURATION
 # -------------------------------------------
 
-data "aws_iam_policy_document" "s3_artifact_replica" {
+data "aws_iam_policy_document" "s3_artifact_replica_role" {
   statement {
     effect = "Allow"
 
@@ -147,11 +147,6 @@ data "aws_iam_policy_document" "s3_artifact_replica" {
 
     actions = ["sts:AssumeRole"]
   }
-}
-
-resource "aws_iam_role" "s3_artifact_replica" {
-  name               = "tf-iam-role-replication-12345"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 data "aws_iam_policy_document" "s3_artifact_replica" {
@@ -191,9 +186,14 @@ data "aws_iam_policy_document" "s3_artifact_replica" {
   }
 }
 
+resource "aws_iam_role" "s3_artifact_replica" {
+  name               = "tf-iam-role-replication-12345"
+  assume_role_policy = data.aws_iam_policy_document.s3_artifact_replica_role.json
+}
+
 resource "aws_iam_policy" "s3_artifact_replica" {
   name   = "tf-iam-role-policy-replication-12345"
-  policy = data.aws_iam_policy_document.replication.json
+  policy = data.aws_iam_policy_document.s3_artifact_replica.json
 }
 
 resource "aws_iam_role_policy_attachment" "s3_artifact_replica" {
