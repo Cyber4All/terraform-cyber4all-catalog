@@ -19,12 +19,12 @@ module "secrets-manager" {
       name = "testing/example/service${var.random_id}"
       environment = [
         {
-          name  = "NODE_ENV",
-          value = "prod"
+          name  = "${var.secret_key}1",
+          value = "${var.secret_value}1"
         },
         {
-          name  = "SOME_SECRET",
-          value = "stuff",
+          name  = "${var.secret_key}2",
+          value = "${var.secret_value}2"
         }
       ]
     },
@@ -32,12 +32,12 @@ module "secrets-manager" {
       name = "testing/example/database${var.random_id}"
       environment = [
         {
-          name  = "DB_USERNAME",
-          value = "admin"
+          name  = "${var.secret_key}3",
+          value = "${var.secret_value}3"
         },
         {
-          name  = "DB_PASSWORD",
-          value = "password123",
+          name  = "${var.secret_key}4",
+          value = "${var.secret_value}4"
         }
       ]
     }
