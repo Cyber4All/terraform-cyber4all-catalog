@@ -412,9 +412,9 @@ resource "aws_iam_role" "cluster" {
 }
 
 resource "aws_iam_role_policy_attachment" "cluster" {
-  count = length(["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"])
+  for_each = ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
 
-  policy_arn = local.iam_role_policies[count.index]
+  policy_arn = each.value
   role       = aws_iam_role.cluster.name
 }
 

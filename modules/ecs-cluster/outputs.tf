@@ -13,7 +13,7 @@ output "ecs_cluster_capacity_provider_name" {
   value       = aws_ecs_capacity_provider.cluster.name
 }
 
-output "ecs_cluster_launch_tempalte_id" {
+output "ecs_cluster_launch_template_id" {
   description = "The ID of the ECS cluster's launch template."
   value       = aws_launch_template.cluster.id
 }
