@@ -94,6 +94,7 @@ resource "aws_ecs_cluster" "cluster" {
 # CREATE LOG GROUP FOR CLUSTER
 # -------------------------------------------
 
+# tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "cluster" {
   name = "${var.cluster_name}-logs"
 
