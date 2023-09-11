@@ -7,21 +7,143 @@ The following requirements are needed by this module:
 
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.36)
 
-## Providers
+## Sample Usage
 
-The following providers are used by this module:
+```hcl
+module "example" {
 
-- <a name="provider_aws"></a> [aws](#provider\_aws) (>= 4.36)
 
-## Resources
+	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
 
-The following resources are used by this module:
 
-- [aws_cloudwatch_log_group.logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) (resource)
-- [aws_ecs_service.service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) (resource)
-- [aws_ecs_task_definition.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) (resource)
-- [aws_service_discovery_service.registry](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) (resource)
+	 # --------------------------------------------
+	 # Required variables
+	 # --------------------------------------------
 
+
+	 # ARN of an ECS cluster.
+	 cluster_arn  = string
+
+
+	 # The ID of the namespace to use for DNS configuration.
+	 dns_namespace_id  = string
+
+
+	 # The image used to start a container. This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default. You can also specify other repositories with either `repository-url/image:tag` or `repository-url/image@digest`. Up to 255 letters (uppercase and lowercase), numbers, hyphens, underscores, colons, periods, forward slashes, and number signs are allowed.
+	 image  = string
+
+
+	 # Name that will associate all resources.
+	 service_name  = string
+
+
+	 # --------------------------------------------
+	 # Optional variables
+	 # --------------------------------------------
+
+
+	 # The hard limit of CPU units to present for the task. For tasks that use the Fargate launch type (both Linux and Windows containers), this field is required. 
+	 container_cpu  = number
+
+
+	 # The amount (in MiB) of memory to present to the container. [container_definition_memory](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_memory)
+	 container_memory  = number
+
+
+	 # The port number on the container that's bound to the user-specified or automatically assigned host port.
+	 container_port  = number
+
+
+	 # Must be set to either `X86_64` or `ARM64`; see cpu architecture.
+	 cpu_architecture  = string
+
+
+	 # Number of instances of the task definition to place and keep running. Defaults to 1. Do not specify if using the `DAEMON` scheduling strategy.
+	 desired_count  = number
+
+
+	 # Set to true if service discovery should not be configured. Otherwise either set the service_registries block or provide values for service_name, and container_port.
+	 disable_service_discovery  = bool
+
+
+	 # The environment variables to pass to a container. This parameter maps to the --env option to docker run. Consists (name, value)
+	 environment  = list(any)
+
+
+	 # A list of files containing the environment variables to pass to a container. This parameter maps to the `--env-file` option to `docker run`. Consists (value, type = "s3")
+	 environment_files  = list(any)
+
+
+	 # Ephemeral storage block, consists (size_in_gib): The minimum supported value is `21` GiB and the maximum supported value is `200` GiB. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on AWS Fargate. See main.tf
+	 ephemeral_storage  = map(any)
+
+
+	 # ARN of task execution role that container or daemon can assume
+	 execution_role_arn  = string
+
+
+	 # Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 2147483647. Only valid for services configured to use load balancers.
+	 health_check_grace_period_seconds  = number
+
+
+	 # Launch type on which to run your service. The valid values are `EC2`, `FARGATE`, and `EXTERNAL`. Defaults to `EC2`.
+	 launch_type  = string
+
+
+	 # Configuration block for load balancers. Consists (target_group_arn, container_name, container_port). See main.tf
+	 load_balancer  = map(any)
+
+
+	 # Network configuration for the service. This parameter is required for task definitions that use the `awsvpc` network mode to receive their own Elastic Network Interface, and it is not supported for other network modes. Consists (subnets, security_groups, assign_public_ip) see main.tf.
+	 network_configuration  = map(any)
+
+
+	 # Docker networking mode to use for the containers in the task. Valid values are `none`, `bridge`, `awsvpc`, and `host`.
+	 network_mode  = string
+
+
+	 # If the requires_compatibilities is `FARGATE` this field is required; must be set to a valid option from the operating system family in the runtime platform setting.
+	 operating_system_family  = string
+
+
+	 # Port mappings allow containers to access ports on the host container instance to send or receive traffic. For task definitions that use the `awsvpc` network mode, only specify the containerPort. The `hostPort` can be left blank or it must be the same value as the `containerPort`. Consists (containerPort, hostPort, protocol)
+	 port_mappings  = list(any)
+
+
+	 # Aws region for cloud watch logs to exist in.
+	 region  = string
+
+
+	 # Set of launch types required by the task. The valid values are `EC2` and `FARGATE`.
+	 requires_compatibilities  = list(string)
+
+
+	 # An object representing the secret to expose to your container. For more information, see [Passing sensitive data to a container](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html). Consists (name, valueFrom)
+	 secrets  = list(any)
+
+
+	 # The description of the service.
+	 service_discovery_description  = string
+
+
+	 # Service discovery registries for the service. The maximum number of `service_registries` blocks is `1`. Consists (port, container_name, container_port). See main.tf
+	 service_registries  = map(any)
+
+
+	 # Number of cpu units used by the task. If the `requires_compatibilities` is `FARGATE` this field is required.
+	 task_cpu  = string
+
+
+	 # Amount (in MiB) of memory used for the task. Killed if exceeded. Required if requires_compatibilities is FARGATE
+	 task_memory  = string
+
+
+	 # ARN of IAM role that allows containers to make calls to other AWS sevices
+	 task_role_arn  = string
+
+
+}
+```
 ## Required Inputs
 
 The following input variables are required:
@@ -259,7 +381,6 @@ Description: ARN of IAM role that allows containers to make calls to other AWS s
 Type: `string`
 
 Default: `null`
-
 ## Outputs
 
 The following outputs are exported:

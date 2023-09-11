@@ -7,34 +7,151 @@ The following requirements are needed by this module:
 
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.27.0)
 
-## Modules
+## Sample Usage
 
-The following Modules are called:
+```hcl
+module "example" {
 
-### <a name="module_external-alb"></a> [external-alb](#module\_external-alb)
 
-Source: terraform-aws-modules/alb/aws
+	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
 
-Version: 8.1.0
 
-### <a name="module_external-sg"></a> [external-sg](#module\_external-sg)
+	 # --------------------------------------------
+	 # Required variables
+	 # --------------------------------------------
 
-Source: terraform-aws-modules/security-group/aws
 
-Version: 4.15.0
+	 # Name that will prepend all resources.
+	 project_name  = string
 
-### <a name="module_internal-alb"></a> [internal-alb](#module\_internal-alb)
 
-Source: terraform-aws-modules/alb/aws
+	 # ID of the VPC where to create security group.
+	 vpc_id  = string
 
-Version: 8.1.0
 
-### <a name="module_internal-sg"></a> [internal-sg](#module\_internal-sg)
+	 # --------------------------------------------
+	 # Optional variables
+	 # --------------------------------------------
 
-Source: terraform-aws-modules/security-group/aws
 
-Version: 4.15.0
+	 # The S3 bucket name to store the logs in.
+	 access_log_bucket  = string
 
+
+	 # Controls if the External Application Load Balancer should be created
+	 create_external_alb  = bool
+
+
+	 # Controls if the Internal Application Load Balancer should be created
+	 create_internal_alb  = bool
+
+
+	 # List of egress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf).
+	 external_egress_rules  = list(string)
+
+
+	 # List of egress rules to create where 'cidr_blocks' is used.
+	 external_egress_with_cidr_blocks  = list(map(string))
+
+
+	 # List of egress rules to create where 'source_security_group_id' is used.
+	 external_egress_with_source_security_group_id  = list(map(string))
+
+
+	 # A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http_tcp_listener_index (default to http_tcp_listeners[count.index]).
+	 external_http_tcp_listener_rules  = any
+
+
+	 # A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target_group_index (defaults to http_tcp_listeners[count.index]).
+	 external_http_tcp_listeners  = any
+
+
+	 # A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https_listener_index (default to https_listeners[count.index]).
+	 external_https_listener_rules  = any
+
+
+	 # A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index (defaults to https_listeners[count.index]).
+	 external_https_listeners  = any
+
+
+	 # List of ingress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf).
+	 external_ingress_rules  = list(string)
+
+
+	 # List of ingress rules to create where 'cidr_blocks' is used.
+	 external_ingress_with_cidr_blocks  = list(map(string))
+
+
+	 # List of ingress rules to create where 'source_security_group_id' is used.
+	 external_ingress_with_source_security_group_id  = list(map(string))
+
+
+	 # Description of security group.
+	 external_sg_description  = string
+
+
+	 # A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend_protocol, backend_port.
+	 external_target_groups  = any
+
+
+	 # List of egress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf).
+	 internal_egress_rules  = list(string)
+
+
+	 # List of egress rules to create where 'cidr_blocks' is used.
+	 internal_egress_with_cidr_blocks  = list(map(string))
+
+
+	 # List of egress rules to create where 'source_security_group_id' is used.
+	 internal_egress_with_source_security_group_id  = list(map(string))
+
+
+	 # A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http_tcp_listener_index (default to http_tcp_listeners[count.index].
+	 internal_http_tcp_listener_rules  = any
+
+
+	 # A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target_group_index (defaults to http_tcp_listeners[count.index]).
+	 internal_http_tcp_listeners  = any
+
+
+	 # A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https_listener_index (default to https_listeners[count.index]).
+	 internal_https_listener_rules  = any
+
+
+	 # A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index (defaults to https_listeners[count.index]).
+	 internal_https_listeners  = any
+
+
+	 # List of ingress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf).
+	 internal_ingress_rules  = list(string)
+
+
+	 # List of ingress rules to create where 'cidr_blocks' is used.
+	 internal_ingress_with_cidr_blocks  = list(map(string))
+
+
+	 # List of ingress rules to create where 'source_security_group_id' is used.
+	 internal_ingress_with_source_security_group_id  = list(map(string))
+
+
+	 # Description of security group.
+	 internal_sg_description  = string
+
+
+	 # A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend_protocol, backend_port.
+	 internal_target_groups  = any
+
+
+	 # List of private subnet IDs to deploy internal ALB into (required if create_internal_alb == true)
+	 private_subnet_ids  = list(string)
+
+
+	 # List of public subnet ARNs to deploy external ALB into (required if create_external_alb == true)
+	 public_subnet_ids  = list(string)
+
+
+}
+```
 ## Required Inputs
 
 The following input variables are required:
@@ -286,7 +403,6 @@ Description: List of public subnet ARNs to deploy external ALB into (required if
 Type: `list(string)`
 
 Default: `[]`
-
 ## Outputs
 
 The following outputs are exported:

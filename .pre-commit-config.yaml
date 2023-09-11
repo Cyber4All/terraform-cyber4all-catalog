@@ -5,3 +5,8 @@ repos:
     hooks:
       - id: terraform-fmt
       - id: tflint
+  - repo: https://github.com/terraform-docs/terraform-docs
+    rev: "v0.16.0"             # e.g. "v0.11.2"
+    hooks:
+      - id: terraform-docs-go
+        args: ["-c", ".terraform-docs.yml", "."]
