@@ -28,7 +28,7 @@ module "cluster" {
   cluster_name = "cluster-test${var.random_id}"
 
   # AMI Name: amzn2-ami-ecs-hvm-2.0.20230809-x86_64-ebs
-  cluster_instance_ami = "ami-0e692fe1bae5ca24c"
+  cluster_instance_ami = "ami-0f844a9675b22ea32"
 
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.public_subnets

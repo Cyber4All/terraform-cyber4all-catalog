@@ -30,5 +30,7 @@ func DeployEcsClusterUsingTerraform(t *testing.T, workingDir string, awsRegion s
 }
 
 func ValidateEcsCluster(t *testing.T, workingDir string) {
-	// TODO: Add validation code here
+	// Load the Terraform Options saved by the earlier deploy_terraform stage
+	// terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+	// awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
 }

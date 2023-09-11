@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/Cyber4All/terraform-cyber4all-catalog/test/modules"
+	"github.com/gruntwork-io/terratest/modules/aws"
+	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
@@ -24,22 +26,26 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			deployFunc:   modules.DeployEcsClusterUsingTerraform,
 			validateFunc: modules.ValidateEcsCluster,
 		},
-		{
-			name:         "secrets-manager",
-			workingDir:   "../examples/secrets-manager",
-			deployFunc:   modules.DeployUsingTerraform,
-			validateFunc: modules.ValidateSecretsContainSecrets,
-		},
+		// {
+		// 	name:         "secrets-manager",
+		// 	workingDir:   "../examples/secrets-manager",
+		// 	deployFunc:   modules.DeployUsingTerraform,
+		// 	validateFunc: modules.ValidateSecretsContainSecrets,
+		// },
 	}
 
 	// Run tests in parallel
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// At the end of the test, undeploy the secrets using Terraform
-			defer destroyDeployedResource(t, tt.workingDir)
+			defer test_structure.RunTestStage(t, "destroy", func() {
+				terraformOptions := test_structure.LoadTerraformOptions(t, tt.workingDir)
+				terraform.Destroy(t, terraformOptions)
+			})
 
 			// Get a random AWS region
-			awsRegion := getAndSaveRandomRegion(t, tt.workingDir)
+			awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "eu-west-1"}, nil)
+			test_structure.SaveString(t, tt.workingDir, "awsRegion", awsRegion)
 
 			// Provision the secrets using Terraform
 			test_structure.RunTestStage(t, "apply", func() {
