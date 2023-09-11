@@ -1,4 +1,4 @@
-package test
+package modules
 
 import (
 	"encoding/json"
@@ -13,38 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// This test suite deploys the secrets-manager module from examples/secrets-manager.
-// The test is broken into "stages" so you can skip stages by setting environment variables (e.g.,
-// skip stage "apply" by setting the environment variable "SKIP_apply=true"), which speeds up iteration when
-// running this test over and over again locally.
-func TestSecretsManagerExample(t *testing.T) {
-	t.Parallel()
-
-	// The folder where we have our Terraform code
-	workingDir := "../examples/secrets-manager"
-
-	// At the end of the test, undeploy the secrets using Terraform
-	defer test_structure.RunTestStage(t, "destroy", func() {
-		terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
-
-		terraform.Destroy(t, terraformOptions)
-	})
-
-	// Provision the secrets using Terraform
-	test_structure.RunTestStage(t, "apply", func() {
-		awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "eu-west-1"}, nil)
-		test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
-		deployUsingTerraform(t, awsRegion, workingDir)
-	})
-
-	// Validate that the secrets are configured properly
-	test_structure.RunTestStage(t, "validate", func() {
-		validateSecretsContainSecrets(t, workingDir)
-	})
-}
-
 // Deploy the secrets-manager example using Terraform
-func deployUsingTerraform(t *testing.T, awsRegion string, workingDir string) {
+func DeployUsingTerraform(t *testing.T, workingDir string, awsRegion string) {
 	// A unique ID we can use to namespace resources so we don't clash with anything already in the AWS account or
 	// tests running in parallel
 	uniqueID := random.UniqueId()
@@ -73,7 +43,7 @@ func deployUsingTerraform(t *testing.T, awsRegion string, workingDir string) {
 }
 
 // Validate that the Secret created contains the values as expected
-func validateSecretsContainSecrets(t *testing.T, workingDir string) {
+func ValidateSecretsContainSecrets(t *testing.T, workingDir string) {
 	// Load the Terraform Options saved by the earlier deploy_terraform stage
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 
