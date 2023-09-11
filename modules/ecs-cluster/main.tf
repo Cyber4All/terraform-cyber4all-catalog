@@ -439,7 +439,13 @@ resource "aws_iam_instance_profile" "cluster" {
 
 # TODO: Add support for HTTPS
 
-# resource "aws_lb" "cluster" {}
+resource "aws_lb" "cluster" {
+  count = var.enable_cluster_external_alb ? 1 : 0
+
+  name               = "${var.cluster_name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+}
 
 # -------------------------------------------
 # CREATE SECURITY GROUP FOR EXTERNAL ALB
