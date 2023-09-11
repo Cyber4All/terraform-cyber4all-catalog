@@ -8,9 +8,7 @@
 # The module uses instance refresh for any updates to the ASG's launch template. This
 # ensures that the cluster is always running the latest version of the ECS AMI.
 # 
-# The module will optionally provision an external application load balancer (ALB)
-# and route53 record to provide external access to the cluster if deployed in private
-# subnets. Service mesh connectivity will be managed with ECS Service Connect. The default
+# Service mesh connectivity will be managed with ECS Service Connect. The default
 # namespace for the cluster will also be the cluster name.
 #
 # The module includes the following:
@@ -25,8 +23,6 @@
 # - ECS Cluster's Launch Template
 # - ECS Cluster's Launch Template's Security Group
 # - ECS Cluster's Launch Template's IAM Role/Instance Profile
-# - (Optional) External Application Load Balancer
-# - (Optional) External Application Load Balancer Route53 Record
 #
 # -------------------------------------------------------------------------------------
 
@@ -184,7 +180,7 @@ resource "aws_ecs_capacity_provider" "cluster" {
 
   depends_on = [
     aws_autoscaling_group.cluster,
-    aws_ecs_aws_ecs_cluster.cluster
+    aws_ecs_cluster.cluster
   ]
 }
 
@@ -256,6 +252,12 @@ resource "aws_autoscaling_group" "cluster" {
     value               = true
     propagate_at_launch = true
   }
+
+  tag {
+    key                 = "Name"
+    value               = var.cluster_name
+    propagate_at_launch = true
+  }
 }
 
 
@@ -263,7 +265,7 @@ resource "aws_autoscaling_group" "cluster" {
 # CREATE AUTO SCALING NOTIFICATIONS
 # -------------------------------------------
 
-resource "aws_autoscaling_notifications" "cluster" {
+resource "aws_autoscaling_notification" "cluster" {
   count = length(var.autoscaling_sns_topic_arns)
 
   group_names = [
@@ -297,22 +299,21 @@ resource "aws_autoscaling_notifications" "cluster" {
 resource "aws_launch_template" "cluster" {
   update_default_version = true
 
-  name        = "${var.name}-lt"
-  description = "Terraform managed launch template for ${var.name}"
+  name        = "${var.cluster_name}-lt"
+  description = "Terraform managed launch template for ${var.cluster_name}"
 
-  image_id      = data.aws_ami.ecs.image_id
+  image_id      = var.cluster_instance_ami
   instance_type = var.cluster_instance_type
 
   vpc_security_group_ids = [aws_security_group.cluster.id]
 
   user_data = base64encode(templatefile(
     "${path.module}/scripts/user_data.sh",
-    { CLUSTER_NAME = local.cluster_name }
+    { CLUSTER_NAME = var.cluster_name }
   ))
 
   iam_instance_profile {
-    arn  = aws_iam_instance_profile.cluster.arn
-    name = aws_iam_instance_profile.cluster.name
+    arn = aws_iam_instance_profile.cluster.arn
   }
 
   credit_specification {
@@ -331,26 +332,6 @@ resource "aws_launch_template" "cluster" {
 
 
 # -------------------------------------------
-# RETRIEVE THE LATEST VERSION OF THE ECS AMI
-# -------------------------------------------
-
-data "aws_ami" "ecs" {
-  owners      = ["amazon"]
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-ecs-hvm-2.0"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-}
-
-
-# -------------------------------------------
 # CREATE SECURITY GROUP FOR ASG
 # -------------------------------------------
 
@@ -362,25 +343,25 @@ resource "aws_security_group" "cluster" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "cluster" {
-  for_each = var.cluster_egress_access_ports
+  count = length(var.cluster_egress_access_ports)
 
   security_group_id = aws_security_group.cluster.id
 
-  cidr_ipv4   = each.value.cidr_ipv4
-  from_port   = each.value.from_port
+  cidr_ipv4   = var.cluster_egress_access_ports[count.index].cidr_ipv4
+  from_port   = var.cluster_egress_access_ports[count.index].from_port
   ip_protocol = "tcp"
-  to_port     = each.value.to_port
+  to_port     = var.cluster_egress_access_ports[count.index].to_port
 }
 
 resource "aws_vpc_security_group_ingress_rule" "cluster" {
-  for_each = var.cluster_ingress_access_ports
+  count = length(var.cluster_ingress_access_ports)
 
   security_group_id = aws_security_group.cluster.id
 
-  cidr_ipv4   = each.value.cidr_ipv4
-  from_port   = each.value.from_port
+  cidr_ipv4   = var.cluster_ingress_access_ports[count.index].cidr_ipv4
+  from_port   = var.cluster_ingress_access_ports[count.index].from_port
   ip_protocol = "tcp"
-  to_port     = each.value.to_port
+  to_port     = var.cluster_ingress_access_ports[count.index].to_port
 }
 
 
@@ -388,7 +369,11 @@ resource "aws_vpc_security_group_ingress_rule" "cluster" {
 # CREATE IAM ROLE/INSTANCE PROFILE
 # -------------------------------------------
 
-data "aws_partition" "current" {}
+locals {
+  cluster_iam_policies = [
+    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+  ]
+}
 
 data "aws_iam_policy_document" "cluster" {
   statement {
@@ -397,68 +382,28 @@ data "aws_iam_policy_document" "cluster" {
 
     principals {
       type        = "Service"
-      identifiers = ["ec2.${data.aws_partition.current.dns_suffix}"]
+      identifiers = ["ec2.amazonaws.com"]
     }
   }
 }
 
 resource "aws_iam_role" "cluster" {
-  name = var.name
+  name = "${var.cluster_name}-role"
 
-  description = "Terraform managed IAM role for ${var.name}"
+  description = "Terraform managed IAM role for ${var.cluster_name}"
 
-  assume_role_policy    = data.aws_iam_policy_document.cluster[0].json
+  assume_role_policy    = data.aws_iam_policy_document.cluster.json
   force_detach_policies = true
 }
 
 resource "aws_iam_role_policy_attachment" "cluster" {
-  for_each = ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
+  count = length(local.cluster_iam_policies)
 
-  policy_arn = each.value
+  policy_arn = local.cluster_iam_policies[count.index]
   role       = aws_iam_role.cluster.name
 }
 
 resource "aws_iam_instance_profile" "cluster" {
-  name = var.name
+  name = "${var.cluster_name}-ip"
   role = aws_iam_role.cluster.name
 }
-
-
-# ------------------------------------------------------------
-
-# THE FOLLOWING SECTION IS USED TO OPTIONALY CREATE AN 
-
-# EXTERNAL APPLICATION LOAD BALANCER AND ROUTE53 RECORD.
-
-# ------------------------------------------------------------
-
-
-# -------------------------------------------
-# CREATE EXTERNAL APPLICATION LOAD BALANCER
-# -------------------------------------------
-
-# TODO: Add support for HTTPS
-
-resource "aws_lb" "cluster" {
-  count = var.enable_cluster_external_alb ? 1 : 0
-
-  name               = "${var.cluster_name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-}
-
-# -------------------------------------------
-# CREATE SECURITY GROUP FOR EXTERNAL ALB
-# -------------------------------------------
-
-# resource "aws_security_group" "cluster" {}
-
-# resource "aws_vpc_security_group_egress_rule" "cluster" {}
-
-# resource "aws_vpc_security_group_ingress_rule" "cluster" {}
-
-# -------------------------------------------
-# CREATE ROUTE53 RECORD FOR EXTERNAL ALB
-# -------------------------------------------
-
-# resource "aws_route53_record" "cluster" {}

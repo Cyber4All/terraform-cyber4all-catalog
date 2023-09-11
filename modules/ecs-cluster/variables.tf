@@ -16,13 +16,18 @@ variable "cluster_name" {
   description = "The name of the ECS cluster."
 }
 
+variable "cluster_instance_ami" {
+  type        = string
+  description = "The AMI to run on each instance in the ECS cluster."
+}
+
 variable "vpc_id" {
   type        = string
   description = "The ID of the VPC in which the ECS cluster should be launched."
 }
 
 variable "vpc_subnet_ids" {
-  type        = string
+  type        = list(string)
   description = "The IDs of the subnets in which to deploy the ECS cluster instances."
 }
 
@@ -103,10 +108,4 @@ variable "cluster_min_size" {
   type        = number
   description = "The minimum number of instances to run in the ECS cluster"
   default     = 1
-}
-
-variable "enable_cluster_external_alb" {
-  type        = bool
-  description = "Set to true to enable the external ALB to distribute traffic to ECS services. When disabled, the cluster should be deployed in public subnets to allow external traffic to be resolved. Defaults to true."
-  default     = true
 }
