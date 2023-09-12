@@ -114,6 +114,7 @@ module "example" {
 	 cluster_min_size  = number
 
 
+
 }
 ```
 ## Required Inputs

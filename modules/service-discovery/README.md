@@ -38,6 +38,7 @@ module "example" {
 	 description  = string
 
 
+
 }
 ```
 ## Required Inputs

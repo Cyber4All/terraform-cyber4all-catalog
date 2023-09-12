@@ -38,6 +38,7 @@ module "example" {
 	 sse_algorithm  = string
 
 
+
 }
 ```
 ## Required Inputs
