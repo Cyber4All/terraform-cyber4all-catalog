@@ -150,6 +150,7 @@ module "example" {
 	 public_subnet_ids  = list(string)
 
 
+
 }
 ```
 ## Required Inputs

@@ -142,6 +142,7 @@ module "example" {
 	 task_role_arn  = string
 
 
+
 }
 ```
 ## Required Inputs
