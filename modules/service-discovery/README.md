@@ -7,18 +7,39 @@ The following requirements are needed by this module:
 
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.36)
 
-## Providers
+## Sample Usage
 
-The following providers are used by this module:
+```hcl
+module "example" {
 
-- <a name="provider_aws"></a> [aws](#provider\_aws) (>= 4.36)
 
-## Resources
+	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
 
-The following resources are used by this module:
 
-- [aws_service_discovery_private_dns_namespace.namespace](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_private_dns_namespace) (resource)
+	 # --------------------------------------------
+	 # Required variables
+	 # --------------------------------------------
 
+
+	 # The name of the namespace.
+	 name  = string
+
+
+	 # The ID of VPC that you want to associate the namespace with.
+	 vpc_id  = string
+
+
+	 # --------------------------------------------
+	 # Optional variables
+	 # --------------------------------------------
+
+
+	 # The description that you specify for the namespace when you create it.
+	 description  = string
+
+
+}
+```
 ## Required Inputs
 
 The following input variables are required:
@@ -46,7 +67,6 @@ Description: The description that you specify for the namespace when you create 
 Type: `string`
 
 Default: `"Private DNS Namespace Managed by Terraform"`
-
 ## Outputs
 
 The following outputs are exported:
