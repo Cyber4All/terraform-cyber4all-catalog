@@ -89,7 +89,7 @@ Description: Creates an HTTPS listener for the ALB. When enabled the ALB will re
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
 ## Outputs
 
 The following outputs are exported:

@@ -52,7 +52,7 @@ variable "enable_access_logs" {
 variable "enable_https_listener" {
   type        = bool
   description = "Creates an HTTPS listener for the ALB. When enabled the ALB will redirect HTTP traffic to HTTPS automatically."
-  default     = false
+  default     = true
 }
 
 variable "hosted_zone_name" {

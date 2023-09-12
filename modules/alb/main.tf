@@ -79,6 +79,10 @@ resource "aws_lb" "alb" {
 # CREATE ALB HTTP LISTENER
 # -------------------------------------------
 
+# This is ignored because the implementation was
+# intentional. enable_https_listener should only
+# be set to false in non-production environments.
+# tfsec:ignore: aws-elb-http-not-used
 resource "aws_lb_listener" "http" {
   # creates the http listener when https is disabled
   count = var.enable_https_listener ? 0 : 1
