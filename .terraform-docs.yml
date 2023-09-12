@@ -15,6 +15,7 @@ content: |-
     {{"\n"}}
     {{"\t"}} source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
     {{"\n"}}
+  
   {{- if .Module.RequiredInputs }}
     {{"\t"}} # --------------------------------------------
     {{"\t"}} # Required variables
@@ -25,7 +26,8 @@ content: |-
       {{"\t"}} {{ .Name }}  = {{ .Type }}
       {{"\n"}}
     {{- end }}
-    {{- end }}
+  {{- end }}
+  
   {{- if .Module.OptionalInputs }}
     {{"\t"}} # --------------------------------------------
     {{"\t"}} # Optional variables
@@ -36,7 +38,8 @@ content: |-
       {{"\t"}} {{ .Name }}  = {{ .Type }}
       {{"\n"}}
     {{- end }}
-    {{- end }}
+  {{- end }}
+  
   }
   ```
   {{ .Inputs }}
