@@ -1,206 +1,61 @@
-# ---------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# MODULE PARAMETERS
+#
+# These values are expected to be set by the operator when calling the module
+# -----------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------
 # REQUIRED PARAMETERS
-# You must provide a value for each of these parameters.
-# ---------------------------------------------------------------------------------------------------------------------
+#
+# These values are required by the module and have no default values
+# --------------------------------------------------------------------
 
-variable "project_name" {
+variable "alb_name" {
   type        = string
-  description = "Name that will prepend all resources."
+  description = "The name of the ALB."
 }
 
-variable "vpc_id" {
-  type        = string
-  description = "ID of the VPC where to create security group."
+# variable "vpc_id" {
+#   type        = string
+#   description = "The VPC ID where the ALB will be created."
+# }
+
+variable "vpc_subnet_ids" {
+  type        = list(string)
+  description = "The ids of the subnets that the ALB can use to source its IP."
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
+
+# --------------------------------------------------------------------
 # OPTIONAL PARAMETERS
-# These parameters have reasonable defaults.
-# ---------------------------------------------------------------------------------------------------------------------
+#
+# These values are optional and have default values provided
+# --------------------------------------------------------------------
 
-variable "access_log_bucket" {
-  description = "The S3 bucket name to store the logs in."
-  type        = string
-  default     = null
-}
+# variable "alb_ingress_access_ports" {
+#   type = list(object({
+#     from_port = number
+#     to_port   = number
+#     cidr_ipv4 = string
+#   }))
+#   description = "Specify a list of ALB TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic."
+#   default     = []
+# }
 
-# ----------------------------------------------------
-# external security group parameters
-# ----------------------------------------------------
-variable "external_sg_description" {
-  type        = string
-  description = "Description of security group."
-  default     = "External ALB Security Group managed by Terraform"
-}
-
-variable "external_ingress_rules" {
-  type        = list(string)
-  description = "List of ingress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf)."
-  default     = []
-}
-
-variable "external_egress_rules" {
-  type        = list(string)
-  description = "List of egress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf)."
-  default     = []
-}
-
-variable "external_ingress_with_cidr_blocks" {
-  type        = list(map(string))
-  description = "List of ingress rules to create where 'cidr_blocks' is used."
-  default     = []
-}
-
-variable "external_egress_with_cidr_blocks" {
-  type        = list(map(string))
-  description = "List of egress rules to create where 'cidr_blocks' is used."
-  default     = []
-}
-
-variable "external_ingress_with_source_security_group_id" {
-  description = "List of ingress rules to create where 'source_security_group_id' is used."
-  type        = list(map(string))
-  default     = []
-}
-
-variable "external_egress_with_source_security_group_id" {
-  description = "List of egress rules to create where 'source_security_group_id' is used."
-  type        = list(map(string))
-  default     = []
-}
-
-# ----------------------------------------------------
-# internal security group parameters
-# ----------------------------------------------------
-
-variable "internal_sg_description" {
-  type        = string
-  description = "Description of security group."
-  default     = "External ALB Security Group managed by Terraform"
-}
-
-variable "internal_ingress_rules" {
-  type        = list(string)
-  description = "List of ingress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf)."
-  default     = []
-}
-
-variable "internal_egress_rules" {
-  type        = list(string)
-  description = "List of egress rules to create by name (https://github.com/terraform-aws-modules/terraform-aws-security-group/blob/v4.15.0/rules.tf)."
-  default     = []
-}
-
-variable "internal_ingress_with_cidr_blocks" {
-  type        = list(map(string))
-  description = "List of ingress rules to create where 'cidr_blocks' is used."
-  default     = []
-}
-
-variable "internal_egress_with_cidr_blocks" {
-  type        = list(map(string))
-  description = "List of egress rules to create where 'cidr_blocks' is used."
-  default     = []
-}
-
-variable "internal_ingress_with_source_security_group_id" {
-  description = "List of ingress rules to create where 'source_security_group_id' is used."
-  type        = list(map(string))
-  default     = []
-}
-
-variable "internal_egress_with_source_security_group_id" {
-  description = "List of egress rules to create where 'source_security_group_id' is used."
-  type        = list(map(string))
-  default     = []
-}
-
-# ----------------------------------------------------
-# external application load balancer parameters
-# ----------------------------------------------------
-variable "create_external_alb" {
+variable "enable_access_logs" {
   type        = bool
-  description = "Controls if the External Application Load Balancer should be created"
-  default     = true
+  description = "Enable access logs for the ALB."
+  default     = false
 }
 
-variable "public_subnet_ids" {
-  description = "List of public subnet ARNs to deploy external ALB into (required if create_external_alb == true)"
-  type        = list(string)
-  default     = []
-}
-
-variable "external_http_tcp_listeners" {
-  description = "A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target_group_index (defaults to http_tcp_listeners[count.index])."
-  type        = any
-  default     = []
-}
-
-variable "external_http_tcp_listener_rules" {
-  description = "A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http_tcp_listener_index (default to http_tcp_listeners[count.index])."
-  type        = any
-  default     = []
-}
-
-variable "external_https_listeners" {
-  description = "A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index (defaults to https_listeners[count.index])."
-  type        = any
-  default     = []
-}
-
-variable "external_https_listener_rules" {
-  description = "A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https_listener_index (default to https_listeners[count.index])."
-  type        = any
-  default     = []
-}
-
-variable "external_target_groups" {
-  description = "A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend_protocol, backend_port."
-  type        = any
-  default     = []
-}
-
-# ----------------------------------------------------
-# internal application load balancer parameters
-# ----------------------------------------------------
-variable "create_internal_alb" {
+variable "enable_https_listener" {
   type        = bool
-  description = "Controls if the Internal Application Load Balancer should be created"
-  default     = true
+  description = "Creates an HTTPS listener for the ALB. When enabled the ALB will redirect HTTP traffic to HTTPS automatically."
+  default     = false
 }
 
-variable "private_subnet_ids" {
-  description = "List of private subnet IDs to deploy internal ALB into (required if create_internal_alb == true)"
-  type        = list(string)
-  default     = []
-}
-
-variable "internal_http_tcp_listeners" {
-  description = "A list of maps describing the HTTP listeners or TCP ports for this ALB. Required key/values: port, protocol. Optional key/values: target_group_index (defaults to http_tcp_listeners[count.index])."
-  type        = any
-  default     = []
-}
-
-variable "internal_http_tcp_listener_rules" {
-  description = "A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, http_tcp_listener_index (default to http_tcp_listeners[count.index]."
-  type        = any
-  default     = []
-}
-
-variable "internal_https_listeners" {
-  description = "A list of maps describing the HTTPS listeners for this ALB. Required key/values: port, certificate_arn. Optional key/values: ssl_policy (defaults to ELBSecurityPolicy-2016-08), target_group_index (defaults to https_listeners[count.index])."
-  type        = any
-  default     = []
-}
-
-variable "internal_https_listener_rules" {
-  description = "A list of maps describing the Listener Rules for this ALB. Required key/values: actions, conditions. Optional key/values: priority, https_listener_index (default to https_listeners[count.index])."
-  type        = any
-  default     = []
-}
-
-variable "internal_target_groups" {
-  description = "A list of maps containing key/value pairs that define the target groups to be created. Order of these maps is important and the index of these are to be referenced in listener definitions. Required key/values: name, backend_protocol, backend_port."
-  type        = any
-  default     = []
+variable "hosted_zone_name" {
+  type        = string
+  description = "The name of the hosted zone where the ALB DNS record will be created."
 }
