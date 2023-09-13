@@ -68,12 +68,6 @@ variable "capacity_provider_target" {
   default     = 75
 }
 
-variable "cluster_egress_access_ports" {
-  type        = list(number)
-  description = "Specify a list of ECS Cluster TCP ports which should be made accessible through egress traffic. By default, Docker Daemon, Docker emphemeral range, and ECS agent traffic is allowed."
-  default     = []
-}
-
 variable "cluster_ingress_access_ports" {
   type        = list(number)
   description = "Specify a list of ECS Cluster TCP ports which should be made accessible through ingress traffic."
