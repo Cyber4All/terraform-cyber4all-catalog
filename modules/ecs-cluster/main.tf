@@ -120,7 +120,7 @@ resource "aws_service_discovery_http_namespace" "cluster" {
 
 
 # -------------------------------------------
-# CREATE CLUSTER CAPACITY PROVIDER STRATEGY
+# ATTACH CLUSTER CAPACITY PROVIDER STRATEGY
 # -------------------------------------------
 
 resource "aws_ecs_cluster_capacity_providers" "cluster" {
@@ -147,9 +147,6 @@ resource "aws_ecs_cluster_capacity_providers" "cluster" {
     weight = 1
   }
 
-  depends_on = [
-    aws_ecs_capacity_provider.cluster
-  ]
 }
 
 # -------------------------------------------
@@ -179,7 +176,6 @@ resource "aws_ecs_capacity_provider" "cluster" {
   }
 
   depends_on = [
-    aws_autoscaling_group.cluster,
     aws_ecs_cluster.cluster
   ]
 }
@@ -258,6 +254,13 @@ resource "aws_autoscaling_group" "cluster" {
     value               = var.cluster_name
     propagate_at_launch = true
   }
+
+  depends_on = [
+    # The cluster must be created prior to the ASG.
+    # The Ec2 instances will not be able to register
+    # to an ECS cluster that does not exist.
+    aws_ecs_cluster.cluster
+  ]
 }
 
 

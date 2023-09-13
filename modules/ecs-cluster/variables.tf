@@ -88,8 +88,12 @@ variable "cluster_ingress_access_ports" {
     to_port   = number
     cidr_ipv4 = string
   }))
-  description = "Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic."
-  default     = []
+  description = "Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic. By default, all traffic is allowed."
+  default = [{
+    from_port = 0
+    to_port   = 0
+    cidr_ipv4 = "0.0.0.0/0"
+  }]
 }
 
 variable "cluster_instance_type" {

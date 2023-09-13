@@ -94,7 +94,7 @@ module "example" {
   }))
 
 
-	 # Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic.
+	 # Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic. By default, all traffic is allowed.
 	 cluster_ingress_access_ports  = list(object({
     from_port = number
     to_port   = number
@@ -217,7 +217,7 @@ Default:
 
 ### <a name="input_cluster_ingress_access_ports"></a> [cluster\_ingress\_access\_ports](#input\_cluster\_ingress\_access\_ports)
 
-Description: Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic.
+Description: Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic. By default, all traffic is allowed.
 
 Type:
 
@@ -229,7 +229,17 @@ list(object({
   }))
 ```
 
-Default: `[]`
+Default:
+
+```json
+[
+  {
+    "cidr_ipv4": "0.0.0.0/0",
+    "from_port": 0,
+    "to_port": 0
+  }
+]
+```
 
 ### <a name="input_cluster_instance_type"></a> [cluster\_instance\_type](#input\_cluster\_instance\_type)
 
