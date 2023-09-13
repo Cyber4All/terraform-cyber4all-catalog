@@ -86,20 +86,12 @@ module "example" {
 	 capacity_provider_target  = number
 
 
-	 # Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through egress traffic. By default terraform removes the default rule of `ALLOW ALL` egress traiffic, the default value adds this rule back.
-	 cluster_egress_access_ports  = list(object({
-    from_port = number
-    to_port   = number
-    cidr_ipv4 = string
-  }))
+	 # Specify a list of ECS Cluster TCP ports which should be made accessible through egress traffic. By default, Docker Daemon, Docker emphemeral range, and ECS agent traffic is allowed.
+	 cluster_egress_access_ports  = list(number)
 
 
-	 # Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic. By default, all traffic is allowed.
-	 cluster_ingress_access_ports  = list(object({
-    from_port = number
-    to_port   = number
-    cidr_ipv4 = string
-  }))
+	 # Specify a list of ECS Cluster TCP ports which should be made accessible through ingress traffic.
+	 cluster_ingress_access_ports  = list(number)
 
 
 	 # The size of the EC2 instance.
@@ -191,55 +183,19 @@ Default: `75`
 
 ### <a name="input_cluster_egress_access_ports"></a> [cluster\_egress\_access\_ports](#input\_cluster\_egress\_access\_ports)
 
-Description: Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through egress traffic. By default terraform removes the default rule of `ALLOW ALL` egress traiffic, the default value adds this rule back.
+Description: Specify a list of ECS Cluster TCP ports which should be made accessible through egress traffic. By default, Docker Daemon, Docker emphemeral range, and ECS agent traffic is allowed.
 
-Type:
+Type: `list(number)`
 
-```hcl
-list(object({
-    from_port = number
-    to_port   = number
-    cidr_ipv4 = string
-  }))
-```
-
-Default:
-
-```json
-[
-  {
-    "cidr_ipv4": "0.0.0.0/0",
-    "from_port": 0,
-    "to_port": 0
-  }
-]
-```
+Default: `[]`
 
 ### <a name="input_cluster_ingress_access_ports"></a> [cluster\_ingress\_access\_ports](#input\_cluster\_ingress\_access\_ports)
 
-Description: Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic. By default, all traffic is allowed.
+Description: Specify a list of ECS Cluster TCP ports which should be made accessible through ingress traffic.
 
-Type:
+Type: `list(number)`
 
-```hcl
-list(object({
-    from_port = number
-    to_port   = number
-    cidr_ipv4 = string
-  }))
-```
-
-Default:
-
-```json
-[
-  {
-    "cidr_ipv4": "0.0.0.0/0",
-    "from_port": 0,
-    "to_port": 0
-  }
-]
-```
+Default: `[]`
 
 ### <a name="input_cluster_instance_type"></a> [cluster\_instance\_type](#input\_cluster\_instance\_type)
 

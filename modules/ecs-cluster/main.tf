@@ -308,7 +308,10 @@ resource "aws_launch_template" "cluster" {
   image_id      = var.cluster_instance_ami
   instance_type = var.cluster_instance_type
 
-  vpc_security_group_ids = [aws_security_group.cluster.id]
+  vpc_security_group_ids = [
+    aws_security_group.default.id,
+    aws_security_group.cluster.id
+  ]
 
   user_data = base64encode(templatefile(
     "${path.module}/scripts/user_data.sh",
@@ -335,6 +338,48 @@ resource "aws_launch_template" "cluster" {
 
 
 # -------------------------------------------
+# CREATE DEFAULT SECURITY GROUP FOR ASG
+# -------------------------------------------
+
+resource "aws_security_group" "default" {
+  name        = "${var.cluster_name}-ecs-agent-sg"
+  description = "Terraform managed security group for ${var.cluster_name} ECS agent."
+
+  vpc_id = var.vpc_id
+}
+
+resource "aws_vpc_security_group_egress_rule" "daemon" {
+  security_group_id = aws_security_group.default.id
+  description       = "Docker Daemon Port Range"
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 2375
+  to_port     = 2376
+}
+
+resource "aws_vpc_security_group_egress_rule" "agent" {
+  security_group_id = aws_security_group.default.id
+  description       = "ECS Agent Port Range"
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 51678
+  to_port     = 51680
+}
+
+resource "aws_vpc_security_group_egress_rule" "docker" {
+  security_group_id = aws_security_group.default.id
+  description       = "Docker Emphemeral Port Range"
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 49153
+  to_port     = 65535
+}
+
+
+# -------------------------------------------
 # CREATE SECURITY GROUP FOR ASG
 # -------------------------------------------
 
@@ -350,10 +395,10 @@ resource "aws_vpc_security_group_egress_rule" "cluster" {
 
   security_group_id = aws_security_group.cluster.id
 
-  cidr_ipv4   = var.cluster_egress_access_ports[count.index].cidr_ipv4
-  from_port   = var.cluster_egress_access_ports[count.index].from_port
+  cidr_ipv4   = "0.0.0.0/0"
+  from_port   = var.cluster_egress_access_ports[count.index]
   ip_protocol = "tcp"
-  to_port     = var.cluster_egress_access_ports[count.index].to_port
+  to_port     = var.cluster_egress_access_ports[count.index]
 }
 
 resource "aws_vpc_security_group_ingress_rule" "cluster" {
@@ -361,10 +406,10 @@ resource "aws_vpc_security_group_ingress_rule" "cluster" {
 
   security_group_id = aws_security_group.cluster.id
 
-  cidr_ipv4   = var.cluster_ingress_access_ports[count.index].cidr_ipv4
-  from_port   = var.cluster_ingress_access_ports[count.index].from_port
+  cidr_ipv4   = "0.0.0.0/0"
+  from_port   = var.cluster_ingress_access_ports[count.index]
   ip_protocol = "tcp"
-  to_port     = var.cluster_ingress_access_ports[count.index].to_port
+  to_port     = var.cluster_ingress_access_ports[count.index]
 }
 
 
