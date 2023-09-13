@@ -86,10 +86,6 @@ module "example" {
 	 capacity_provider_target  = number
 
 
-	 # Specify a list of ECS Cluster TCP ports which should be made accessible through egress traffic. By default, Docker Daemon, Docker emphemeral range, and ECS agent traffic is allowed.
-	 cluster_egress_access_ports  = list(number)
-
-
 	 # Specify a list of ECS Cluster TCP ports which should be made accessible through ingress traffic.
 	 cluster_ingress_access_ports  = list(number)
 
@@ -180,14 +176,6 @@ Description: Target cluster utilization for the ASG capacity provider; a number 
 Type: `number`
 
 Default: `75`
-
-### <a name="input_cluster_egress_access_ports"></a> [cluster\_egress\_access\_ports](#input\_cluster\_egress\_access\_ports)
-
-Description: Specify a list of ECS Cluster TCP ports which should be made accessible through egress traffic. By default, Docker Daemon, Docker emphemeral range, and ECS agent traffic is allowed.
-
-Type: `list(number)`
-
-Default: `[]`
 
 ### <a name="input_cluster_ingress_access_ports"></a> [cluster\_ingress\_access\_ports](#input\_cluster\_ingress\_access\_ports)
 

@@ -348,33 +348,13 @@ resource "aws_security_group" "default" {
   vpc_id = var.vpc_id
 }
 
-resource "aws_vpc_security_group_egress_rule" "daemon" {
-  security_group_id = aws_security_group.default.id
-  description       = "Docker Daemon Port Range"
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "tcp"
-  from_port   = 2375
-  to_port     = 2376
-}
-
 resource "aws_vpc_security_group_egress_rule" "agent" {
   security_group_id = aws_security_group.default.id
-  description       = "ECS Agent Port Range"
+  description       = "Allow all TCP range to support ECS agent, Docker daemon, and Docker ephemeral port requirements."
 
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "tcp"
-  from_port   = 51678
-  to_port     = 51680
-}
-
-resource "aws_vpc_security_group_egress_rule" "docker" {
-  security_group_id = aws_security_group.default.id
-  description       = "Docker Emphemeral Port Range"
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "tcp"
-  from_port   = 49153
+  from_port   = 0
   to_port     = 65535
 }
 
@@ -388,17 +368,6 @@ resource "aws_security_group" "cluster" {
   description = "Terraform managed security group for ${var.cluster_name} ECS container instances."
 
   vpc_id = var.vpc_id
-}
-
-resource "aws_vpc_security_group_egress_rule" "cluster" {
-  count = length(var.cluster_egress_access_ports)
-
-  security_group_id = aws_security_group.cluster.id
-
-  cidr_ipv4   = "0.0.0.0/0"
-  from_port   = var.cluster_egress_access_ports[count.index]
-  ip_protocol = "tcp"
-  to_port     = var.cluster_egress_access_ports[count.index]
 }
 
 resource "aws_vpc_security_group_ingress_rule" "cluster" {
