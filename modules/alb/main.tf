@@ -285,6 +285,8 @@ resource "aws_s3_bucket_acl" "access_logs" {
 # -------------------------------------------
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
+  count = var.enable_access_logs ? 1 : 0
+
   bucket = aws_s3_bucket.mybucket.id
 
   rule {
