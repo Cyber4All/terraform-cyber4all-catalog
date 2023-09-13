@@ -146,7 +146,7 @@ resource "aws_lb_listener" "https" {
   protocol          = "HTTPS"
 
   certificate_arn = data.aws_acm_certificate.cert.arn
-  ssl_policy      = ""
+  ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
 
   default_action {
     type = "fixed-response"
@@ -308,8 +308,18 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
 # CREATE ALB DNS RECORD
 # -------------------------------------------
 
-# the following can be used to get the host zone id
-# data "aws_route53_zone" "zone" {}
+data "aws_route53_zone" "zone" {
+  count = var.hosted_zone_name != "" ? 1 : 0
 
-# the following should be created always
-# resource "aws_route53_record" "alb" {}
+  name = var.hosted_zone_name
+}
+
+resource "aws_route53_record" "alb" {
+  count = data.aws_route53_zone.zone.id != "" ? 1 : 0
+
+  zone_id = data.aws_route53_zone.zone.id
+  name    = "${var.dns_record_prefix}.${var.hosted_zone_name}"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_lb.alb.dns_name]
+}

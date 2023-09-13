@@ -33,15 +33,11 @@ variable "vpc_subnet_ids" {
 # These values are optional and have default values provided
 # --------------------------------------------------------------------
 
-# variable "alb_ingress_access_ports" {
-#   type = list(object({
-#     from_port = number
-#     to_port   = number
-#     cidr_ipv4 = string
-#   }))
-#   description = "Specify a list of ALB TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic."
-#   default     = []
-# }
+variable "dns_record_prefix" {
+  type        = string
+  description = "The prefix of the DNS A record that will be created for the ALB."
+  default     = "api"
+}
 
 variable "enable_access_logs" {
   type        = bool
@@ -58,4 +54,5 @@ variable "enable_https_listener" {
 variable "hosted_zone_name" {
   type        = string
   description = "The name of the hosted zone where the ALB DNS record will be created."
+  default     = ""
 }

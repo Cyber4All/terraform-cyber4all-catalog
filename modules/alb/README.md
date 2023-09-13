@@ -25,10 +25,6 @@ module "example" {
 	 alb_name  = string
 
 
-	 # The name of the hosted zone where the ALB DNS record will be created.
-	 hosted_zone_name  = string
-
-
 	 # The VPC ID where the ALB will be created.
 	 vpc_id  = string
 
@@ -42,12 +38,20 @@ module "example" {
 	 # --------------------------------------------
 
 
+	 # The prefix of the DNS A record that will be created for the ALB.
+	 dns_record_prefix  = string
+
+
 	 # Enable access logs for the ALB.
 	 enable_access_logs  = bool
 
 
 	 # Creates an HTTPS listener for the ALB. When enabled the ALB will redirect HTTP traffic to HTTPS automatically.
 	 enable_https_listener  = bool
+
+
+	 # The name of the hosted zone where the ALB DNS record will be created.
+	 hosted_zone_name  = string
 
 
 
@@ -60,12 +64,6 @@ The following input variables are required:
 ### <a name="input_alb_name"></a> [alb\_name](#input\_alb\_name)
 
 Description: The name of the ALB.
-
-Type: `string`
-
-### <a name="input_hosted_zone_name"></a> [hosted\_zone\_name](#input\_hosted\_zone\_name)
-
-Description: The name of the hosted zone where the ALB DNS record will be created.
 
 Type: `string`
 
@@ -85,6 +83,14 @@ Type: `list(string)`
 
 The following input variables are optional (have default values):
 
+### <a name="input_dns_record_prefix"></a> [dns\_record\_prefix](#input\_dns\_record\_prefix)
+
+Description: The prefix of the DNS A record that will be created for the ALB.
+
+Type: `string`
+
+Default: `"api"`
+
 ### <a name="input_enable_access_logs"></a> [enable\_access\_logs](#input\_enable\_access\_logs)
 
 Description: Enable access logs for the ALB.
@@ -100,6 +106,14 @@ Description: Creates an HTTPS listener for the ALB. When enabled the ALB will re
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_hosted_zone_name"></a> [hosted\_zone\_name](#input\_hosted\_zone\_name)
+
+Description: The name of the hosted zone where the ALB DNS record will be created.
+
+Type: `string`
+
+Default: `""`
 ## Outputs
 
 The following outputs are exported:
