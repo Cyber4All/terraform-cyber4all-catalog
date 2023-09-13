@@ -220,7 +220,79 @@ resource "aws_vpc_security_group_ingress_rule" "alb" {
 # CREATE S3 BUCKET FOR ALB ACCESS LOGS
 # -------------------------------------------
 
-# resource "aws_s3_bucket" "access_logs" {}
+resource "aws_s3_bucket" "access_logs" {
+  count = var.enable_access_logs ? 1 : 0
+
+  bucket        = "${var.alb_name}-access-logs"
+  force_destroy = true
+}
+
+
+# -------------------------------------------
+# CONFIGURE S3 BUCKET LIFECYCLES
+# -------------------------------------------
+
+resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
+  count = var.enable_access_logs ? 1 : 0
+
+  bucket = aws_s3_bucket.access_logs.id
+
+  lifecycle_rule {
+    enabled = true
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 60
+      storage_class = "GLACIER"
+    }
+
+    expiration {
+      days = 90
+    }
+  }
+}
+
+
+# -------------------------------------------
+# CONFIGURE ACCESS TO S3 BUCKET
+# -------------------------------------------
+
+resource "aws_s3_bucket_ownership_controls" "access_logs" {
+  count = var.enable_access_logs ? 1 : 0
+
+  bucket = aws_s3_bucket.access_logs.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "access_logs" {
+  count = var.enable_access_logs ? 1 : 0
+
+  bucket = aws_s3_bucket.access_logs.id
+
+  acl = "private"
+}
+
+
+# -------------------------------------------
+# CONFIGURE S3 BUCKET SERVER SIDE ENCRYPTION
+# -------------------------------------------
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
+  bucket = aws_s3_bucket.mybucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "aws:kms"
+    }
+  }
+}
 
 
 # ------------------------------------------------------------
