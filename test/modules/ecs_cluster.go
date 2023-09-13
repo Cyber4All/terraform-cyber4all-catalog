@@ -12,9 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func DeployEcsClusterUsingTerraform(t *testing.T, workingDir string, awsRegion string) {
+func DeployEcsClusterUsingTerraform(t *testing.T, workingDir string) {
 	// Generate a unique ID
 	uniqueId := random.UniqueId()
+	// Get a random AWS region
+	awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-east-2"}, nil)
+	test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
 	// Get a ECS AMI
 	amiId := aws.GetEcsOptimizedAmazonLinuxAmi(t, awsRegion)
 	// Construct the terraform options with default retryable errors to handle the most common retryable errors in
@@ -31,9 +34,6 @@ func DeployEcsClusterUsingTerraform(t *testing.T, workingDir string, awsRegion s
 
 	// Save the options so later test stages can use them
 	test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
-
-	// Deploy the cluster
-	terraform.InitAndApply(t, terraformOptions)
 }
 
 func ValidateEcsCluster(t *testing.T, workingDir string) {
@@ -83,4 +83,25 @@ func ValidateEcsCluster(t *testing.T, workingDir string) {
 	expectedDcps := fmt.Sprintf("cluster-test%s-cp", randomId)
 	assert.Equal(t, 1, len(defaultCapacityProviderStrategy), "Default capacity provider strategy does not have length 1")
 	assert.Equal(t, expectedDcps, *defaultCapacityProviderStrategy[0].CapacityProvider, "Default capacity provider strategy does not have the expected capacity provider")
+
+	// Every 30 seconds, check the number of registered container instances, fail after 10 minutes
+	// If its not greater than 0, fail the test
+	startTime = time.Now()
+	timeout = 10 * time.Minute
+
+	// Get the number of registered container instances
+	registeredContainerInstances := cluster.RegisteredContainerInstancesCount
+	for *registeredContainerInstances < 1 {
+		t.Logf("The number of registered container instances is: %d. Sleeping for 30 seconds...", *registeredContainerInstances)
+		time.Sleep(30 * time.Second)
+		cluster = aws.GetEcsCluster(t, awsRegion, expectedClusterName)
+		registeredContainerInstances = cluster.RegisteredContainerInstancesCount
+		t.Logf("Current registered container instances: %d", *registeredContainerInstances)
+
+		if time.Since(startTime) > timeout {
+			t.Fatalf("Timed out waiting for registered container instances to be greater than 0")
+		}
+	}
+
+	assert.True(t, *registeredContainerInstances > 0, "Number of registered container instances is not greater than 0, currently: %d", *registeredContainerInstances)
 }

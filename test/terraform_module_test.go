@@ -1,10 +1,10 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Cyber4All/terraform-cyber4all-catalog/test/modules"
-	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
@@ -15,45 +15,51 @@ import (
 // running this test over and over again locally.
 func TestExamplesForTerraformModules(t *testing.T) {
 	tests := []struct {
-		name         string
-		workingDir   string
-		deployFunc   func(t *testing.T, workingDir string, awsRegion string)
-		validateFunc func(t *testing.T, workingDir string)
+		name            string
+		workingDir      string
+		genTestDataFunc func(t *testing.T, workingDir string)
+		validateFunc    func(t *testing.T, workingDir string)
 	}{
 		{
-			name:         "ecs-cluster",
-			workingDir:   "../examples/ecs-cluster",
-			deployFunc:   modules.DeployEcsClusterUsingTerraform,
-			validateFunc: modules.ValidateEcsCluster,
+			name:            "ecs-cluster",
+			workingDir:      "../examples/ecs-cluster",
+			genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+			validateFunc:    modules.ValidateEcsCluster,
 		},
 		{
-			name:         "secrets-manager",
-			workingDir:   "../examples/secrets-manager",
-			deployFunc:   modules.DeployUsingTerraform,
-			validateFunc: modules.ValidateSecretsContainSecrets,
+			name:            "secrets-manager",
+			workingDir:      "../examples/secrets-manager",
+			genTestDataFunc: modules.DeployUsingTerraform,
+			validateFunc:    modules.ValidateSecretsContainSecrets,
 		},
 	}
 
 	// Run tests in parallel
 	for _, tt := range tests {
 		workingDir := tt.workingDir
-		deployFunc := tt.deployFunc
+		genTestDataFunc := tt.genTestDataFunc
 		validateFunc := tt.validateFunc
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			// At the end of the test, undeploy the secrets using Terraform
+			// At the end of the test, undeploy the resources using Terraform
 			defer test_structure.RunTestStage(t, "destroy", func() {
 				terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 				terraform.Destroy(t, terraformOptions)
+				test_structure.CleanupTestDataFolder(t, workingDir)
 			})
-
-			// Get a random AWS region
-			awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-east-2"}, nil)
-			test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
 
 			// Provision the secrets using Terraform
 			test_structure.RunTestStage(t, "apply", func() {
-				deployFunc(t, workingDir, awsRegion)
+				// Check if .test-data exists
+				// If it does not exist, generate the test data
+				if !test_structure.IsTestDataPresent(t, fmt.Sprintf("%s/.test-data/TerraformOptions.json", workingDir)) {
+					genTestDataFunc(t, workingDir)
+				}
+				// Get the Terraform Options saved
+				terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+
+				// Deploy the cluster
+				terraform.InitAndApply(t, terraformOptions)
 			})
 
 			// Validate that the secrets are configured properly

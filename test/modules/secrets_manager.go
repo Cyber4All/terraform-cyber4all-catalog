@@ -14,12 +14,18 @@ import (
 )
 
 // Deploy the secrets-manager example using Terraform
-func DeployUsingTerraform(t *testing.T, workingDir string, awsRegion string) {
+func DeployUsingTerraform(t *testing.T, workingDir string) {
 	// A unique ID we can use to namespace resources so we don't clash with anything already in the AWS account or
 	// tests running in parallel
 	uniqueID := random.UniqueId()
 	secretKey := fmt.Sprint("secret_key_", uniqueID)
 	secretValue := fmt.Sprint("secret_value_", uniqueID)
+
+	// Get random aws region
+	// Get a random AWS region
+	awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-east-2"}, nil)
+	test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
+
 	// Construct the terraform options with default retryable errors to handle the most common retryable errors in
 	// terraform testing.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
