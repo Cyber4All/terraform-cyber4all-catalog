@@ -120,29 +120,33 @@ The following outputs are exported:
 
 ### <a name="output_alb_arn"></a> [alb\_arn](#output\_alb\_arn)
 
-Description: n/a
+Description: The ARN of the ALB.
 
 ### <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name)
 
-Description: n/a
+Description: The DNS name of the ALB.
+
+### <a name="output_alb_dns_record_name"></a> [alb\_dns\_record\_name](#output\_alb\_dns\_record\_name)
+
+Description: The name of the ALB DNS record.
 
 ### <a name="output_alb_hosted_zone_id"></a> [alb\_hosted\_zone\_id](#output\_alb\_hosted\_zone\_id)
 
-Description: n/a
+Description: The ID of the hosted zone where the ALB DNS record was created.
 
 ### <a name="output_alb_name"></a> [alb\_name](#output\_alb\_name)
 
-Description: n/a
+Description: The name of the ALB.
 
 ### <a name="output_alb_security_group_id"></a> [alb\_security\_group\_id](#output\_alb\_security\_group\_id)
 
-Description: n/a
+Description: The ID of the ALB security group.
 
 ### <a name="output_http_listener_arn"></a> [http\_listener\_arn](#output\_http\_listener\_arn)
 
-Description: n/a
+Description: The ARN of the HTTP listener.
 
 ### <a name="output_https_listener_arn"></a> [https\_listener\_arn](#output\_https\_listener\_arn)
 
-Description: n/a
+Description: The ARN of the HTTPS listener.
 <!-- END_TF_DOCS -->
