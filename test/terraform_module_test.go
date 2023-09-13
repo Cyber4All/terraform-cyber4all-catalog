@@ -26,35 +26,39 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			deployFunc:   modules.DeployEcsClusterUsingTerraform,
 			validateFunc: modules.ValidateEcsCluster,
 		},
-		// {
-		// 	name:         "secrets-manager",
-		// 	workingDir:   "../examples/secrets-manager",
-		// 	deployFunc:   modules.DeployUsingTerraform,
-		// 	validateFunc: modules.ValidateSecretsContainSecrets,
-		// },
+		{
+			name:         "secrets-manager",
+			workingDir:   "../examples/secrets-manager",
+			deployFunc:   modules.DeployUsingTerraform,
+			validateFunc: modules.ValidateSecretsContainSecrets,
+		},
 	}
 
 	// Run tests in parallel
 	for _, tt := range tests {
+		workingDir := tt.workingDir
+		deployFunc := tt.deployFunc
+		validateFunc := tt.validateFunc
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			// At the end of the test, undeploy the secrets using Terraform
 			defer test_structure.RunTestStage(t, "destroy", func() {
-				terraformOptions := test_structure.LoadTerraformOptions(t, tt.workingDir)
+				terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 				terraform.Destroy(t, terraformOptions)
 			})
 
 			// Get a random AWS region
-			awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "eu-west-1"}, nil)
-			test_structure.SaveString(t, tt.workingDir, "awsRegion", awsRegion)
+			awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-east-2"}, nil)
+			test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
 
 			// Provision the secrets using Terraform
 			test_structure.RunTestStage(t, "apply", func() {
-				tt.deployFunc(t, tt.workingDir, awsRegion)
+				deployFunc(t, workingDir, awsRegion)
 			})
 
 			// Validate that the secrets are configured properly
 			test_structure.RunTestStage(t, "validate", func() {
-				tt.validateFunc(t, tt.workingDir)
+				validateFunc(t, workingDir)
 			})
 		})
 	}
