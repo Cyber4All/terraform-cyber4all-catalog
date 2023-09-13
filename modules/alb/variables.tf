@@ -16,10 +16,10 @@ variable "alb_name" {
   description = "The name of the ALB."
 }
 
-# variable "vpc_id" {
-#   type        = string
-#   description = "The VPC ID where the ALB will be created."
-# }
+variable "vpc_id" {
+  type        = string
+  description = "The VPC ID where the ALB will be created."
+}
 
 variable "vpc_subnet_ids" {
   type        = list(string)

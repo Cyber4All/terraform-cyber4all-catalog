@@ -29,6 +29,10 @@ module "example" {
 	 hosted_zone_name  = string
 
 
+	 # The VPC ID where the ALB will be created.
+	 vpc_id  = string
+
+
 	 # The ids of the subnets that the ALB can use to source its IP.
 	 vpc_subnet_ids  = list(string)
 
@@ -62,6 +66,12 @@ Type: `string`
 ### <a name="input_hosted_zone_name"></a> [hosted\_zone\_name](#input\_hosted\_zone\_name)
 
 Description: The name of the hosted zone where the ALB DNS record will be created.
+
+Type: `string`
+
+### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
+
+Description: The VPC ID where the ALB will be created.
 
 Type: `string`
 

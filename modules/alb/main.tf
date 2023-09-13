@@ -167,7 +167,44 @@ resource "aws_lb_listener" "https" {
 # CREATE ALB SECURITY GROUP
 # -------------------------------------------
 
-# resource "aws_security_group" {}
+resource "aws_security_group" "alb" {
+  name        = "${var.alb_name}-sg"
+  description = "Terraform managed security group for ${var.alb_name} ALB."
+
+  vpc_id = var.vpc_id
+}
+
+resource "aws_vpc_security_group_egress_rule" "alb" {
+  security_group_id = aws_security_group.cluster.id
+  description       = "Allow all outbound traffic."
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 0
+  to_port     = 65535
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb" {
+  security_group_id = aws_security_group.cluster.id
+  description       = "Allow HTTP traffic to the ALB from anywhere."
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 80
+  to_port     = 80
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb" {
+  count = var.enable_https_listener ? 1 : 0
+
+  security_group_id = aws_security_group.cluster.id
+  description       = "Allow HTTPS traffic to the ALB from anywhere."
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 443
+  to_port     = 443
+}
 
 
 # ------------------------------------------------------------
