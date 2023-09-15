@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -42,16 +43,36 @@ func ValidateEcsCluster(t *testing.T, workingDir string) {
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
 	// Get the random id
 	randomId := terraformOptions.Vars["random_id"].(string)
-
-	// Get the cluster
 	expectedClusterName := fmt.Sprintf("cluster-test%s", randomId)
+
+	// Check that the cluster exists
+	cluster := assertClusterExists(t, awsRegion, expectedClusterName)
+
+	// Check the status of the cluster
+	assertClusterStatusIsActive(t, cluster, expectedClusterName, awsRegion)
+
+	// Check the capacity providers
+	assertCapacityProvidersExist(t, cluster)
+
+	// Check the default capacity provider strategy
+	assertDefaultCapacityProviderStrategyIsClusterName(t, cluster, randomId)
+
+	// Check Registered Container Instances
+	assertRegsiteredContainerInstancesIsGreaterThanZero(t, cluster, awsRegion, expectedClusterName)
+}
+
+func assertClusterExists(t *testing.T, awsRegion string, expectedClusterName string) *ecs.Cluster {
+	// Get the cluster
 	cluster := aws.GetEcsCluster(t, awsRegion, expectedClusterName)
 	// Assert that it exists
 	assert.NotNil(t, cluster, "Cluster recieved from AWS with name: %s is nil", expectedClusterName)
 	// Print the cluster
 	t.Logf("The cluster is: %s", cluster.String())
 
-	// Check the status of the cluster
+	return cluster
+}
+
+func assertClusterStatusIsActive(t *testing.T, cluster *ecs.Cluster, expectedClusterName string, awsRegion string) {
 	status := cluster.Status
 	t.Logf("The cluster status is: %s", *status)
 	startTime := time.Now()
@@ -66,8 +87,9 @@ func ValidateEcsCluster(t *testing.T, workingDir string) {
 	}
 	// Assert that the cluster is active
 	assert.Equal(t, "ACTIVE", *status, "Cluster status is not ACTIVE, currently: %s", *status)
+}
 
-	// Check the capacity providers
+func assertCapacityProvidersExist(t *testing.T, cluster *ecs.Cluster) {
 	capacityProviders := cluster.CapacityProviders
 	containsFargate := false
 	for _, cp := range capacityProviders {
@@ -77,17 +99,20 @@ func ValidateEcsCluster(t *testing.T, workingDir string) {
 		}
 	}
 	assert.True(t, containsFargate, "Capacity providers does not contain FARGATE")
+}
 
-	// Check the default capacity provider strategy
+func assertDefaultCapacityProviderStrategyIsClusterName(t *testing.T, cluster *ecs.Cluster, randomId string) {
 	defaultCapacityProviderStrategy := cluster.DefaultCapacityProviderStrategy
 	expectedDcps := fmt.Sprintf("cluster-test%s-cp", randomId)
 	assert.Equal(t, 1, len(defaultCapacityProviderStrategy), "Default capacity provider strategy does not have length 1")
 	assert.Equal(t, expectedDcps, *defaultCapacityProviderStrategy[0].CapacityProvider, "Default capacity provider strategy does not have the expected capacity provider")
+}
 
+func assertRegsiteredContainerInstancesIsGreaterThanZero(t *testing.T, cluster *ecs.Cluster, awsRegion string, expectedClusterName string) {
 	// Every 30 seconds, check the number of registered container instances, fail after 10 minutes
 	// If its not greater than 0, fail the test
-	startTime = time.Now()
-	timeout = 10 * time.Minute
+	startTime := time.Now()
+	timeout := 10 * time.Minute
 
 	// Get the number of registered container instances
 	registeredContainerInstances := cluster.RegisteredContainerInstancesCount

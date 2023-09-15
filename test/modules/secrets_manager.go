@@ -56,17 +56,34 @@ func ValidateSecretsContainSecrets(t *testing.T, workingDir string) {
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
 
 	// Check that two secrets were created
-	secret_arns := terraform.OutputList(t, terraformOptions, "secret_arns")
-	assert.Len(t, secret_arns, 2)
+	secret_arns := assertSecretsArnsAreCreated(t, terraformOptions)
 
 	// Assert that the two secret names are correct
-	names := terraform.OutputList(t, terraformOptions, "secret_names")
-	assert.Len(t, names, 2)
+	assertSecretsAreNamedCorrectly(t, terraformOptions)
 
 	secretKey := terraformOptions.Vars["secret_key"].(string)
 	secretValue := terraformOptions.Vars["secret_value"].(string)
 
 	// Check that each of the secrets can be retrieved
+	assertSecretsHaveCorrectPrefix(t, secret_arns, awsRegion, secretKey, secretValue)
+
+	// Check that the secret_arn_references are formatted correctly
+	assertSecretArnReferencesAreFormattedCorrectly(t, terraformOptions, secret_arns, secretKey)
+}
+
+func assertSecretsArnsAreCreated(t *testing.T, terraformOptions *terraform.Options) []string {
+	secret_arns := terraform.OutputList(t, terraformOptions, "secret_arns")
+	assert.Len(t, secret_arns, 2)
+
+	return secret_arns
+}
+
+func assertSecretsAreNamedCorrectly(t *testing.T, terraformOptions *terraform.Options) {
+	names := terraform.OutputList(t, terraformOptions, "secret_names")
+	assert.Len(t, names, 2)
+}
+
+func assertSecretsHaveCorrectPrefix(t *testing.T, secret_arns []string, awsRegion string, secretKey string, secretValue string) {
 	for _, arn := range secret_arns {
 		var secret map[string]string
 		secretStr := aws.GetSecretValue(t, awsRegion, arn)
@@ -83,7 +100,9 @@ func ValidateSecretsContainSecrets(t *testing.T, workingDir string) {
 			assert.True(t, strings.HasPrefix(value, secretValue), "Secret value %s does not have prefix %s", value, secretValue)
 		}
 	}
+}
 
+func assertSecretArnReferencesAreFormattedCorrectly(t *testing.T, terraformOptions *terraform.Options, secret_arns []string, secretKey string) {
 	// Run `terraform output` to get the value of an output variable
 	secret_arn_references := terraform.OutputList(t, terraformOptions, "secret_arn_references")
 
