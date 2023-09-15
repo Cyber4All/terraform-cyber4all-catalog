@@ -68,27 +68,9 @@ variable "capacity_provider_target" {
   default     = 75
 }
 
-variable "cluster_egress_access_ports" {
-  type = list(object({
-    from_port = number
-    to_port   = number
-    cidr_ipv4 = string
-  }))
-  description = "Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through egress traffic. By default terraform removes the default rule of `ALLOW ALL` egress traiffic, the default value adds this rule back."
-  default = [{
-    from_port = 0
-    to_port   = 0
-    cidr_ipv4 = "0.0.0.0/0"
-  }]
-}
-
 variable "cluster_ingress_access_ports" {
-  type = list(object({
-    from_port = number
-    to_port   = number
-    cidr_ipv4 = string
-  }))
-  description = "Specify a list of ECS Cluster TCP ports and IPv4 CIDR blocks which should be made accessible through ingress traffic."
+  type        = list(number)
+  description = "Specify a list of ECS Cluster TCP ports which should be made accessible through ingress traffic."
   default     = []
 }
 

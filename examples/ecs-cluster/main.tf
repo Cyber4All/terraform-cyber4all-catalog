@@ -18,8 +18,15 @@ module "vpc" {
   name = "ecs-cluster-test${var.random_id}"
   cidr = "10.0.0.0/16"
 
-  azs            = [for letter in ["a", "b", "c"] : "${var.region}${letter}"]
-  public_subnets = [for i in range(0, 3) : "10.0.${i}.0/24"]
+  azs             = [for letter in ["a", "b", "c"] : "${var.region}${letter}"]
+  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
+
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
+  enable_dns_hostnames   = true
+  enable_dns_support     = true
 }
 
 module "cluster" {
@@ -30,14 +37,7 @@ module "cluster" {
   cluster_instance_ami = var.cluster_instance_ami
 
   vpc_id         = module.vpc.vpc_id
-  vpc_subnet_ids = module.vpc.public_subnets
-  cluster_ingress_access_ports = [
-    {
-      from_port = 80
-      to_port   = 80
-      cidr_ipv4 = "0.0.0.0/0"
-    }
-  ]
+  vpc_subnet_ids = module.vpc.private_subnets
 
   cluster_max_size = 2
 }

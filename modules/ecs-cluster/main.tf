@@ -120,7 +120,7 @@ resource "aws_service_discovery_http_namespace" "cluster" {
 
 
 # -------------------------------------------
-# CREATE CLUSTER CAPACITY PROVIDER STRATEGY
+# ATTACH CLUSTER CAPACITY PROVIDER STRATEGY
 # -------------------------------------------
 
 resource "aws_ecs_cluster_capacity_providers" "cluster" {
@@ -147,9 +147,6 @@ resource "aws_ecs_cluster_capacity_providers" "cluster" {
     weight = 1
   }
 
-  depends_on = [
-    aws_ecs_capacity_provider.cluster
-  ]
 }
 
 # -------------------------------------------
@@ -179,7 +176,6 @@ resource "aws_ecs_capacity_provider" "cluster" {
   }
 
   depends_on = [
-    aws_autoscaling_group.cluster,
     aws_ecs_cluster.cluster
   ]
 }
@@ -258,6 +254,13 @@ resource "aws_autoscaling_group" "cluster" {
     value               = var.cluster_name
     propagate_at_launch = true
   }
+
+  depends_on = [
+    # The cluster must be created prior to the ASG.
+    # The Ec2 instances will not be able to register
+    # to an ECS cluster that does not exist.
+    aws_ecs_cluster.cluster
+  ]
 }
 
 
@@ -305,7 +308,10 @@ resource "aws_launch_template" "cluster" {
   image_id      = var.cluster_instance_ami
   instance_type = var.cluster_instance_type
 
-  vpc_security_group_ids = [aws_security_group.cluster.id]
+  vpc_security_group_ids = [
+    aws_security_group.default.id,
+    aws_security_group.cluster.id
+  ]
 
   user_data = base64encode(templatefile(
     "${path.module}/scripts/user_data.sh",
@@ -332,6 +338,28 @@ resource "aws_launch_template" "cluster" {
 
 
 # -------------------------------------------
+# CREATE DEFAULT SECURITY GROUP FOR ASG
+# -------------------------------------------
+
+resource "aws_security_group" "default" {
+  name        = "${var.cluster_name}-ecs-agent-sg"
+  description = "Terraform managed security group for ${var.cluster_name} ECS agent."
+
+  vpc_id = var.vpc_id
+}
+
+resource "aws_vpc_security_group_egress_rule" "agent" {
+  security_group_id = aws_security_group.default.id
+  description       = "Allow all TCP range to support ECS agent, Docker daemon, and Docker ephemeral port requirements."
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 0
+  to_port     = 65535
+}
+
+
+# -------------------------------------------
 # CREATE SECURITY GROUP FOR ASG
 # -------------------------------------------
 
@@ -342,26 +370,15 @@ resource "aws_security_group" "cluster" {
   vpc_id = var.vpc_id
 }
 
-resource "aws_vpc_security_group_egress_rule" "cluster" {
-  count = length(var.cluster_egress_access_ports)
-
-  security_group_id = aws_security_group.cluster.id
-
-  cidr_ipv4   = var.cluster_egress_access_ports[count.index].cidr_ipv4
-  from_port   = var.cluster_egress_access_ports[count.index].from_port
-  ip_protocol = "tcp"
-  to_port     = var.cluster_egress_access_ports[count.index].to_port
-}
-
 resource "aws_vpc_security_group_ingress_rule" "cluster" {
   count = length(var.cluster_ingress_access_ports)
 
   security_group_id = aws_security_group.cluster.id
 
-  cidr_ipv4   = var.cluster_ingress_access_ports[count.index].cidr_ipv4
-  from_port   = var.cluster_ingress_access_ports[count.index].from_port
+  cidr_ipv4   = "0.0.0.0/0"
+  from_port   = var.cluster_ingress_access_ports[count.index]
   ip_protocol = "tcp"
-  to_port     = var.cluster_ingress_access_ports[count.index].to_port
+  to_port     = var.cluster_ingress_access_ports[count.index]
 }
 
 
