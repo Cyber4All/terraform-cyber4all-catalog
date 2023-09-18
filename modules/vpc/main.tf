@@ -13,7 +13,7 @@
 #
 # - VPC
 # - Internet Gateway
-# - NAT Gateways
+# - NAT Gateway
 # - Public Subnets
 # - Public Subnets' Route Table
 # - Public Subnets' NACL
@@ -40,6 +40,34 @@ terraform {
 }
 
 
+# -------------------------------------------
+# RETRIEVE REGION INFORMATION
+# -------------------------------------------
+
+data "aws_region" "current" {}
+
+data "aws_availability_zones" "current" {
+  filter {
+    name   = "region-name"
+    values = [data.aws_region.current.name]
+  }
+
+  filter {
+    name   = "zone-type"
+    values = ["availability-zone"]
+  }
+
+  lifecycle {
+    # If the number of availability zones requested is greater than the number
+    # of availability zones in the region, then the module should fail.
+    postcondition {
+      condition     = try(length(self.names) > var.num_availability_zones, true)
+      error_message = "The number of availability zones requested is greater than the number of availability zones in the region."
+    }
+  }
+}
+
+
 # ------------------------------------------------------------
 
 # THE FOLLOWING SECTION IS USED TO CREATE THE VPC,
@@ -48,34 +76,89 @@ terraform {
 
 # ------------------------------------------------------------
 
+locals {
+  # Gets a subset of the availability zones based on the number
+  # of availability zones requested.
+  availability_zones = (
+    var.num_availability_zones != null ?
+    slice(data.aws_availability_zones.current.names, 0, var.num_availability_zones) :
+    data.aws_availability_zones.current.names
+  )
+}
+
 
 # --------------------------------------------------------------------
 # CREATE THE VPC
 # --------------------------------------------------------------------
 
-resource "aws_vpc" "this" {}
+resource "aws_vpc" "this" {
+  cidr_block = "10.0.0.0/18"
+
+  #   ipv4_ipam_pool_id = "" # this should be set up
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = var.vpc_name
+  }
+}
 
 
 # --------------------------------------------------------------------
 # CREATE THE INTERNET GATEWAY
 # --------------------------------------------------------------------
 
-resource "aws_internet_gateway" "this" {}
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = "${var.vpc_name}-igw"
+  }
+}
 
 
 # --------------------------------------------------------------------
 # CREATE THE NAT GATEWAY
 # --------------------------------------------------------------------
 
-# Condition: NAT should only be created if private subnets exist
-# Condition: There should be an option to reuse the EIP between
-# the different NATs if num_nat_gateways > 1
+resource "aws_eip" "nat" {
+  count = var.create_private_subnets && var.create_nat_gateway ? 1 : 0
 
-resource "aws_eip" "nat" {}
+  domain = "vpc"
 
-resource "aws_nat_gateway" "this" {}
+  tags = {
+    Name = format(
+      "${var.vpc_name}-eip-%s",
+      element(local.availability_zones, count.index)
+    )
+  }
 
-resource "aws_route" "private_nat_gateway" {}
+  depends_on = [
+    aws_internet_gateway.this
+  ]
+}
+
+resource "aws_nat_gateway" "this" {
+  count = var.create_private_subnets && var.create_nat_gateway ? 1 : 0
+
+  allocation_id = aws_eip.nat[0].id
+
+  # If multiple NAT gateway support is added
+  # as a feature, this will need to compute which
+  # subnet to deploy the NAT gateway into.
+  subnet_id = aws_subnet.public[0].id
+
+  tags = {
+    # If multiple NAT gateway support is added
+    # as a feature, this will need to be updated.
+    Name = "${var.vpc_name}-nat"
+  }
+
+  depends_on = [
+    aws_internet_gateway.this
+  ]
+}
 
 
 # ------------------------------------------------------------
@@ -90,33 +173,72 @@ resource "aws_route" "private_nat_gateway" {}
 
 
 # --------------------------------------------------------------------
+# CONVENIENCE LOCALS TO USE THROUGHOUT THE SECTION
+# --------------------------------------------------------------------
+
+locals {
+  num_public_subnets  = var.create_public_subnets ? length(local.availability_zones) : 0
+  num_private_subnets = var.create_private_subnets ? length(local.availability_zones) : 0
+}
+
+
+# --------------------------------------------------------------------
 # CREATE THE PUBLIC SUBNETS
 # --------------------------------------------------------------------
 
-# Condition: The number of subnets created should be based
-# on the num_availability_zones selected. If value not set then
-# the max number of subnets in a given region is used
-# Condition: The subnet cidr should be computed based on the
-# VPC CIDR and the number subnet being created.
-# Condition (optional): A variable that allows the toggle of public
-# subnets var.create_public_subnets default true
+resource "aws_subnet" "public" {
+  # Create a subnet for the number of availability zones
+  # requested, otherwise create a subnet for each availability
+  # zone in the region.
+  count = local.num_public_subnets
 
-resource "aws_subnet" "public" {}
+  availability_zone = element(local.availability_zones, count.index)
+  cidr_block        = cidrsubnet(aws_vpc.this.cidr_block, 6, count.index + 1)
+
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = format(
+      "${var.vpc_name}-public-%s",
+      element(local.availability_zones, count.index)
+    )
+  }
+}
 
 
 # --------------------------------------------------------------------
 # CREATE THE PUBLIC ROUTE TABLES
 # --------------------------------------------------------------------
 
-# Condition: Only a single route table should be created in the
-# public subnets route table, which is to route traffic to the 
-# IGW
+resource "aws_route_table" "public" {
+  count = var.create_public_subnets ? 1 : 0
 
-resource "aws_route_table" "public" {}
+  vpc_id = aws_vpc.this.id
 
-resource "aws_route_table_association" "public" {}
+  tags = {
+    Name = "${var.vpc_name}-public-rt"
+  }
+}
 
-resource "aws_route" "public_igw" {}
+resource "aws_route" "public_igw" {
+  count = var.create_public_subnets ? 1 : 0
+
+  route_table_id = aws_route_table.public[0].id
+
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this.id
+
+  timeouts {
+    create = "5m"
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  count = var.create_public_subnets ? local.num_public_subnets : 0
+
+  route_table_id = aws_route_table.public[0].id
+  subnet_id      = aws_subnet.public[count.index].id
+}
 
 
 # --------------------------------------------------------------------
@@ -125,48 +247,78 @@ resource "aws_route" "public_igw" {}
 
 # Condition: The public NACL should use the default option
 
-resource "aws_network_acl" "public" {}
+# resource "aws_network_acl" "public" {}
 
-resource "aws_network_acl_rule" "public_ingress" {}
+# resource "aws_network_acl_rule" "public_ingress" {}
 
-resource "aws_network_acl_rule" "public_egress" {}
+# resource "aws_network_acl_rule" "public_egress" {}
 
 
 # --------------------------------------------------------------------
 # CREATE THE PRIVATE SUBNETS
 # --------------------------------------------------------------------
 
-# Condition: The number of subnets created should be based
-# on the num_availability_zones selected. If value not set then
-# the max number of subnets in a given region is used
-# Condition: The subnet cidr should be computed based on the
-# VPC CIDR and the number subnet being created.
-# Condition (optional): A variable that allows the toggle of private
-# subnets var.create_private_subnets default true
+resource "aws_subnet" "private" {
+  count = local.num_private_subnets
 
-resource "aws_subnet" "private" {}
+  availability_zone = element(local.availability_zones, count.index)
+
+  # Adds the number of public subnets to the count.index
+  # to netnums to avoid overlapping with the public subnets.
+  cidr_block = cidrsubnet(aws_vpc.this.cidr_block, 6, count.index + 1 + local.num_public_subnets)
+
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = format(
+      "${var.vpc_name}-private-%s",
+      element(local.availability_zones, count.index)
+    )
+  }
+}
 
 
 # --------------------------------------------------------------------
 # CREATE THE PRIVATE ROUTE TABLES
 # --------------------------------------------------------------------
 
-# Condition: The route tables should direct traffic to the NAT
-# deployed into the public subnet(s)
+resource "aws_route_table" "private" {
+  count = var.create_private_subnets ? 1 : 0
 
-resource "aws_route_table" "private" {}
+  vpc_id = aws_vpc.this.id
 
-resource "aws_route_table_association" "private" {}
+  tags = {
+    Name = "${var.vpc_name}-private-rt"
+  }
+}
 
-resource "aws_route" "private_nat" {}
+resource "aws_route" "private_nat" {
+  count = var.create_private_subnets && var.create_nat_gateway ? 1 : 0
+
+  route_table_id = aws_route_table.private[0].id
+
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.this[0].id
+
+  timeouts {
+    create = "5m"
+  }
+}
+
+resource "aws_route_table_association" "private" {
+  count = var.create_private_subnets ? local.num_private_subnets : 0
+
+  route_table_id = aws_route_table.private[0].id
+  subnet_id      = aws_subnet.private[count.index].id
+}
 
 
 # --------------------------------------------------------------------
 # CREATE THE PRIVATE NACL
 # --------------------------------------------------------------------
 
-resource "aws_network_acl" "private" {}
+# resource "aws_network_acl" "private" {}
 
-resource "aws_network_acl_rule" "private_ingress" {}
+# resource "aws_network_acl_rule" "private_ingress" {}
 
-resource "aws_network_acl_rule" "private_egress" {}
+# resource "aws_network_acl_rule" "private_egress" {}
