@@ -214,6 +214,8 @@ resource "aws_autoscaling_group" "cluster" {
 
   health_check_type = "EC2"
 
+  protect_from_scale_in = var.autoscaling_termination_protection
+
   launch_template {
     id      = aws_launch_template.cluster.id
     version = aws_launch_template.cluster.latest_version
