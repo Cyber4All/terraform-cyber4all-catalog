@@ -41,3 +41,9 @@ terraform.rc
 
 # Ignore terratest data
 *.test-data
+
+# ignore terraform visualisation files
+plan.json
+plan.out
+graph.dot
+graph.png
