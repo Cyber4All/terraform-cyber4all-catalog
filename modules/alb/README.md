@@ -97,7 +97,7 @@ Description: Enable access logs for the ALB.
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
 
 ### <a name="input_enable_https_listener"></a> [enable\_https\_listener](#input\_enable\_https\_listener)
 

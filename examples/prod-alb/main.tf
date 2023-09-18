@@ -88,7 +88,9 @@ module "alb" {
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.public_subnets
 
-  enable_access_logs = true
+  enable_access_logs    = true
+  enable_https_listener = false
 
-  hosted_zone_name = local.domain_name
+  # hosted_zone_name = aws_route53_zone.dns.name
+
 }

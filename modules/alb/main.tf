@@ -65,7 +65,7 @@ resource "aws_lb" "alb" {
   ip_address_type            = "ipv4"
 
   access_logs {
-    bucket  = aws_s3_bucket.access_logs.bucket
+    bucket  = try(aws_s3_bucket.access_logs[0].id, "")
     enabled = var.enable_access_logs
   }
 
@@ -113,6 +113,10 @@ data "aws_acm_certificate" "cert" {
   domain      = var.hosted_zone_name
   types       = ["AMAZON_ISSUED"]
   most_recent = true
+
+  depends_on = [
+    var.hosted_zone_name
+  ]
 }
 
 resource "aws_lb_listener" "redirect" {
@@ -145,7 +149,7 @@ resource "aws_lb_listener" "https" {
   port              = "443"
   protocol          = "HTTPS"
 
-  certificate_arn = data.aws_acm_certificate.cert.arn
+  certificate_arn = data.aws_acm_certificate.cert[0].arn
   ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
 
   default_action {
@@ -175,7 +179,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "alb" {
-  security_group_id = aws_security_group.cluster.id
+  security_group_id = aws_security_group.alb.id
   description       = "Allow all outbound traffic."
 
   cidr_ipv4   = "0.0.0.0/0"
@@ -184,8 +188,8 @@ resource "aws_vpc_security_group_egress_rule" "alb" {
   to_port     = 65535
 }
 
-resource "aws_vpc_security_group_ingress_rule" "alb" {
-  security_group_id = aws_security_group.cluster.id
+resource "aws_vpc_security_group_ingress_rule" "http" {
+  security_group_id = aws_security_group.alb.id
   description       = "Allow HTTP traffic to the ALB from anywhere."
 
   cidr_ipv4   = "0.0.0.0/0"
@@ -194,10 +198,10 @@ resource "aws_vpc_security_group_ingress_rule" "alb" {
   to_port     = 80
 }
 
-resource "aws_vpc_security_group_ingress_rule" "alb" {
+resource "aws_vpc_security_group_ingress_rule" "https" {
   count = var.enable_https_listener ? 1 : 0
 
-  security_group_id = aws_security_group.cluster.id
+  security_group_id = aws_security_group.alb.id
   description       = "Allow HTTPS traffic to the ALB from anywhere."
 
   cidr_ipv4   = "0.0.0.0/0"
@@ -235,10 +239,11 @@ resource "aws_s3_bucket" "access_logs" {
 resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
-  bucket = aws_s3_bucket.access_logs.id
+  bucket = aws_s3_bucket.access_logs[0].id
 
-  lifecycle_rule {
-    enabled = true
+  rule {
+    id     = "Downgrade Storage Class and Expire Logs"
+    status = "Enabled"
 
     transition {
       days          = 30
@@ -264,7 +269,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
 resource "aws_s3_bucket_ownership_controls" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
-  bucket = aws_s3_bucket.access_logs.id
+  bucket = aws_s3_bucket.access_logs[0].id
 
   rule {
     object_ownership = "BucketOwnerPreferred"
@@ -274,7 +279,7 @@ resource "aws_s3_bucket_ownership_controls" "access_logs" {
 resource "aws_s3_bucket_acl" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
-  bucket = aws_s3_bucket.access_logs.id
+  bucket = aws_s3_bucket.access_logs[0].id
 
   acl = "private"
 }
@@ -287,7 +292,7 @@ resource "aws_s3_bucket_acl" "access_logs" {
 resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
-  bucket = aws_s3_bucket.mybucket.id
+  bucket = aws_s3_bucket.access_logs[0].id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -312,12 +317,16 @@ data "aws_route53_zone" "zone" {
   count = var.hosted_zone_name != "" ? 1 : 0
 
   name = var.hosted_zone_name
+
+  depends_on = [
+    var.hosted_zone_name
+  ]
 }
 
 resource "aws_route53_record" "alb" {
-  count = data.aws_route53_zone.zone.id != "" ? 1 : 0
+  count = var.hosted_zone_name != "" ? 1 : 0
 
-  zone_id = data.aws_route53_zone.zone.id
+  zone_id = data.aws_route53_zone.zone[0].id
   name    = "${var.dns_record_prefix}.${var.hosted_zone_name}"
   type    = "A"
   ttl     = "300"
