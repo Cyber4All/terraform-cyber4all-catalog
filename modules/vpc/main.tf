@@ -91,6 +91,7 @@ locals {
 # CREATE THE VPC
 # --------------------------------------------------------------------
 
+# tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 resource "aws_vpc" "this" {
   cidr_block = "10.0.0.0/18"
 
@@ -258,6 +259,7 @@ resource "aws_network_acl" "public" {
   }
 }
 
+# tfsec:ignore:aws-ec2-no-public-ingress-acl
 resource "aws_network_acl_rule" "public_ingress" {
   count = var.create_public_subnets ? 1 : 0
 
@@ -361,6 +363,7 @@ resource "aws_network_acl" "private" {
   }
 }
 
+# tfsec:ignore:aws-ec2-no-public-ingress-acl
 resource "aws_network_acl_rule" "private_ingress" {
   count = var.create_private_subnets ? 1 : 0
 

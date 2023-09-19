@@ -200,7 +200,7 @@ Description: The maximum number of instances to run in the ECS cluster.
 
 Type: `number`
 
-Default: `10`
+Default: `3`
 
 ### <a name="input_cluster_min_size"></a> [cluster\_min\_size](#input\_cluster\_min\_size)
 
