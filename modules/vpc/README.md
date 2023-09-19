@@ -1,3 +1,11 @@
+# Virtual Private Cloud (VPC)
+
+## Overview
+
+![Cloud Craft VPC Module Diagram](../../_docs/tf-vpc-module-diagram.png)
+
+## Learn
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
