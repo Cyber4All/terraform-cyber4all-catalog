@@ -61,7 +61,7 @@ data "aws_availability_zones" "current" {
     # If the number of availability zones requested is greater than the number
     # of availability zones in the region, then the module should fail.
     postcondition {
-      condition     = try(length(self.names) > var.num_availability_zones, true)
+      condition     = try(length(self.names) >= var.num_availability_zones, true)
       error_message = "The number of availability zones requested is greater than the number of availability zones in the region."
     }
   }
@@ -247,11 +247,44 @@ resource "aws_route_table_association" "public" {
 
 # Condition: The public NACL should use the default option
 
-# resource "aws_network_acl" "public" {}
+resource "aws_network_acl" "public" {
+  count = var.create_public_subnets ? 1 : 0
 
-# resource "aws_network_acl_rule" "public_ingress" {}
+  vpc_id     = aws_vpc.this.id
+  subnet_ids = aws_subnet.public[*].id
 
-# resource "aws_network_acl_rule" "public_egress" {}
+  tags = {
+    Name = "${var.vpc_name}-public-acl"
+  }
+}
+
+resource "aws_network_acl_rule" "public_ingress" {
+  count = var.create_public_subnets ? 1 : 0
+
+  network_acl_id = aws_network_acl.public[0].id
+  egress         = false
+
+  protocol    = -1
+  rule_number = 100
+  rule_action = "allow"
+  cidr_block  = "0.0.0.0/0"
+  from_port   = 0
+  to_port     = 0
+}
+
+resource "aws_network_acl_rule" "public_egress" {
+  count = var.create_public_subnets ? 1 : 0
+
+  network_acl_id = aws_network_acl.public[0].id
+  egress         = true
+
+  protocol    = -1
+  rule_number = 100
+  rule_action = "allow"
+  cidr_block  = "0.0.0.0/0"
+  from_port   = 0
+  to_port     = 0
+}
 
 
 # --------------------------------------------------------------------
@@ -317,8 +350,41 @@ resource "aws_route_table_association" "private" {
 # CREATE THE PRIVATE NACL
 # --------------------------------------------------------------------
 
-# resource "aws_network_acl" "private" {}
+resource "aws_network_acl" "private" {
+  count = var.create_private_subnets ? 1 : 0
 
-# resource "aws_network_acl_rule" "private_ingress" {}
+  vpc_id     = aws_vpc.this.id
+  subnet_ids = aws_subnet.private[*].id
 
-# resource "aws_network_acl_rule" "private_egress" {}
+  tags = {
+    Name = "${var.vpc_name}-private-acl"
+  }
+}
+
+resource "aws_network_acl_rule" "private_ingress" {
+  count = var.create_private_subnets ? 1 : 0
+
+  network_acl_id = aws_network_acl.private[0].id
+  egress         = false
+
+  protocol    = -1
+  rule_number = 100
+  rule_action = "allow"
+  cidr_block  = "0.0.0.0/0"
+  from_port   = 0
+  to_port     = 0
+}
+
+resource "aws_network_acl_rule" "private_egress" {
+  count = var.create_private_subnets ? 1 : 0
+
+  network_acl_id = aws_network_acl.private[0].id
+  egress         = true
+
+  protocol    = -1
+  rule_number = 100
+  rule_action = "allow"
+  cidr_block  = "0.0.0.0/0"
+  from_port   = 0
+  to_port     = 0
+}

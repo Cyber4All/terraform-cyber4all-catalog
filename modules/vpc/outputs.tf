@@ -1,42 +1,95 @@
 output "availability_zones" {
-  value = local.availability_zones
+  description = "The availability zones of the VPC."
+  value       = local.availability_zones
 }
-output "nat_gateway_count" {
-  value = length(aws_nat_gateway.this)
+
+output "nat_gateway_public_ip" {
+  description = "The public IP address of the NAT gateways."
+  value       = aws_nat_gateway.this[*].public_ip
 }
-output "nat_gateway_public_ips" {
-  value = aws_nat_gateway.this[*].public_ip
-}
+
 output "num_availability_zones" {
-  value = length(local.availability_zones)
+  description = "The number of availability zones of the VPC."
+  value       = length(local.availability_zones)
 }
-output "private_subnet_ids" {
-  value = aws_subnet.private[*].id
+
+output "num_nat_gateways" {
+  description = "The number of NAT gateways created."
+  value       = length(aws_nat_gateway.this)
 }
+
 output "private_subnet_cidr_blocks" {
-  value = aws_subnet.private[*].cidr_block
+  description = "The CIDR blocks of the private subnets."
+  value       = aws_subnet.private[*].cidr_block
 }
-# output "private_subnet_route_table_ids" {}
-# output "private_subnets" {}
-# output "private_subnets_route_table_ids" {}
+
+output "private_subnet_ids" {
+  description = "The IDs of the private subnets."
+  value       = aws_subnet.private[*].id
+}
+
+output "private_subnet_route_table_id" {
+  description = "The ID of the private subnet route table."
+  value       = aws_route_table.private[0].id
+}
+
+output "private_subnets" {
+  description = "A map of all private subnets, with the subnet name as key, and all aws-subnet properties as the value."
+  value = {
+    for s in aws_subnet.private : s.tags.Name => {
+      availability_zone = s.availability_zone
+      cidr_block        = s.cidr_block
+      route_table       = aws_route_table.private[0].id
+      subnet_id         = s.id
+      network_acl       = aws_network_acl.private[0].id
+    }
+  }
+}
+
 output "public_subnet_cidr_blocks" {
-  value = aws_subnet.public[*].cidr_block
+  description = "The CIDR blocks of the public subnets."
+  value       = aws_subnet.public[*].cidr_block
 }
+
 output "public_subnet_ids" {
-  value = aws_subnet.public[*].id
+  description = "The IDs of the public subnets."
+  value       = aws_subnet.public[*].id
 }
+
 output "public_subnet_route_table_id" {
-  value = aws_route_table.public[0].id
+  description = "The ID of the public subnet route table."
+  value       = aws_route_table.public[0].id
 }
-# output "public_subnets" {}
-# output "public_subnets_network_acl_id" {}
+
+output "public_subnets" {
+  description = "A map of all public subnets, with the subnet name as key, and all aws-subnet properties as the value."
+  value = {
+    for s in aws_subnet.public : s.tags.Name => {
+      availability_zone = s.availability_zone
+      cidr_block        = s.cidr_block
+      route_table       = aws_route_table.public[0].id
+      subnet_id         = s.id
+      network_acl       = aws_network_acl.public[0].id
+    }
+  }
+}
+
+output "public_subnets_network_acl_id" {
+  description = "The ID of the public subnet network ACL."
+  value       = aws_network_acl.public[0].id
+}
+
 output "vpc_cidr_block" {
-  value = aws_vpc.this.cidr_block
+  description = "The CIDR block of the VPC."
+  value       = aws_vpc.this.cidr_block
 }
+
 output "vpc_id" {
-  value = aws_vpc.this.id
+  description = "The ID of the VPC."
+  value       = aws_vpc.this.id
 }
+
 output "vpc_name" {
-  value = var.vpc_name
+  description = "The name of the VPC."
+  value       = var.vpc_name
 }
-# output "vpc_ready" {}

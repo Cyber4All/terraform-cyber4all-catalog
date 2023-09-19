@@ -100,49 +100,65 @@ The following outputs are exported:
 
 ### <a name="output_availability_zones"></a> [availability\_zones](#output\_availability\_zones)
 
-Description: n/a
+Description: The availability zones of the VPC.
 
-### <a name="output_nat_gateway_count"></a> [nat\_gateway\_count](#output\_nat\_gateway\_count)
+### <a name="output_nat_gateway_public_ip"></a> [nat\_gateway\_public\_ip](#output\_nat\_gateway\_public\_ip)
 
-Description: n/a
-
-### <a name="output_nat_gateway_public_ips"></a> [nat\_gateway\_public\_ips](#output\_nat\_gateway\_public\_ips)
-
-Description: n/a
+Description: The public IP address of the NAT gateways.
 
 ### <a name="output_num_availability_zones"></a> [num\_availability\_zones](#output\_num\_availability\_zones)
 
-Description: n/a
+Description: The number of availability zones of the VPC.
+
+### <a name="output_num_nat_gateways"></a> [num\_nat\_gateways](#output\_num\_nat\_gateways)
+
+Description: The number of NAT gateways created.
 
 ### <a name="output_private_subnet_cidr_blocks"></a> [private\_subnet\_cidr\_blocks](#output\_private\_subnet\_cidr\_blocks)
 
-Description: n/a
+Description: The CIDR blocks of the private subnets.
 
 ### <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids)
 
-Description: n/a
+Description: The IDs of the private subnets.
+
+### <a name="output_private_subnet_route_table_id"></a> [private\_subnet\_route\_table\_id](#output\_private\_subnet\_route\_table\_id)
+
+Description: The ID of the private subnet route table.
+
+### <a name="output_private_subnets"></a> [private\_subnets](#output\_private\_subnets)
+
+Description: A map of all private subnets, with the subnet name as key, and all aws-subnet properties as the value.
 
 ### <a name="output_public_subnet_cidr_blocks"></a> [public\_subnet\_cidr\_blocks](#output\_public\_subnet\_cidr\_blocks)
 
-Description: output "private\_subnet\_route\_table\_ids" {} output "private\_subnets" {} output "private\_subnets\_route\_table\_ids" {}
+Description: The CIDR blocks of the public subnets.
 
 ### <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids)
 
-Description: n/a
+Description: The IDs of the public subnets.
 
 ### <a name="output_public_subnet_route_table_id"></a> [public\_subnet\_route\_table\_id](#output\_public\_subnet\_route\_table\_id)
 
-Description: n/a
+Description: The ID of the public subnet route table.
+
+### <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets)
+
+Description: A map of all public subnets, with the subnet name as key, and all aws-subnet properties as the value.
+
+### <a name="output_public_subnets_network_acl_id"></a> [public\_subnets\_network\_acl\_id](#output\_public\_subnets\_network\_acl\_id)
+
+Description: The ID of the public subnet network ACL.
 
 ### <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block)
 
-Description: output "public\_subnets" {} output "public\_subnets\_network\_acl\_id" {}
+Description: The CIDR block of the VPC.
 
 ### <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id)
 
-Description: n/a
+Description: The ID of the VPC.
 
 ### <a name="output_vpc_name"></a> [vpc\_name](#output\_vpc\_name)
 
-Description: n/a
+Description: The name of the VPC.
 <!-- END_TF_DOCS -->
