@@ -42,7 +42,7 @@ variable "dns_record_prefix" {
 variable "enable_access_logs" {
   type        = bool
   description = "Enable access logs for the ALB."
-  default     = false
+  default     = true
 }
 
 variable "enable_https_listener" {

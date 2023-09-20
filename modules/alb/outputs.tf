@@ -10,7 +10,7 @@ output "alb_dns_name" {
 
 output "alb_hosted_zone_id" {
   description = "The ID of the hosted zone where the ALB DNS record was created."
-  value       = var.hosted_zone_name != "" ? data.aws_route53_zone.zone.zone_id : null
+  value       = try(data.aws_route53_zone.zone[0].zone_id, null)
 }
 
 output "alb_name" {
@@ -20,7 +20,7 @@ output "alb_name" {
 
 output "alb_dns_record_name" {
   description = "The name of the ALB DNS record."
-  value       = var.hosted_zone_name != "" ? aws_route53_record.alb.name : null
+  value       = try(aws_route53_record.alb[0].name, null)
 }
 
 output "alb_security_group_id" {
@@ -30,10 +30,10 @@ output "alb_security_group_id" {
 
 output "http_listener_arn" {
   description = "The ARN of the HTTP listener."
-  value       = coalesce(aws_lb_listener.http.arn, aws_lb_listener.redirect.arn)
+  value       = try(aws_lb_listener.http[0].arn, aws_lb_listener.redirect[0].arn)
 }
 
 output "https_listener_arn" {
   description = "The ARN of the HTTPS listener."
-  value       = var.enable_https_listener ? aws_lb_listener.https.arn : null
+  value       = try(aws_lb_listener.https[0].arn, null)
 }
