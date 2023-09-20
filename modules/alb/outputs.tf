@@ -10,7 +10,7 @@ output "alb_dns_name" {
 
 output "alb_hosted_zone_id" {
   description = "The ID of the hosted zone where the ALB DNS record was created."
-  value       = try(data.aws_route53_zone.zone[0].zone_id, null)
+  value       = aws_lb.alb.zone_id
 }
 
 output "alb_name" {
