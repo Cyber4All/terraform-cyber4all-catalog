@@ -7,6 +7,7 @@
 ## Learn
 
 <!-- BEGIN_TF_DOCS -->
+## Requirements
 
 The following requirements are needed by this module:
 
@@ -56,6 +57,7 @@ module "example" {
 
 }
 ```
+## Required Inputs
 
 The following input variables are required:
 
