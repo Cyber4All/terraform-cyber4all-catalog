@@ -140,10 +140,6 @@ list(object({
     }))
   }))
 ```
-
-## Optional Inputs
-
-No optional inputs.
 ## Outputs
 
 The following outputs are exported:
