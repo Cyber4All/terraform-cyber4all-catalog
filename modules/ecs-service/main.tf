@@ -39,96 +39,206 @@ terraform {
 
 # ------------------------------------------------------------
 
+# -------------------------------------------
+# RETRIEVE THE AWS MANAGED SERVICE ROLE
+# -------------------------------------------
+
+data "aws_iam_role" "service" {
+  count = !var.create_scheduled_task ? 1 : 0
+
+  name = "AWSServiceRoleForECS"
+}
+
+
+# -------------------------------------------
+# RETRIEVE THE ECS CLUSTER
+# -------------------------------------------
+
+data "aws_ecs_cluster" "cluster" {
+  name = var.ecs_cluster_name
+
+  lifecycle {
+    # If the ECS cluster is not in an ACTIVE state, then the ECS service cannot 
+    # be created and the module should fail.
+    postcondition {
+      condition = self.status == "ACTIVE"
+      message   = "The ECS cluster must be in an ACTIVE state before creating the ECS service. Currently the ECS cluster is ${self.status}."
+    }
+
+    # If the ECS service is using EC2 compute, then the ECS cluster must have
+    # EC2 container instances registered to it.
+    postcondition {
+      condition = self.registered_container_instances_count > 0
+      message   = "An ECS service using EC2 launch type must have at least one EC2 container instance registered to the ECS cluster."
+    }
+
+    # If the ECS service is using Service Connect, a default namespace must be
+    # configured for the ECS cluster.
+    postcondition {
+      condition = var.enable_service_connect && self.default_capacity_provider_strategy != null
+      message   = "An ECS service using Service Connect must have a default namespace configured for the ECS cluster."
+    }
+  }
+}
+
 
 # -------------------------------------------
 # CREATE THE ECS SERVICE
 # -------------------------------------------
 
 # Condition: Network type should only support bridge mode
-# Condition: Service Connect should be used, service registries is no longer used
-# Condition: Alarms should be setup for rollback/deployment failures
-# Condition: Capacity provider should be setup for default capacity provider when provided the launch_type should be ignored
-# Condition: Load balancer should be conditionally setup 
-# Condition: We should be using binpack for placement strategy
-# Condition: Should only exist when create_scheduled_task is false
 
-# resource "aws_ecs_service" "service" {}
+resource "aws_ecs_service" "service" {
+  count = !var.create_scheduled_task ? 1 : 0
 
+  cluster = data.aws_ecs_cluster.cluster.arn
 
-# -------------------------------------------
-# CREATE THE SERVICE ROLLBACK ALARM
-# -------------------------------------------
+  name            = var.ecs_service_name
+  task_definition = local.task_definition
 
-# Condition: The alarm should be conditionally configured
-# if the rollback alarm is enabled in the ecs-service resource
+  iam_role = data.aws_iam_role.service.arn
 
-# resource "aws_cloudwatch_metric_alarm" "service" {}
+  # TODO Before setting this we should test if the default works
+  # launch type is ignored if capacity provider is set but since
+  # a default is set it should use that. Since we will always use Ec2
+  # for ecs service then this should need to be set.
+  # launch_type             = "EC2"
+  # capacity_provider_strategy {}
 
+  deployment_circuit_breaker {
+    enable   = var.enable_deployment_rollback
+    rollback = true
+  }
 
-# -------------------------------------------
-# CREATE THE SERVICE ROLE
-# -------------------------------------------
+  # The upper and lower limits (as a percentage of the service's desiredCount)
+  # of the unmber of running tasks that should be maintained in the service
+  # during a deployment.
+  deployment_maximum_percent         = 200
+  deployment_minimum_healthy_percent = 66
+  desired_count                      = var.desired_number_of_tasks
 
-# Condition: This section may not actually be needed since
-# we have service roles for the EC2 container instances
+  enable_ecs_managed_tags = true
+  enable_execute_command  = false
+  force_new_deployment    = true
 
-# data "iam_policy_document" "service" {}
+  health_check_grace_period_seconds = var.enable_load_balancer ? 0 : null
 
-# resource "aws_iam_role" "service" {}
+  dynamic "load_balancer" {
+    for_each = var.enable_load_balancer ? [1] : []
 
-# resource "aws_iam_role_policy_attachment" "service" {}
+    content {
+      container_name   = var.ecs_service_name
+      container_port   = 80 # TODO same as service and container port
+      target_group_arn = "" # TODO same as alb target group
+    }
+  }
+
+  # Tasks are placed on container instances so as to leave the
+  # least amount of unused CPU or memory. This strategy minimizes
+  # the number of container instances in use.
+  ordered_placement_strategy {
+    type = "binpack"
+  }
+
+  # TODO before changing other configuration we should test this
+  service_connect_configuration {
+    enabled = var.enable_service_connect
+  }
+
+  timeouts {
+    delete = "30m"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      desired_count
+    ]
+  }
+}
 
 
 # ------------------------------------------------------------
 
-# THE FOLLOWING SECTION IS USED TO CONFIGURE THE SERVICE,
+# THE FOLLOWING SECTION IS USED TO CONFIGURE THE SERVICE
 
-# AND ASSOCIATED RESOURCES (CloudWatch Alarms, IAM)
+# AUTO SCALING USING APP AUTOSCALING POLICIES AND TARGET
 
 # ------------------------------------------------------------
 
 
 # -------------------------------------------
-# CREATE THE AUTOSCALING METRIC ALARMS
+# CREATE THE AUTOSCALING TARGET
 # -------------------------------------------
 
-# Condition: All of the following resource should be created if
-# enable_service_auto_scaling is true
-# Reference: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html
-# Example: https://github.com/cn-terraform/terraform-aws-ecs-service-autoscaling/blob/main/main.tf
+resource "aws_appautoscaling_target" "service" {
+  count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
 
-# resource "aws_cloudwatch_metric_alarm" "cpu_high" {}
+  max_capacity = max(var.max_number_of_tasks, var.desired_number_of_tasks)
+  min_capacity = min(var.min_number_of_tasks, var.desired_number_of_tasks)
 
-# Condition: The low metric should be calculated based on the high
-# if percentage is 90 for high then low should be 10
+  resource_id        = "service/${var.ecs_cluster_name}/${var.ecs_service_name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
 
-# resource "aws_cloudwatch_metric_alarm" "cpu_low" {}
-
-# resource "aws_cloudwatch_metric_alarm" "mem_high" {}
-
-# Condition: The high metric should be calculated based on the low
-# if percentage is 90 for high then low should be 10
-
-# resource "aws_cloudwatch_metric_alarm" "mem_low" {}
+  depends_on = [
+    aws_ecs_service.service
+  ]
+}
 
 
 # -------------------------------------------
-# CREATE THE AUTOSCALING METRIC ALARMS
+# CREATE THE AUTOSCALING POLICY
 # -------------------------------------------
 
-# Condition: enable_service_auto_scaling is true
-# Condition: Depends on aws_appautoscaling_target.target
+resource "aws_appautoscaling_policy" "cpu" {
+  count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
 
-# resource "aws_appautoscaling_policy" "scale_out" {}
+  name               = "${var.ecs_service_name}-scale-in"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.service.resource_id
+  scalable_dimension = aws_appautoscaling_target.service.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.service.service_namespace
 
-# Condition: enable_service_auto_scaling is true
-# Condition: Depends on aws_appautoscaling_target.target
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
 
-# resource "aws_appautoscaling_policy" "scale_in" {}
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
 
-# Condition: enable_service_auto_scaling is true
+    target_value = var.cpu_utilization_threshold
+  }
 
-# resource "aws_appautoscaling_target" "target" {}
+  depends_on = [
+    aws_ecs_service.service
+  ]
+}
+
+resource "aws_appautoscaling_policy" "memory" {
+  count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
+
+  name               = "${var.ecs_service_name}-scale-in"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.service.resource_id
+  scalable_dimension = aws_appautoscaling_target.service.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.service.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+
+    target_value = var.memory_utilization_threshold
+  }
+
+  depends_on = [
+    aws_ecs_service.service
+  ]
+}
 
 
 # ------------------------------------------------------------
@@ -139,30 +249,113 @@ terraform {
 
 # ------------------------------------------------------------
 
+data "aws_region" "current" {}
+
+locals {
+  cloudwatch_log_group_name = "/ecs/${var.ecs_service_name}"
+  log_configuration = {
+    logDriver = "awslogs"
+    options = {
+      awslogs-group  = local.cloudwatch_log_group_name
+      awslogs-region = data.aws_region.current.name
+    }
+  }
+
+  # This allows us to query both the existing as well as Terraform's state and get
+  # and get the max version of either source, useful for when external resources
+  # update the container definition
+  max_task_def_revision = max(aws_ecs_task_definition.task.revision, data.aws_ecs_task_definition.task.revision)
+  task_definition       = "${aws_ecs_task_definition.task.family}:${local.max_task_def_revision}}"
+}
+
+# This allows us to query both the existing as well as Terraform's state and get
+# and get the max version of either source, useful for when external resources
+# update the container definition
+data "aws_ecs_task_definition" "task" {
+  task_definition = aws_ecs_task_definition.task.family
+
+  depends_on = [
+    aws_ecs_task_definition.task
+  ]
+}
+
 
 # -------------------------------------------
 # CREATE THE ECS TASK DEFINITION
 # -------------------------------------------
 
-# resource "aws_ecs_task_definition" "task" {}
+resource "aws_ecs_task_definition" "task" {
+  family = var.ecs_service_name
 
+  cpu          = 256
+  memory       = 256
+  network_mode = "bridge"
 
-# -------------------------------------------
-# CREATE THE ECS TASK DEFINITION
-# -------------------------------------------
+  execution_role_arn = ""
+  task_role_arn      = ""
 
-# Condition: This container definition is the essential container
-# Condition: It should always use bridge mode
-# Condition: A change to the image in the container should be ignored
+  container_definitions = jsonencode([
+    {
+      name = var.ecs_service_name
 
-# data "aws_ecs_container_definition" "essential" {}
+      # This value should be able to be ignored when updated externally
+      image = var.image
+
+      portMappings = [{
+        containerPort = var.container_port
+      }]
+
+      # These should reformat the environment variables and secrets
+      # to the format needed by the container definition
+      # {
+      #   NODE_ENV = "production"
+      # }
+      # maps to ->
+      # [
+      #   { "name" : "NODE_ENV", "value" : "production"}
+      # ] 
+      environment = var.environment_variables
+      secrets     = var.secrets
+
+      logConfiguration = var.enable_container_logs ? local.log_configuration : null
+
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port} || exit 1"]
+        interval    = 30
+        retries     = 5
+        startPeriod = 0
+        timeout     = 5
+      }
+    }
+  ])
+
+  requires_compatibilities = ["EC2", "FARGATE"]
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "X86_64"
+  }
+
+  depends_on = [
+    aws.cloudwatch_log_group.task
+  ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
 
 # -------------------------------------------
 # CREATE THE ECS LOG GROUP FOR THE ESSENTIAL DEFINITION
 # -------------------------------------------
 
-# resource "aws" "cloudwatch_log_group" "task" {}
+resource "aws_cloudwatch_log_group" "task" {
+  count = var.enable_container_logs ? 1 : 0
+
+  name              = local.cloudwatch_log_group_name
+  retention_in_days = 30
+}
 
 
 # ------------------------------------------------------------
