@@ -14,7 +14,7 @@ provider "aws" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  name                   = "ecs-cluster-test${var.random_id}"
+  vpc_name               = "ecs-cluster-test${var.random_id}"
   num_availability_zones = 3
 }
 
