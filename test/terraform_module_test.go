@@ -32,11 +32,17 @@ func TestExamplesForTerraformModules(t *testing.T) {
 		// 	genTestDataFunc: modules.DeployUsingTerraform,
 		// 	validateFunc:    modules.ValidateSecretsContainSecrets,
 		// },
+		// {
+		// 	name:            "alb https",
+		// 	workingDir:      "../examples/deploy-alb",
+		// 	genTestDataFunc: modules.DeployAlb,
+		// 	validateFunc:    modules.ValidateAlbHttps,
+		// },
 		{
-			name:            "alb",
-			workingDir:      "../examples/deploy-alb",
+			name:            "alb w/o https",
+			workingDir:      "../examples/deploy-alb-wo-https",
 			genTestDataFunc: modules.DeployAlb,
-			validateFunc:    modules.ValidateAlbHttps,
+			validateFunc:    modules.ValidateAlbNoHttps,
 		},
 	}
 

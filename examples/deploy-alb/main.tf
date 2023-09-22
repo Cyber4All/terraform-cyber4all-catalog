@@ -34,7 +34,7 @@ module "alb" {
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.public_subnets
 
-  enable_access_logs    = false
+  enable_access_logs    = true
   enable_https_listener = true
 
   hosted_zone_name = "lieutenant-dan.click"

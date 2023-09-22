@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	aws_sdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -37,6 +38,33 @@ func DeployAlb(t *testing.T, workingDir string) {
 	test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
 }
 
+func ValidateAlbNoHttps(t *testing.T, workingDir string) {
+	// Connect to aws using aws sdk
+	session, err := session.NewSession()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Load the Terraform Options saved by the earlier deploy_terraform stage
+	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
+	// Get the random id
+	randomId := terraformOptions.Vars["random_id"].(string)
+	expectedAlbName := fmt.Sprintf("alb-test%s", randomId)
+
+	elb := elbv2.New(session, &aws_sdk.Config{Region: aws_sdk.String(awsRegion)})
+
+	// Check that the alb exists
+	lb := assertAlbExists(t, elb, awsRegion, expectedAlbName)
+
+	// Check that the alb returns a 404 when we try to access it
+	dnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
+	assertAlbReturns404(t, fmt.Sprintf("http://%s", dnsName))
+
+	// Check the outputs of the alb
+	assertAlbOutputs(t, terraformOptions, lb, false)
+}
+
 func ValidateAlbHttps(t *testing.T, workingDir string) {
 	// Connect to aws using aws sdk
 	session, err := session.NewSession()
@@ -58,13 +86,13 @@ func ValidateAlbHttps(t *testing.T, workingDir string) {
 
 	// Check that the alb returns a 404 when we try to access it
 	dnsRecName := terraform.Output(t, terraformOptions, "alb_dns_record_name")
-	assertAlbReturns404(t, dnsRecName)
+	assertAlbReturns404(t, fmt.Sprintf("https://%s", dnsRecName))
 
 	// Check the outputs of the alb
-	assertAlbOutputs(t, terraformOptions, lb)
+	assertAlbOutputs(t, terraformOptions, lb, true)
 }
 
-func assertAlbOutputs(t *testing.T, terraformOptions *terraform.Options, lb *elbv2.LoadBalancer) {
+func assertAlbOutputs(t *testing.T, terraformOptions *terraform.Options, lb *elbv2.LoadBalancer, isHttps bool) {
 	// Check that the alb arn is the same as the output
 	albArn := terraform.Output(t, terraformOptions, "alb_arn")
 	assert.Equal(t, albArn, *lb.LoadBalancerArn, "Expected alb arn to be %s, got %s", albArn, *lb.LoadBalancerArn)
@@ -73,27 +101,31 @@ func assertAlbOutputs(t *testing.T, terraformOptions *terraform.Options, lb *elb
 	dnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
 	assert.Equal(t, dnsName, *lb.DNSName, "Expected alb dns name to be %s, got %s", dnsName, *lb.DNSName)
 
-	// Check alb zone id
-	zoneId := terraform.Output(t, terraformOptions, "alb_hosted_zone_id")
-	assert.Equal(t, zoneId, *lb.CanonicalHostedZoneId, "Expected alb zone id to be %s, got %s", zoneId, *lb.CanonicalHostedZoneId)
-
 	// Check the alb name
 	albName := terraform.Output(t, terraformOptions, "alb_name")
 	assert.Equal(t, albName, *lb.LoadBalancerName, "Expected alb name to be %s, got %s", albName, *lb.LoadBalancerName)
-
-	// Check the dns record name
-	dnsRecordName := terraform.Output(t, terraformOptions, "alb_dns_record_name")
-	assert.Equal(t, dnsRecordName, "api.lieutenant-dan.click", "Expected alb dns record name to be %s, got %s", "api.lieutenant-dan.click", dnsRecordName)
 
 	// Check the alb security group id
 	assert.True(t, lb.SecurityGroups != nil, "Expected alb security group id to not be nil")
 	assert.True(t, len(lb.SecurityGroups) == 1, "Expected alb security group id to have 1 security group")
 	assert.Equal(t, terraform.Output(t, terraformOptions, "alb_security_group_id"), *lb.SecurityGroups[0], "Expected alb security group id to be %s, got %s", terraform.Output(t, terraformOptions, "alb_security_group_id"), *lb.SecurityGroups[0])
+
+	if isHttps {
+		// Check alb zone id
+		zoneId := terraform.Output(t, terraformOptions, "alb_hosted_zone_id")
+		assert.Equal(t, zoneId, *lb.CanonicalHostedZoneId, "Expected alb zone id to be %s, got %s", zoneId, *lb.CanonicalHostedZoneId)
+
+		// Check the dns record name
+		dnsRecordName := terraform.Output(t, terraformOptions, "alb_dns_record_name")
+		assert.Equal(t, dnsRecordName, "api.lieutenant-dan.click", "Expected alb dns record name to be %s, got %s", "api.lieutenant-dan.click", dnsRecordName)
+	}
 }
 
-func assertAlbReturns404(t *testing.T, albDnsName string) {
+func assertAlbReturns404(t *testing.T, route string) {
+	// Wait a minute for the alb to be ready
+	time.Sleep(1 * time.Minute)
 	// Hit the alb
-	res, err := http.Get(fmt.Sprintf("https://%s", albDnsName))
+	res, err := http.Get(route)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,13 +139,13 @@ func assertAlbReturns404(t *testing.T, albDnsName string) {
 	if res.Body == nil {
 		t.Fatal("Expected body to not be nil")
 	}
+	defer res.Body.Close()
 
 	buf := make([]byte, 1024)
 	n, err := res.Body.Read(buf)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	if string(buf[:n]) != "404 Not Found" {
 		t.Fatalf("Expected body to be '404 Not Found', got %s", string(buf[:n]))
 	}

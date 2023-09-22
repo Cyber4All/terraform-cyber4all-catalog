@@ -266,24 +266,21 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
 # CONFIGURE ACCESS TO S3 BUCKET
 # -------------------------------------------
 
-resource "aws_s3_bucket_ownership_controls" "access_logs" {
+data "aws_elb_service_account" "current" {}
+
+data "aws_iam_policy_document" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
-  bucket = aws_s3_bucket.access_logs[0].id
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = [data.aws_elb_service_account.current.arn]
+    }
 
-  rule {
-    object_ownership = "BucketOwnerPreferred"
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.access_logs[0].arn}/*"]
   }
 }
-
-resource "aws_s3_bucket_acl" "access_logs" {
-  count = var.enable_access_logs ? 1 : 0
-
-  bucket = aws_s3_bucket.access_logs[0].id
-
-  acl = "private"
-}
-
 
 # -------------------------------------------
 # CONFIGURE S3 BUCKET SERVER SIDE ENCRYPTION
