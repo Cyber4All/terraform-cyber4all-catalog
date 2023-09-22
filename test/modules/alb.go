@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -136,19 +137,17 @@ func assertAlbReturns404(t *testing.T, route string) {
 	}
 
 	// Check that the message body is "404 not found"
-	t.Log(res.Body)
 	if res.Body == nil {
 		t.Fatal("Expected body to not be nil")
 	}
 	defer res.Body.Close()
 
-	buf := make([]byte, 1024)
-	n, err := res.Body.Read(buf)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(buf[:n]) != "404 Not Found" {
-		t.Fatalf("Expected body to be '404 Not Found', got %s", string(buf[:n]))
+	if string(body[:]) != "404 Not Found" {
+		t.Fatalf("Expected body to be '404 Not Found', got %s", string(body[:]))
 	}
 }
 
