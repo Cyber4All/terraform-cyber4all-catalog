@@ -282,6 +282,13 @@ data "aws_iam_policy_document" "access_logs" {
   }
 }
 
+resource "aws_s3_bucket_policy" "access_logs" {
+  count = var.enable_access_logs ? 1 : 0
+
+  bucket = aws_s3_bucket.access_logs[0].id
+  policy = data.aws_iam_policy_document.access_logs[0].json
+}
+
 # -------------------------------------------
 # CONFIGURE S3 BUCKET SERVER SIDE ENCRYPTION
 # -------------------------------------------

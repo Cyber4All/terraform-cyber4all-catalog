@@ -59,7 +59,7 @@ func ValidateAlbNoHttps(t *testing.T, workingDir string) {
 
 	// Check that the alb returns a 404 when we try to access it
 	dnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
-	assertAlbReturns404(t, fmt.Sprintf("http://%s", dnsName))
+	assertAlbReturns404(t, fmt.Sprintf("http://%s:80", dnsName))
 
 	// Check the outputs of the alb
 	assertAlbOutputs(t, terraformOptions, lb, false)
@@ -86,7 +86,7 @@ func ValidateAlbHttps(t *testing.T, workingDir string) {
 
 	// Check that the alb returns a 404 when we try to access it
 	dnsRecName := terraform.Output(t, terraformOptions, "alb_dns_record_name")
-	assertAlbReturns404(t, fmt.Sprintf("https://%s", dnsRecName))
+	assertAlbReturns404(t, fmt.Sprintf("https://%s:443", dnsRecName))
 
 	// Check the outputs of the alb
 	assertAlbOutputs(t, terraformOptions, lb, true)
