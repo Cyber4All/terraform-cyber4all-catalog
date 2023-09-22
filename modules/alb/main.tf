@@ -224,6 +224,8 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
 # CREATE S3 BUCKET FOR ALB ACCESS LOGS
 # -------------------------------------------
 
+
+# tfsec:ignore: aws-s3-enable-versioning
 resource "aws_s3_bucket" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
@@ -289,10 +291,22 @@ resource "aws_s3_bucket_policy" "access_logs" {
   policy = data.aws_iam_policy_document.access_logs[0].json
 }
 
+resource "aws_s3_bucket_public_access_block" "access_logs" {
+  count = var.enable_access_logs ? 1 : 0
+
+  bucket = aws_s3_bucket.access_logs[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 # -------------------------------------------
 # CONFIGURE S3 BUCKET SERVER SIDE ENCRYPTION
 # -------------------------------------------
 
+# tfsec:ignore: aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
