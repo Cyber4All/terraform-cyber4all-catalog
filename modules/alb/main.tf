@@ -82,7 +82,7 @@ resource "aws_lb" "alb" {
 # This is ignored because the implementation was
 # intentional. enable_https_listener should only
 # be set to false in non-production environments.
-# tfsec:ignore: aws-elb-http-not-used
+# tfsec:ignore:aws-elb-http-not-used
 resource "aws_lb_listener" "http" {
   # creates the http listener when https is disabled
   count = var.enable_https_listener ? 0 : 1
@@ -225,7 +225,7 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
 # -------------------------------------------
 
 
-# tfsec:ignore: aws-s3-enable-versioning
+# tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
@@ -306,7 +306,7 @@ resource "aws_s3_bucket_public_access_block" "access_logs" {
 # CONFIGURE S3 BUCKET SERVER SIDE ENCRYPTION
 # -------------------------------------------
 
-# tfsec:ignore: aws-s3-encryption-customer-key
+# tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 

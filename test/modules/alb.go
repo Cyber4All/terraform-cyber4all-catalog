@@ -136,6 +136,7 @@ func assertAlbReturns404(t *testing.T, route string) {
 	}
 
 	// Check that the message body is "404 not found"
+	t.Log(res.Body)
 	if res.Body == nil {
 		t.Fatal("Expected body to not be nil")
 	}
