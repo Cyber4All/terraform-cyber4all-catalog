@@ -82,7 +82,7 @@ resource "aws_lb" "alb" {
 # This is ignored because the implementation was
 # intentional. enable_https_listener should only
 # be set to false in non-production environments.
-# tfsec:ignore: aws-elb-http-not-used
+# tfsec:ignore:aws-elb-http-not-used
 resource "aws_lb_listener" "http" {
   # creates the http listener when https is disabled
   count = var.enable_https_listener ? 0 : 1
@@ -224,6 +224,8 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
 # CREATE S3 BUCKET FOR ALB ACCESS LOGS
 # -------------------------------------------
 
+
+# tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
@@ -266,29 +268,45 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
 # CONFIGURE ACCESS TO S3 BUCKET
 # -------------------------------------------
 
-resource "aws_s3_bucket_ownership_controls" "access_logs" {
+data "aws_elb_service_account" "current" {}
+
+data "aws_iam_policy_document" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
-  bucket = aws_s3_bucket.access_logs[0].id
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = [data.aws_elb_service_account.current.arn]
+    }
 
-  rule {
-    object_ownership = "BucketOwnerPreferred"
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.access_logs[0].arn}/*"]
   }
 }
 
-resource "aws_s3_bucket_acl" "access_logs" {
+resource "aws_s3_bucket_policy" "access_logs" {
+  count = var.enable_access_logs ? 1 : 0
+
+  bucket = aws_s3_bucket.access_logs[0].id
+  policy = data.aws_iam_policy_document.access_logs[0].json
+}
+
+resource "aws_s3_bucket_public_access_block" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
   bucket = aws_s3_bucket.access_logs[0].id
 
-  acl = "private"
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
-
 
 # -------------------------------------------
 # CONFIGURE S3 BUCKET SERVER SIDE ENCRYPTION
 # -------------------------------------------
 
+# tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs" {
   count = var.enable_access_logs ? 1 : 0
 
@@ -329,6 +347,9 @@ resource "aws_route53_record" "alb" {
   zone_id = data.aws_route53_zone.zone[0].id
   name    = "${var.dns_record_prefix}.${var.hosted_zone_name}"
   type    = "A"
-  ttl     = "300"
-  records = [aws_lb.alb.dns_name]
+  alias {
+    name                   = aws_lb.alb.dns_name
+    zone_id                = aws_lb.alb.zone_id
+    evaluate_target_health = true
+  }
 }
