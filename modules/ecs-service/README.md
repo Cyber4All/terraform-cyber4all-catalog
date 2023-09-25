@@ -9,6 +9,12 @@
 [ECS Service Autoscaling](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html)
 [ECS CloudWatch Metrics Service Utilization](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-metrics.html#service_utilization)
 [Great ECS Scaling Best Practices Article](https://nathanpeck.com/amazon-ecs-scaling-best-practices/)
+
+[Cron expressions reference](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-cron-expressions.html)
+[Rate expression reference](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rate-expressions.html)
+[Amazon EventBridge events](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events.html)
+[Custom event pattern reference](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events-structure.html)
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -53,8 +59,12 @@ module "example" {
 	 create_scheduled_task  = bool
 
 
-	 # The number of instances of the ECS service to run across the ECS cluster.
+	 # The number of instances of the ECS service or scheduled task to run across the ECS cluster.
 	 desired_number_of_tasks  = number
+
+
+	 # The ARN of the AWS Secrets Manager secret containing the Docker credentials.
+	 docker_credentials_secret_arn  = string
 
 
 	 # Enable container logging to CloudWatch Logs.
@@ -77,6 +87,10 @@ module "example" {
 	 enable_service_connect  = bool
 
 
+	 # A map of environment variables to pass to the ECS task.
+	 environment_variables  = map(string)
+
+
 	 # The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
 	 max_number_of_tasks  = number
 
@@ -87,6 +101,34 @@ module "example" {
 
 	 # The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number.
 	 min_number_of_tasks  = number
+
+
+	 # Override the image specified in the ECS container definition with the image specified in the module parameters. On the first apply this value should be set to true to ensure the ECS service is created with the correct image. For following applies this value should be set to false to avoid overriding external application deployments.
+	 override_image  = bool
+
+
+	 # Assign a public IP address to the ECS task.
+	 scheduled_task_assign_public_ip  = bool
+
+
+	 # The cron expression to use for the scheduled task.
+	 scheduled_task_cron_expression  = string
+
+
+	 # The event pattern to use for the scheduled task.
+	 scheduled_task_event_pattern  = any
+
+
+	 # A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified.
+	 scheduled_task_security_group_ids  = list(string)
+
+
+	 # A list of subnet IDs to associate with the ECS task. A permissive default subnet will be used if not specified.
+	 scheduled_task_subnet_ids  = list(string)
+
+
+	 # A map of secrets to pass to the ECS task. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
+	 secrets  = map(string)
 
 
 
@@ -130,11 +172,19 @@ Default: `false`
 
 ### <a name="input_desired_number_of_tasks"></a> [desired\_number\_of\_tasks](#input\_desired\_number\_of\_tasks)
 
-Description: The number of instances of the ECS service to run across the ECS cluster.
+Description: The number of instances of the ECS service or scheduled task to run across the ECS cluster.
 
 Type: `number`
 
 Default: `1`
+
+### <a name="input_docker_credentials_secret_arn"></a> [docker\_credentials\_secret\_arn](#input\_docker\_credentials\_secret\_arn)
+
+Description: The ARN of the AWS Secrets Manager secret containing the Docker credentials.
+
+Type: `string`
+
+Default: `""`
 
 ### <a name="input_enable_container_logs"></a> [enable\_container\_logs](#input\_enable\_container\_logs)
 
@@ -176,6 +226,14 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_environment_variables"></a> [environment\_variables](#input\_environment\_variables)
+
+Description: A map of environment variables to pass to the ECS task.
+
+Type: `map(string)`
+
+Default: `{}`
+
 ### <a name="input_max_number_of_tasks"></a> [max\_number\_of\_tasks](#input\_max\_number\_of\_tasks)
 
 Description: The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
@@ -199,5 +257,61 @@ Description: The minimum number of instances of the ECS service to run across th
 Type: `number`
 
 Default: `1`
+
+### <a name="input_override_image"></a> [override\_image](#input\_override\_image)
+
+Description: Override the image specified in the ECS container definition with the image specified in the module parameters. On the first apply this value should be set to true to ensure the ECS service is created with the correct image. For following applies this value should be set to false to avoid overriding external application deployments.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_scheduled_task_assign_public_ip"></a> [scheduled\_task\_assign\_public\_ip](#input\_scheduled\_task\_assign\_public\_ip)
+
+Description: Assign a public IP address to the ECS task.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_scheduled_task_cron_expression"></a> [scheduled\_task\_cron\_expression](#input\_scheduled\_task\_cron\_expression)
+
+Description: The cron expression to use for the scheduled task.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_scheduled_task_event_pattern"></a> [scheduled\_task\_event\_pattern](#input\_scheduled\_task\_event\_pattern)
+
+Description: The event pattern to use for the scheduled task.
+
+Type: `any`
+
+Default: `null`
+
+### <a name="input_scheduled_task_security_group_ids"></a> [scheduled\_task\_security\_group\_ids](#input\_scheduled\_task\_security\_group\_ids)
+
+Description: A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified.
+
+Type: `list(string)`
+
+Default: `[]`
+
+### <a name="input_scheduled_task_subnet_ids"></a> [scheduled\_task\_subnet\_ids](#input\_scheduled\_task\_subnet\_ids)
+
+Description: A list of subnet IDs to associate with the ECS task. A permissive default subnet will be used if not specified.
+
+Type: `list(string)`
+
+Default: `[]`
+
+### <a name="input_secrets"></a> [secrets](#input\_secrets)
+
+Description: A map of secrets to pass to the ECS task. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
+
+Type: `map(string)`
+
+Default: `{}`
 
 <!-- END_TF_DOCS -->

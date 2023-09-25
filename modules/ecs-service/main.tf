@@ -266,6 +266,8 @@ locals {
   # update the container definition
   max_task_def_revision = max(aws_ecs_task_definition.task.revision, data.aws_ecs_task_definition.task.revision)
   task_definition       = "${aws_ecs_task_definition.task.family}:${local.max_task_def_revision}}"
+
+  image = var.override_image ? var.image : data.aws_ecs_container_definition.task.image
 }
 
 # This allows us to query both the existing as well as Terraform's state and get
@@ -273,10 +275,13 @@ locals {
 # update the container definition
 data "aws_ecs_task_definition" "task" {
   task_definition = aws_ecs_task_definition.task.family
+}
 
-  depends_on = [
-    aws_ecs_task_definition.task
-  ]
+# This will get the latest container definition from the task definition
+# and use that as the image for new container definitions
+data "aws_ecs_container_definition" "task" {
+  task_definition = data.aws_ecs_task_definition.task.arn
+  container_name  = var.ecs_service_name
 }
 
 
@@ -298,24 +303,26 @@ resource "aws_ecs_task_definition" "task" {
     {
       name = var.ecs_service_name
 
-      # This value should be able to be ignored when updated externally
-      image = var.image
+      image = local.image
+
+      # Conditionally set the docker credentials if the secret ARN is provided
+      repositoryCredentials = var.docker_credentials_secret_arn != "" ? {
+        credentialsParameter = var.docker_credentials_secret_arn
+      } : null
 
       portMappings = [{
         containerPort = var.container_port
       }]
 
-      # These should reformat the environment variables and secrets
-      # to the format needed by the container definition
-      # {
-      #   NODE_ENV = "production"
-      # }
-      # maps to ->
-      # [
-      #   { "name" : "NODE_ENV", "value" : "production"}
-      # ] 
-      environment = var.environment_variables
-      secrets     = var.secrets
+      # Environment Variables and Secrets are both string maps with
+      # the same key/value structure. They are mapped to the following
+      # structure for the container definition:
+      #
+      # environment = [{ "name" : "", "value" : ""}]
+      # secrets = [{ "name" : "", "valueFrom" : ""}]
+      #
+      environment = [for k, v in var.environment_variables : { name = k, value = v }]
+      secrets     = [for k, v in var.secrets : { name = k, valueFrom = v }]
 
       logConfiguration = var.enable_container_logs ? local.log_configuration : null
 
@@ -358,6 +365,61 @@ resource "aws_cloudwatch_log_group" "task" {
 }
 
 
+# -------------------------------------------
+# CREATE THE TASK EXECUTION IAM ROLE
+# -------------------------------------------
+
+locals {
+  # The secrets manager ARNs are used to create the IAM policy
+  # for the task execution role. The docker credentials secret
+  # is also included in the list of secrets manager ARNs.
+  secrets_manager_arns = concat([for k, v in var.secrets : v], [var.docker_credentials_secret_arn])
+}
+
+resource "aws_iam_role" "task_execution" {
+  name = "${var.ecs_service_name}-task-execution"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_policy" "task_execution" {
+  count = length(local.secrets_manager_arns) > 0 ? 1 : 0
+
+  name = "${var.ecs_service_name}-secretsmanager-read"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "secretsmanager:GetSecretValue"
+      ]
+      Resource = local.secrets_manager_arns
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "secrets_manager" {
+  count = length(local.secrets_manager_arns) > 0 ? 1 : 0
+
+  role       = aws_iam_role.task_execution.name
+  policy_arn = aws_iam_policy.task_execution.arn
+}
+
+resource "aws_iam_role_policy_attachment" "task_execution" {
+  role       = aws_iam_role.task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+
 # ------------------------------------------------------------
 
 # THE FOLLOWING SECTION IS USED TO CONFIGURE
@@ -375,18 +437,94 @@ resource "aws_cloudwatch_log_group" "task" {
 # CREATE THE ECS TARGET FOR THE RULE
 # -------------------------------------------
 
-# Condition: Should only exist when create_scheduled_task is true
+resource "aws_cloudwatch_event_target" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
 
-# resource "aws_cloudwatch_event_target" "scheduled" {}
+  target_id = "${var.ecs_service_name}-scheduled"
+  arn       = aws_ecs_cluster.cluster.arn
+  rule      = aws_cloudwatch_event_rule.scheduled.name
+  role_arn  = aws_iam_role.scheduled.arn
+
+  ecs_target {
+    task_count          = var.desired_number_of_tasks
+    task_definition_arn = local.task_definition
+    launch_type         = "FARGATE"
+    network_configuration {
+      subnets          = var.scheduled_task_subnets
+      security_groups  = var.scheduled_task_security_group_ids
+      assign_public_ip = var.scheduled_task_assign_public_ip
+    }
+  }
+}
+
+
+# -------------------------------------------
+# CREATE THE ECS IAM ROLE FOR THE EVENT
+# -------------------------------------------
+
+data "aws_iam_policy_document" "assume_role" {
+  count = var.create_scheduled_task ? 1 : 0
+
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
+
+  name               = "${var.ecs_service_name}-scheduled"
+  assume_role_policy = data.aws_iam_policy_document.assume_role[0].json
+}
+
+
+# -------------------------------------------
+# CREATE THE ECS IAM POLICY FOR THE EVENT
+# -------------------------------------------
+
+data "aws_iam_policy_document" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
+
+  statement {
+    actions  = ["iam:PassRole"]
+    resource = ["*"]
+  }
+
+  statement {
+    actions   = ["ecs:RunTask"]
+    resources = ["${aws_ecs_task_definition.task.arn_without_revision}:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
+
+  name   = "${var.ecs_service_name}-run-task"
+  role   = aws_iam_role.scheduled.id
+  policy = data.aws_iam_policy_document.scheduled.json
+}
 
 
 # -------------------------------------------
 # CREATE THE RULE TO TRIGGER THE ECS TASK
 # -------------------------------------------
 
-# resource "aws_cloudwatch_event_rule" "custom" {}
+resource "aws_cloudwatch_event_rule" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
 
-# resource "aws_cloudwatch_event_rule" "cron" {}
+  name        = "${var.ecs_service_name}-rule"
+  description = "Trigger the ECS task by schedule or event."
+
+  event_pattern       = var.scheduled_task_event_pattern != null ? jsonencode(var.scheduled_task_event_pattern) : null
+  schedule_expression = var.scheduled_task_cron_expression != "" ? var.scheduled_task_cron_expression : null
+
+  depends_on = [aws_ecs_task_definition.task]
+}
 
 
 # ------------------------------------------------------------
@@ -402,18 +540,53 @@ resource "aws_cloudwatch_log_group" "task" {
 # CREATE THE LISTENER RULE TO ATTACH TO THE EXISTING LISTENER
 # -------------------------------------------
 
-# Condition: Should only exist is enable_alb_attachment is true
-# Condition: Should depend_on the var.alb_listener
+resource "aws_lb_listener_rule" "alb" {
+  count = var.enable_alb_attachment ? 1 : 0
 
-# resource "aws_lb_listener_rule" "alb" {}
+  listener_arn = var.alb_listener
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.alb.arn
+  }
+
+  condition {
+    field  = "path-pattern"
+    values = ["/"]
+  }
+
+  depends_on = [
+    var.alb_listener,
+    aws_lb_target_group.alb
+  ]
+}
 
 
 # -------------------------------------------
 # CREATE THE TARGET GROUP FOR THE RULE TO DIRECT TRAFFIC TO
 # -------------------------------------------
 
-# Condition: Should only exist is enable_alb_attachment is true
+resource "aws_lb_target_group" "alb" {
+  count = var.enable_alb_attachment ? 1 : 0
 
-# resource "aws_lb_target_group" "alb" {}
+  name     = var.ecs_service_name
+  port     = var.container_port
+  protocol = "HTTP"
+
+  vpc_id = var.vpc_id
+
+  health_check {
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 10
+    path                = "/"
+    matcher             = "200"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
 
