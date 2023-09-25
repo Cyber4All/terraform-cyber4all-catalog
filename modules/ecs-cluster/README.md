@@ -2,7 +2,7 @@
 
 ## Overview
 
-This service contains Terraform code to deploy an ECS cluster on [AWS](https://aws.amazon.com/) using [Elastic Container Service (ECS)](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html).
+This module contains Terraform code to deploy an ECS cluster on [AWS](https://aws.amazon.com/) using [Elastic Container Service (ECS)](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html).
 
 This service launches an ECS cluster on top of an Auto Scaling Group that you manage. If you wish to launch an ECS cluster on top of Fargate that is completely managed by AWS, specify the FARGATE provider for ECS services being associated to the cluster. Refer to the section EC2 vs Fargate Launch Types for more information on the differences between the two compute options.
 
