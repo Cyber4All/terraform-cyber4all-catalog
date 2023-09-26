@@ -205,7 +205,7 @@ resource "aws_autoscaling_group" "cluster" {
   # The default cooldown of 60s is being used to denote that scale out/in requests
   # should wait 60 seconds between the next request. This is the same time interval
   # as ECS sending metrics to CloudWatch. This ideally, should sync the scaling
-  # process with CloudWatch alarm responses. 
+  # process with CloudWatch alarm responses.
   default_cooldown = 60
 
   # This value matches the instance_warmup_period defined by the ecs capacity
@@ -214,12 +214,12 @@ resource "aws_autoscaling_group" "cluster" {
 
   health_check_type = "EC2"
 
+  protect_from_scale_in = var.autoscaling_termination_protection
+
   launch_template {
     id      = aws_launch_template.cluster.id
     version = aws_launch_template.cluster.latest_version
   }
-
-  protect_from_scale_in = var.autoscaling_termination_protection
 
   instance_refresh {
     strategy = "Rolling"
@@ -257,7 +257,7 @@ resource "aws_autoscaling_group" "cluster" {
 
   depends_on = [
     # The cluster must be created prior to the ASG.
-    # The Ec2 instances will not be able to register
+    # The EC2 instances will not be able to register
     # to an ECS cluster that does not exist.
     aws_ecs_cluster.cluster
   ]

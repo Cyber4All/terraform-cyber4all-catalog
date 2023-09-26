@@ -36,7 +36,7 @@ jobs:
             - run:
                   # These tests can be slow to create/delete, so we massively increase
                   # the test timeout to ensure cleanup jobs run correctly.
-                  #Also specify a CircleCI timeout of 5400 seconds (90m)
+                  # Also specify a CircleCI timeout of 5400 seconds (90m)
                   name: run tests
                   command: |
                       cd test

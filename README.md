@@ -38,10 +38,9 @@ conda install -c conda-forge pre-commit
 ```console
 pre-commit install
 ```
-<!-- BEGIN_TF_DOCS -->
-## Requirements
 
-No requirements.
+<!-- BEGIN_TF_DOCS -->
+
 
 ## Sample Usage
 
@@ -55,14 +54,6 @@ module "example" {
 
 }
 ```
-## Required Inputs
 
-No required inputs.
 
-## Optional Inputs
-
-No optional inputs.
-## Outputs
-
-No outputs.
 <!-- END_TF_DOCS -->
