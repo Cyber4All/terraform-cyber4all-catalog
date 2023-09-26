@@ -231,6 +231,10 @@ resource "aws_s3_bucket" "access_logs" {
 
   bucket        = "${var.alb_name}-access-logs"
   force_destroy = true
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 
@@ -289,13 +293,6 @@ resource "aws_s3_bucket_policy" "access_logs" {
 
   bucket = aws_s3_bucket.access_logs[0].id
   policy = data.aws_iam_policy_document.access_logs[0].json
-
-  depends_on = [
-    # Explicitly define the dependency to ensure
-    # the bucket policy is destroyed prior to the
-    # s3 bucket.
-    aws_s3_bucket.access_logs
-  ]
 }
 
 resource "aws_s3_bucket_public_access_block" "access_logs" {
