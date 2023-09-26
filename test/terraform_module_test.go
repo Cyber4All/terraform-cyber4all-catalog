@@ -32,6 +32,27 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			genTestDataFunc: modules.DeployUsingTerraform,
 			validateFunc:    modules.ValidateSecretsContainSecrets,
 		},
+		{
+			name:            "vpc",
+			workingDir:      "../examples/deploy-vpc",
+			genTestDataFunc: modules.DeployVpcUsingTerraform,
+			validateFunc:    modules.ValidateVpc,
+		},
+		// {
+		// 	name:            "vpc-partial-azs",
+		// 	workingDir:      "../examples/deploy-vpc-partial-azs",
+		// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
+		// },
+		// {
+		// 	name:            "vpc-public-only",
+		// 	workingDir:      "../examples/deploy-vpc-public-only",
+		// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
+		// },
+		// {
+		// 	name:            "vpc-wo-nat",
+		// 	workingDir:      "../examples/deploy-vpc-wo-nat",
+		// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
+		// },
 	}
 
 	// Run tests in parallel
