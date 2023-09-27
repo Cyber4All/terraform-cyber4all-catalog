@@ -14,7 +14,5 @@ provider "aws" {
 module "s3-artifact" {
   source = "../../modules/s3-artifact"
 
-  bucket_name   = "my-bucket"
-  artifact_name = "my-artifact"
-  artifact_path = "my-artifact.zip"
+  bucket_name = "my-bucket"
 }

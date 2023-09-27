@@ -1,13 +1,47 @@
 # -------------------------------------------------------------------------------------
-# MANAGE STATIC S3 ARTIFACTS
+# S3 ARTIFACTS MODULE
+# 
+# This module will create an S3 Bucket that supports lifecycle management,
+# server side encryption configuration, and bucket replication configuration.
+#
+# Full lifecycle management by default enables both object versioning and storage transitions.
+# Object versioning is enabled with a 30 day noncurrent version expiration policy and transitions
+# are enabled with a 30 day transition to STANDARD_IA and a 90 day transition to GLACIER.
+# Partial lifecycle management enables only object versioning with a 30 day noncurrent version
+# expiration policy. The full lifecycle management variable is a boolean and is defaulted to true.
+#
+# The bucket replication configuration creates a bucket in a different region. The replica
+# bucket will be encrypted with the same "CMK" as the primary bucket. The replica bucket defines
+# a bucket policy that allows the primary bucket to replicate objects to it.
+#
+# The module includes the following:
+#
+# - Primary S3 Bucket
+# - Primary S3 Bucket ACL
+# - Primary S3 Bucket Versioning
+# - Primary S3 Bucket Lifecycle Management (Full or Partial)
+# - Primary S3 Bucket Public Access Configuration
+# - Primary S3 Bucket Server Side Encryption Configuration
+# - Replica S3 Bucket
+# - Replica S3 Bucket ACL
+# - Replica S3 Bucket Versioning
+# - Replica S3 Bucket Public Access Configuration
+# - Replica S3 Bucket Server Side Encryption Configuration
+# - Primary IAM Policy Document
+# - Primary IAM Policy
+# - Replica IAM Policy Document
+# - Replica IAM Role
+# - Replica IAM Role Policy Attachment
+#
 # -------------------------------------------------------------------------------------
+
 
 # -------------------------------------------
 # SET TERRAFORM REQUIREMENTS TO RUN MODULE
 # -------------------------------------------
 
 terraform {
-  required_version = ">= 1.5.6"
+  required_version = ">= 1.5.5"
 
   required_providers {
     aws = {
@@ -17,20 +51,18 @@ terraform {
   }
 }
 
-
 # -------------------------------------------
 # SET PROVIDER ALIAS FOR REPLICATION
 # -------------------------------------------
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.priamry_region
 }
 
 provider "aws" {
   alias  = "replica"
-  region = "us-east-2"
+  region = var.replica_region
 }
-
 
 # -------------------------------------------
 # CREATE A CUSTOMER MANAGED KEY TO ENCRYPT W/
@@ -42,34 +74,57 @@ resource "aws_kms_key" "s3_artifact" {
 
 }
 
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CREATE THE PRIMARY S3 BUCKET
+
+# AND ASSOCIATED RESOURCES (LIFECYCLE MANAGEMENT, VERSIONING).
+
+# ------------------------------------------------------------
+
+
 # -------------------------------------------
 # CREATE PRIMARY S3 BUCKET
 # -------------------------------------------
-resource "aws_s3_bucket" "s3_artifact" {
-  bucket = "primary-s3-artifact-bucket-12345"
+
+resource "aws_s3_bucket" "primary" {
+  bucket = var.primary_bucket_name
 }
 
-resource "aws_s3_bucket_acl" "s3_artifact" {
-  bucket = aws_s3_bucket.s3_artifact.id
-  acl    = "private"
+# -------------------------------------------
+# CREATE PRIMARY S3 BUCKET POLICY
+# -------------------------------------------
+
+resource "aws_s3_bucket_acl" "primary" {
+  bucket = aws_s3_bucket.primary.id
+  acl    = var.pimary_bucket_acl
 }
 
-resource "aws_s3_bucket_versioning" "s3_artifact" {
-  bucket = aws_s3_bucket.s3_artifact.id
+# -------------------------------------------
+# ENABLE PRIMARY OBJECT VERSIONING
+# -------------------------------------------
+
+resource "aws_s3_bucket_versioning" "primary" {
+  bucket = aws_s3_bucket.primary.id
   versioning_configuration {
-    status = "Enabled"
+    status = var.bucket_versioning_configuration_status
   }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "s3_artifact_partial_lifecycle_management" {
-  count = !var.full_lifecycle_management ? 1 : 0
+# -------------------------------------------
+# CONFIGURE PARTIAL LIFECYCLE MANAGEMENT
+# -------------------------------------------
 
-  bucket = aws_s3_bucket.s3_artifact.id
+resource "aws_s3_bucket_lifecycle_configuration" "pirmary" {
+  count = !var.enable_storage_lifecycles ? 1 : 0
+
+  bucket = aws_s3_bucket.primary.id
 
   rule {
-    id = "versioning-rule-12345"
+    id = var.lifecycle_versioning_id
 
-    status = "Enabled"
+    status = var.bucket_versioning_configuration_status
 
     noncurrent_version_expiration {
       noncurrent_days           = 30
@@ -78,42 +133,49 @@ resource "aws_s3_bucket_lifecycle_configuration" "s3_artifact_partial_lifecycle_
   }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "s3_artifact_full_lifecycle_management" {
+# -------------------------------------------
+# CONFIGURE FULL LIFECYCLE MANAGEMENT
+# -------------------------------------------
+
+resource "aws_s3_bucket_lifecycle_configuration" "primary" {
   count = var.full_lifecycle_management ? 1 : 0
 
-  bucket = aws_s3_bucket.s3_artifact.id
+  bucket = aws_s3_bucket.primary.id
 
   rule {
-    id = "transition-rule-12345"
+    id = var.lifecycle_transitioin_id
 
-    status = "Enabled"
+    status = var.bucket_versioning_configuration_status
 
     transition {
       days          = 30
-      storage_class = "STANDARD_IA"
+      storage_class = var.transition_30_storage_class
     }
 
     transition {
       days          = 90
-      storage_class = "GLACIER"
+      storage_class = var.transition_90_storage_class
     }
 
   }
 
   rule {
-    id = "versioning-rule-12345"
+    id = var.lifecycle_versioning_id
 
-    status = "Enabled"
+    status = var.bucket_versioning_configuration_status
 
     noncurrent_version_expiration {
-      noncurrent_days           = 60
+      noncurrent_days           = 30
       newer_noncurrent_versions = 1
     }
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "s3_artifact" {
-  bucket = aws_s3_bucket.s3_artifact.id
+# -------------------------------------------
+# CONFIGURE PRIMARY S3 BUCKET PUBLIC ACCESS
+# -------------------------------------------
+resource "aws_s3_bucket_public_access_block" "primary" {
+  bucket = aws_s3_bucket.primary.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -121,8 +183,81 @@ resource "aws_s3_bucket_public_access_block" "s3_artifact" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "s3_artifact" {
-  bucket = aws_s3_bucket.s3_artifact.id
+# -------------------------------------------
+# CONFIGURE PRIMARY S3 BUCKET SERVER SIDE ENCRYPTION
+# -------------------------------------------
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "primary" {
+  bucket = aws_s3_bucket.primary.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_artifact.arn
+    }
+  }
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CREATE THE REPLICA S3 BUCKET
+
+# AND ASSOCIATED RESOURCES (LIFECYCLE MANAGEMENT, VERSIONING).
+
+# ------------------------------------------------------------
+
+# -------------------------------------------
+# CREATE S3 REPLICATION BUCKET
+# -------------------------------------------
+
+resource "aws_s3_bucket" "replica" {
+  provider = aws.replica
+  bucket   = var.replica_bucket_name
+}
+
+# -------------------------------------------
+# CONFIGURE REPLICA S3 BUCKET POLICY
+# -------------------------------------------
+
+resource "aws_s3_bucket_acl" "replica" {
+  provider = aws.replica
+  bucket   = aws_s3_bucket.replica.id
+  acl      = var.replica_bucket_acl
+}
+
+# -------------------------------------------
+# ENABLE REPLICA OBJECT VERSIONING
+# -------------------------------------------
+
+resource "aws_s3_bucket_versioning" "replica" {
+  provider = aws.replica
+  bucket   = aws_s3_bucket.replica.id
+  versioning_configuration {
+    status = var.bucket_versioning_configuration_status
+  }
+}
+
+# -------------------------------------------
+# CONFIGURE REPLICA S3 BUCKET PUBLIC ACCESS
+# -------------------------------------------
+
+resource "aws_s3_bucket_public_access_block" "replica" {
+  bucket = aws_s3_bucket.replica.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# -------------------------------------------
+# CONFIGURE REPLICA S3 BUCKET SERVER SIDE ENCRYPTION
+# -------------------------------------------
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
+  provider = aws.replica
+  bucket   = aws_s3_bucket.replica.id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -133,10 +268,43 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "s3_artifact" {
 }
 
 # -------------------------------------------
-# CREATE S3 REPLICATION CONFIGURATION
+# CREATE BUCKET REPLICATION CONFIGURATION
 # -------------------------------------------
 
-data "aws_iam_policy_document" "s3_artifact_replica_role" {
+resource "aws_s3_bucket_replication_configuration" "replica" {
+  provider = aws.replica
+
+  depends_on = [aws_s3_bucket_versioning.source]
+
+  role   = aws_iam_role.replica.arn
+  bucket = aws_s3_bucket.primary.id
+
+  rule {
+    id = var.bucket_replication_configuration_rule_id
+
+    status = var.replica_configuration_status
+
+    destination {
+      bucket        = aws_s3_bucket.replica.arn
+      storage_class = var.replica_configuration_destination_storage_class
+    }
+  }
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CREATE IAM POLICY CONFIGURATION
+
+# FOR THE PRIMARY BUCKET (POLICY DOCUMENT, IAM ROLE).
+
+# ------------------------------------------------------------
+
+# -------------------------------------------
+# IAM ROLE/POLICY CONFIGURATION FOR PRIMARY
+# -------------------------------------------
+
+data "aws_iam_policy_document" "primary" {
   statement {
     effect = "Allow"
 
@@ -149,7 +317,27 @@ data "aws_iam_policy_document" "s3_artifact_replica_role" {
   }
 }
 
-data "aws_iam_policy_document" "s3_artifact_replica" {
+# -------------------------------------------
+# CREATE PRIMARY IAM POLICY
+# -------------------------------------------
+resource "aws_iam_policy" "primary" {
+  name   = "tf-iam-role-policy-replication-12345"
+  policy = data.aws_iam_policy_document.primary.json
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CREATE IAM POLICY CONFIGURATION
+
+# FOR THE REPLICA BUCKET (POLICY DOCUMENT, IAM ROLE).
+
+# ------------------------------------------------------------
+
+# -------------------------------------------
+# IAM ROLE/POLICY CONFIGURATION FOR REPLICA
+# -------------------------------------------
+data "aws_iam_policy_document" "replica" {
   statement {
     effect = "Allow"
 
@@ -186,81 +374,19 @@ data "aws_iam_policy_document" "s3_artifact_replica" {
   }
 }
 
-resource "aws_iam_role" "s3_artifact_replica" {
+# -------------------------------------------
+# ASSUME ROLE POLICY FOR REPLICA
+# -------------------------------------------
+
+resource "aws_iam_role" "replica" {
   name               = "tf-iam-role-replication-12345"
-  assume_role_policy = data.aws_iam_policy_document.s3_artifact_replica_role.json
+  assume_role_policy = data.aws_iam_policy_document.replica.json
 }
 
-resource "aws_iam_policy" "s3_artifact_replica" {
-  name   = "tf-iam-role-policy-replication-12345"
-  policy = data.aws_iam_policy_document.s3_artifact_replica.json
-}
-
-resource "aws_iam_role_policy_attachment" "s3_artifact_replica" {
-  role       = aws_iam_role.s3_artifact_replica.name
-  policy_arn = aws_iam_policy.s3_artifact_replica.arn
-}
-
-resource "aws_s3_bucket" "s3_artifact_replica" {
-  provider = aws.replica
-  bucket   = "tf-test-bucket-source-12345"
-}
-
-resource "aws_s3_bucket_public_access_block" "s3_artifact_replica" {
-  bucket = aws_s3_bucket.s3_artifact_replica.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "s3_artifact_replica" {
-  provider = aws.replica
-  bucket   = aws_s3_bucket.s3_artifact_replica.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"
-      kms_master_key_id = aws_kms_key.s3_artifact.arn
-    }
-  }
-}
-
-resource "aws_s3_bucket_acl" "s3_artifact_replica" {
-  provider = aws.replica
-  bucket   = aws_s3_bucket.s3_artifact_replica.id
-  acl      = "private"
-}
-
-resource "aws_s3_bucket_versioning" "s3_artifact_replica" {
-  provider = aws.replica
-  bucket   = aws_s3_bucket.s3_artifact_replica.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_s3_bucket_replication_configuration" "s3_artifact_replica" {
-  provider = aws.replica
-
-  depends_on = [aws_s3_bucket_versioning.source]
-
-  role   = aws_iam_role.s3_artifact_replica.arn
-  bucket = aws_s3_bucket.s3_artifact.id
-
-  rule {
-    id = "tf-replication-rule-12345"
-
-    filter {
-      prefix = "prefix"
-    }
-
-    status = "Enabled"
-
-    destination {
-      bucket        = aws_s3_bucket.s3_artifact_replica.arn
-      storage_class = "STANDARD"
-    }
-  }
+# -------------------------------------------
+# ATTACH POLICY TO ROLE FOR REPLICA
+# -------------------------------------------
+resource "aws_iam_role_policy_attachment" "replica" {
+  role       = aws_iam_role.replica.name
+  policy_arn = aws_iam_policy.primary.arn
 }
