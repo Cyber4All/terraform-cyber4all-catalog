@@ -64,16 +64,6 @@ provider "aws" {
   region = var.replica_region
 }
 
-# -------------------------------------------
-# CREATE A CUSTOMER MANAGED KEY TO ENCRYPT W/
-# -------------------------------------------
-
-resource "aws_kms_key" "s3_artifact" {
-  description         = "CMK for S3 Artifacts Encryption"
-  enable_key_rotation = true
-
-}
-
 
 # ------------------------------------------------------------
 
@@ -192,8 +182,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "primary" {
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"
-      kms_master_key_id = aws_kms_key.s3_artifact.arn
+      sse_algorithm = "aws:kms"
     }
   }
 }
@@ -261,8 +250,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "aws:kms"
-      kms_master_key_id = aws_kms_key.s3_artifact.arn
+      sse_algorithm = "aws:kms"
     }
   }
 }
