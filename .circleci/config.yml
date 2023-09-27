@@ -28,7 +28,7 @@ jobs:
             - run:
                   name: Install Terratest Log Parser
                   command: |
-                      go install github.com/gruntwork-io/terratest/cmd/terratest_log_parser@latest
+                      go install github.com/gruntwork-io/terratest/cmd/terratest_log_parser@v0.43.13
             - run:
                   name: Setup Log Directory
                   command: |
@@ -36,7 +36,7 @@ jobs:
             - run:
                   # These tests can be slow to create/delete, so we massively increase
                   # the test timeout to ensure cleanup jobs run correctly.
-                  #Also specify a CircleCI timeout of 5400 seconds (90m)
+                  # Also specify a CircleCI timeout of 5400 seconds (90m)
                   name: run tests
                   command: |
                       cd test

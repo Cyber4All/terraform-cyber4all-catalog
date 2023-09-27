@@ -1,4 +1,4 @@
-package test
+package modules
 
 import (
 	"encoding/json"
@@ -13,43 +13,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// This test suite deploys the secrets-manager module from examples/secrets-manager.
-// The test is broken into "stages" so you can skip stages by setting environment variables (e.g.,
-// skip stage "apply" by setting the environment variable "SKIP_apply=true"), which speeds up iteration when
-// running this test over and over again locally.
-func TestSecretsManagerExample(t *testing.T) {
-	t.Parallel()
-
-	// The folder where we have our Terraform code
-	workingDir := "../examples/secrets-manager"
-
-	// At the end of the test, undeploy the secrets using Terraform
-	defer test_structure.RunTestStage(t, "destroy", func() {
-		terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
-
-		terraform.Destroy(t, terraformOptions)
-	})
-
-	// Provision the secrets using Terraform
-	test_structure.RunTestStage(t, "apply", func() {
-		awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "eu-west-1"}, nil)
-		test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
-		deployUsingTerraform(t, awsRegion, workingDir)
-	})
-
-	// Validate that the secrets are configured properly
-	test_structure.RunTestStage(t, "validate", func() {
-		validateSecretsContainSecrets(t, workingDir)
-	})
-}
-
 // Deploy the secrets-manager example using Terraform
-func deployUsingTerraform(t *testing.T, awsRegion string, workingDir string) {
+func DeployUsingTerraform(t *testing.T, workingDir string) {
 	// A unique ID we can use to namespace resources so we don't clash with anything already in the AWS account or
 	// tests running in parallel
 	uniqueID := random.UniqueId()
 	secretKey := fmt.Sprint("secret_key_", uniqueID)
 	secretValue := fmt.Sprint("secret_value_", uniqueID)
+
+	// Get random aws region
+	// Get a random AWS region
+	awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-east-2"}, nil)
+	test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
+
 	// Construct the terraform options with default retryable errors to handle the most common retryable errors in
 	// terraform testing.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
@@ -73,24 +49,41 @@ func deployUsingTerraform(t *testing.T, awsRegion string, workingDir string) {
 }
 
 // Validate that the Secret created contains the values as expected
-func validateSecretsContainSecrets(t *testing.T, workingDir string) {
+func ValidateSecretsContainSecrets(t *testing.T, workingDir string) {
 	// Load the Terraform Options saved by the earlier deploy_terraform stage
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
 
 	// Check that two secrets were created
-	secret_arns := terraform.OutputList(t, terraformOptions, "secret_arns")
-	assert.Len(t, secret_arns, 2)
+	secret_arns := assertSecretsArnsAreCreated(t, terraformOptions)
 
 	// Assert that the two secret names are correct
-	names := terraform.OutputList(t, terraformOptions, "secret_names")
-	assert.Len(t, names, 2)
+	assertSecretsAreNamedCorrectly(t, terraformOptions)
 
 	secretKey := terraformOptions.Vars["secret_key"].(string)
 	secretValue := terraformOptions.Vars["secret_value"].(string)
 
 	// Check that each of the secrets can be retrieved
+	assertSecretsHaveCorrectPrefix(t, secret_arns, awsRegion, secretKey, secretValue)
+
+	// Check that the secret_arn_references are formatted correctly
+	assertSecretArnReferencesAreFormattedCorrectly(t, terraformOptions, secret_arns, secretKey)
+}
+
+func assertSecretsArnsAreCreated(t *testing.T, terraformOptions *terraform.Options) []string {
+	secret_arns := terraform.OutputList(t, terraformOptions, "secret_arns")
+	assert.Len(t, secret_arns, 2)
+
+	return secret_arns
+}
+
+func assertSecretsAreNamedCorrectly(t *testing.T, terraformOptions *terraform.Options) {
+	names := terraform.OutputList(t, terraformOptions, "secret_names")
+	assert.Len(t, names, 2)
+}
+
+func assertSecretsHaveCorrectPrefix(t *testing.T, secret_arns []string, awsRegion string, secretKey string, secretValue string) {
 	for _, arn := range secret_arns {
 		var secret map[string]string
 		secretStr := aws.GetSecretValue(t, awsRegion, arn)
@@ -107,7 +100,9 @@ func validateSecretsContainSecrets(t *testing.T, workingDir string) {
 			assert.True(t, strings.HasPrefix(value, secretValue), "Secret value %s does not have prefix %s", value, secretValue)
 		}
 	}
+}
 
+func assertSecretArnReferencesAreFormattedCorrectly(t *testing.T, terraformOptions *terraform.Options, secret_arns []string, secretKey string) {
 	// Run `terraform output` to get the value of an output variable
 	secret_arn_references := terraform.OutputList(t, terraformOptions, "secret_arn_references")
 
