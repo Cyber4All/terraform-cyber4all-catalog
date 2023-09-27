@@ -88,7 +88,7 @@ variable "transition_90_storage_class" {
   default     = "GLACIER"
 }
 
-variable "replica_configuration_rule_id" {
+variable "bucket_replication_configuration_rule_id" {
   type        = string
   description = "The ID of the replication configuration rule."
   default     = "bucket-replication-rule"
