@@ -60,7 +60,7 @@ variable "bucket_versioning_configuration_status" {
 
 variable "enable_storage_lifecycles" {
   type        = bool
-  description = "Whether or not to enable full lifecycle management on the S3 bucket."
+  description = "Enables transition of object storage classes for cost savings in the primary S3 bucket."
   default     = true
 }
 
