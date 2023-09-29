@@ -51,6 +51,14 @@ module "example" {
 	 # --------------------------------------------
 
 
+	 # The docker image to use for the ECS task. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform.
+	 container_image  = string
+
+
+	 # The port that the container listens on.
+	 container_port  = number
+
+
 	 # Percentage for the target tracking scaling threshold for the ECS Service average CPU utiliziation.
 	 cpu_utilization_threshold  = number
 
@@ -91,6 +99,10 @@ module "example" {
 	 environment_variables  = map(string)
 
 
+	 # The load balancer listener ARN to attach the ECS service to. This value is required when enable_load_balancer is true.
+	 load_balancer_listener  = string
+
+
 	 # The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
 	 max_number_of_tasks  = number
 
@@ -103,19 +115,15 @@ module "example" {
 	 min_number_of_tasks  = number
 
 
-	 # Override the image specified in the ECS container definition with the image specified in the module parameters. On the first apply this value should be set to true to ensure the ECS service is created with the correct image. For following applies this value should be set to false to avoid overriding external application deployments.
-	 override_image  = bool
-
-
 	 # Assign a public IP address to the ECS task.
 	 scheduled_task_assign_public_ip  = bool
 
 
-	 # The cron expression to use for the scheduled task.
+	 # The cron expression to use for the scheduled task. If create scheduled task is true and no event pattern is provided, then the cron is expected.
 	 scheduled_task_cron_expression  = string
 
 
-	 # The event pattern to use for the scheduled task.
+	 # The event pattern to use for the scheduled task. If create scheduled task is true and no cron expression is provided, then the event pattern is expected.
 	 scheduled_task_event_pattern  = any
 
 
@@ -123,12 +131,16 @@ module "example" {
 	 scheduled_task_security_group_ids  = list(string)
 
 
-	 # A list of subnet IDs to associate with the ECS task. A permissive default subnet will be used if not specified.
+	 # A list of subnet IDs to associate with the ECS task. This value is required when create_scheduled_task is true.
 	 scheduled_task_subnet_ids  = list(string)
 
 
 	 # A map of secrets to pass to the ECS task. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
 	 secrets  = map(string)
+
+
+	 # The ID of the VPC to deploy the ECS service into. Required when enable_load_balancer is true.
+	 vpc_id  = string
 
 
 
@@ -153,6 +165,22 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_container_image"></a> [container\_image](#input\_container\_image)
+
+Description: The docker image to use for the ECS task. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_container_port"></a> [container\_port](#input\_container\_port)
+
+Description: The port that the container listens on.
+
+Type: `number`
+
+Default: `null`
 
 ### <a name="input_cpu_utilization_threshold"></a> [cpu\_utilization\_threshold](#input\_cpu\_utilization\_threshold)
 
@@ -234,6 +262,14 @@ Type: `map(string)`
 
 Default: `{}`
 
+### <a name="input_load_balancer_listener"></a> [load\_balancer\_listener](#input\_load\_balancer\_listener)
+
+Description: The load balancer listener ARN to attach the ECS service to. This value is required when enable\_load\_balancer is true.
+
+Type: `string`
+
+Default: `""`
+
 ### <a name="input_max_number_of_tasks"></a> [max\_number\_of\_tasks](#input\_max\_number\_of\_tasks)
 
 Description: The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
@@ -258,14 +294,6 @@ Type: `number`
 
 Default: `1`
 
-### <a name="input_override_image"></a> [override\_image](#input\_override\_image)
-
-Description: Override the image specified in the ECS container definition with the image specified in the module parameters. On the first apply this value should be set to true to ensure the ECS service is created with the correct image. For following applies this value should be set to false to avoid overriding external application deployments.
-
-Type: `bool`
-
-Default: `false`
-
 ### <a name="input_scheduled_task_assign_public_ip"></a> [scheduled\_task\_assign\_public\_ip](#input\_scheduled\_task\_assign\_public\_ip)
 
 Description: Assign a public IP address to the ECS task.
@@ -276,7 +304,7 @@ Default: `true`
 
 ### <a name="input_scheduled_task_cron_expression"></a> [scheduled\_task\_cron\_expression](#input\_scheduled\_task\_cron\_expression)
 
-Description: The cron expression to use for the scheduled task.
+Description: The cron expression to use for the scheduled task. If create scheduled task is true and no event pattern is provided, then the cron is expected.
 
 Type: `string`
 
@@ -284,7 +312,7 @@ Default: `""`
 
 ### <a name="input_scheduled_task_event_pattern"></a> [scheduled\_task\_event\_pattern](#input\_scheduled\_task\_event\_pattern)
 
-Description: The event pattern to use for the scheduled task.
+Description: The event pattern to use for the scheduled task. If create scheduled task is true and no cron expression is provided, then the event pattern is expected.
 
 Type: `any`
 
@@ -300,7 +328,7 @@ Default: `[]`
 
 ### <a name="input_scheduled_task_subnet_ids"></a> [scheduled\_task\_subnet\_ids](#input\_scheduled\_task\_subnet\_ids)
 
-Description: A list of subnet IDs to associate with the ECS task. A permissive default subnet will be used if not specified.
+Description: A list of subnet IDs to associate with the ECS task. This value is required when create\_scheduled\_task is true.
 
 Type: `list(string)`
 
@@ -313,5 +341,13 @@ Description: A map of secrets to pass to the ECS task. These are environment var
 Type: `map(string)`
 
 Default: `{}`
+
+### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
+
+Description: The ID of the VPC to deploy the ECS service into. Required when enable\_load\_balancer is true.
+
+Type: `string`
+
+Default: `""`
 
 <!-- END_TF_DOCS -->
