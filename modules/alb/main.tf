@@ -235,6 +235,10 @@ resource "aws_s3_bucket" "access_logs" {
   lifecycle {
     prevent_destroy = false
   }
+
+  timeouts {
+    delete = "30m"
+  }
 }
 
 
