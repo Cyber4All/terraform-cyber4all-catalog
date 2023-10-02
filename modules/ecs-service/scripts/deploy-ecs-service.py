@@ -268,6 +268,8 @@ def run():
     # Update the service to use the new task definition
     updateServiceTaskRevision(client, args.cluster, args.service, new_task_definition, args.timeout)
 
+    client.close()
+
 
 if __name__ == "__main__":
     try:
