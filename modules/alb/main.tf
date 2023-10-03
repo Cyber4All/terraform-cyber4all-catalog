@@ -64,14 +64,6 @@ resource "aws_lb" "alb" {
   drop_invalid_header_fields = true
   ip_address_type            = "ipv4"
 
-  access_logs {
-    bucket  = try(aws_s3_bucket.access_logs[0].id, "")
-    enabled = var.enable_access_logs
-  }
-
-  depends_on = [
-    aws_s3_bucket.access_logs
-  ]
 }
 
 
