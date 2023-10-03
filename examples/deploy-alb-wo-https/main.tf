@@ -30,7 +30,6 @@ module "alb" {
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.public_subnets
 
-  enable_access_logs    = false
   enable_https_listener = false
 
 }

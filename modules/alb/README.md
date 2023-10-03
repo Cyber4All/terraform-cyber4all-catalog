@@ -66,10 +66,6 @@ module "example" {
 	 dns_record_prefix  = string
 
 
-	 # Enable access logs for the ALB.
-	 enable_access_logs  = bool
-
-
 	 # Creates an HTTPS listener for the ALB. When enabled the ALB will redirect HTTP traffic to HTTPS automatically.
 	 enable_https_listener  = bool
 
@@ -114,14 +110,6 @@ Description: The prefix of the DNS A record that will be created for the ALB.
 Type: `string`
 
 Default: `"api"`
-
-### <a name="input_enable_access_logs"></a> [enable\_access\_logs](#input\_enable\_access\_logs)
-
-Description: Enable access logs for the ALB.
-
-Type: `bool`
-
-Default: `true`
 
 ### <a name="input_enable_https_listener"></a> [enable\_https\_listener](#input\_enable\_https\_listener)
 

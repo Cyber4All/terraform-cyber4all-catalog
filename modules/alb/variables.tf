@@ -39,12 +39,6 @@ variable "dns_record_prefix" {
   default     = "api"
 }
 
-variable "enable_access_logs" {
-  type        = bool
-  description = "Enable access logs for the ALB."
-  default     = true
-}
-
 variable "enable_https_listener" {
   type        = bool
   description = "Creates an HTTPS listener for the ALB. When enabled the ALB will redirect HTTP traffic to HTTPS automatically."
