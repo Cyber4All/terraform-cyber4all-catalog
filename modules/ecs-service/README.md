@@ -99,8 +99,12 @@ module "example" {
 	 environment_variables  = map(string)
 
 
-	 # The load balancer listener ARN to attach the ECS service to. This value is required when enable_load_balancer is true.
-	 load_balancer_listener  = string
+	 # The load balancer listener arn to attach the ECS service to. This value is required when enable_load_balancer is true.
+	 lb_listener_arn  = string
+
+
+	 # The VPC id to deploy the ECS service's load balancer traget group into. Required when enable_load_balancer is true.
+	 lb_target_group_vpc_id  = string
 
 
 	 # The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
@@ -137,10 +141,6 @@ module "example" {
 
 	 # A map of secrets to pass to the ECS task. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
 	 secrets  = map(string)
-
-
-	 # The ID of the VPC to deploy the ECS service into. Required when enable_load_balancer is true.
-	 vpc_id  = string
 
 
 
@@ -220,7 +220,7 @@ Description: Enable container logging to CloudWatch Logs.
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
 
 ### <a name="input_enable_deployment_rollback"></a> [enable\_deployment\_rollback](#input\_enable\_deployment\_rollback)
 
@@ -244,7 +244,7 @@ Description: Enable auto scaling of the ECS service.
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
 
 ### <a name="input_enable_service_connect"></a> [enable\_service\_connect](#input\_enable\_service\_connect)
 
@@ -252,7 +252,7 @@ Description: Enable service discovery for the ECS service.
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
 
 ### <a name="input_environment_variables"></a> [environment\_variables](#input\_environment\_variables)
 
@@ -262,9 +262,17 @@ Type: `map(string)`
 
 Default: `{}`
 
-### <a name="input_load_balancer_listener"></a> [load\_balancer\_listener](#input\_load\_balancer\_listener)
+### <a name="input_lb_listener_arn"></a> [lb\_listener\_arn](#input\_lb\_listener\_arn)
 
-Description: The load balancer listener ARN to attach the ECS service to. This value is required when enable\_load\_balancer is true.
+Description: The load balancer listener arn to attach the ECS service to. This value is required when enable\_load\_balancer is true.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_lb_target_group_vpc_id"></a> [lb\_target\_group\_vpc\_id](#input\_lb\_target\_group\_vpc\_id)
+
+Description: The VPC id to deploy the ECS service's load balancer traget group into. Required when enable\_load\_balancer is true.
 
 Type: `string`
 
@@ -341,13 +349,5 @@ Description: A map of secrets to pass to the ECS task. These are environment var
 Type: `map(string)`
 
 Default: `{}`
-
-### <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id)
-
-Description: The ID of the VPC to deploy the ECS service into. Required when enable\_load\_balancer is true.
-
-Type: `string`
-
-Default: `""`
 
 <!-- END_TF_DOCS -->

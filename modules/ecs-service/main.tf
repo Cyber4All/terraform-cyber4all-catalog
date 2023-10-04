@@ -560,7 +560,7 @@ resource "aws_cloudwatch_event_rule" "scheduled" {
 resource "aws_lb_listener_rule" "alb" {
   count = var.enable_load_balancer ? 1 : 0
 
-  listener_arn = var.load_balancer_listener
+  listener_arn = var.lb_listener_arn
 
   action {
     type             = "forward"
@@ -574,7 +574,7 @@ resource "aws_lb_listener_rule" "alb" {
   }
 
   depends_on = [
-    var.load_balancer_listener,
+    var.load_balancer_listener_arn,
     aws_lb_target_group.alb
   ]
 }
@@ -591,7 +591,7 @@ resource "aws_lb_target_group" "alb" {
   port     = var.container_port
   protocol = "HTTP"
 
-  vpc_id = var.vpc_id
+  vpc_id = var.lb_target_group_vpc_id
 
   health_check {
     healthy_threshold   = 3

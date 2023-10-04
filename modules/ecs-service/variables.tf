@@ -74,7 +74,7 @@ variable "docker_credentials_secret_arn" {
 variable "enable_container_logs" {
   type        = bool
   description = "Enable container logging to CloudWatch Logs."
-  default     = false
+  default     = true
 }
 
 variable "enable_deployment_rollback" {
@@ -92,13 +92,13 @@ variable "enable_load_balancer" {
 variable "enable_service_auto_scaling" {
   type        = bool
   description = "Enable auto scaling of the ECS service."
-  default     = false
+  default     = true
 }
 
 variable "enable_service_connect" {
   type        = bool
   description = "Enable service discovery for the ECS service."
-  default     = false
+  default     = true
 }
 
 variable "environment_variables" {
@@ -107,9 +107,15 @@ variable "environment_variables" {
   default     = {}
 }
 
-variable "load_balancer_listener" {
+variable "lb_listener_arn" {
   type        = string
-  description = "The load balancer listener ARN to attach the ECS service to. This value is required when enable_load_balancer is true."
+  description = "The load balancer listener arn to attach the ECS service to. This value is required when enable_load_balancer is true."
+  default     = ""
+}
+
+variable "lb_target_group_vpc_id" {
+  type        = string
+  description = "The VPC id to deploy the ECS service's load balancer traget group into. Required when enable_load_balancer is true."
   default     = ""
 }
 
@@ -165,10 +171,4 @@ variable "secrets" {
   type        = map(string)
   description = "A map of secrets to pass to the ECS task. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task."
   default     = {}
-}
-
-variable "vpc_id" {
-  type        = string
-  description = "The ID of the VPC to deploy the ECS service into. Required when enable_load_balancer is true."
-  default     = ""
 }
