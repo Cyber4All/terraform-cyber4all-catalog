@@ -48,6 +48,14 @@ module "example" {
 	 # --------------------------------------------
 
 
+	 # Create a map of AWS IAM roles to assign an admin, readWrite, or read database role to the cluster's databases.
+	 cluster_authorized_iam_roles  = map(string)
+
+
+	 # Create a map of AWS IAM users to assign an admin, readWrite, or read database role to the cluster's databases.
+	 cluster_authorized_iam_users  = map(string)
+
+
 	 # Capacity, in gigabytes, of the host's root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive integer.
 	 cluster_disk_size_gb  = number
 
@@ -106,6 +114,22 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_cluster_authorized_iam_roles"></a> [cluster\_authorized\_iam\_roles](#input\_cluster\_authorized\_iam\_roles)
+
+Description: Create a map of AWS IAM roles to assign an admin, readWrite, or read database role to the cluster's databases.
+
+Type: `map(string)`
+
+Default: `{}`
+
+### <a name="input_cluster_authorized_iam_users"></a> [cluster\_authorized\_iam\_users](#input\_cluster\_authorized\_iam\_users)
+
+Description: Create a map of AWS IAM users to assign an admin, readWrite, or read database role to the cluster's databases.
+
+Type: `map(string)`
+
+Default: `{}`
 
 ### <a name="input_cluster_disk_size_gb"></a> [cluster\_disk\_size\_gb](#input\_cluster\_disk\_size\_gb)
 

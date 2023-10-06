@@ -1,20 +1,40 @@
-variable "project_name" {
-  description = "Name of the project as it appears in Atlas to deploy the cluster into."
-  type        = string
-}
+# -----------------------------------------------------------------------------
+# MODULE PARAMETERS
+#
+# These values are expected to be set by the operator when calling the module
+# -----------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------
+# REQUIRED PARAMETERS
+#
+# These values are required by the module and have no default values
+# --------------------------------------------------------------------
 
 variable "cluster_name" {
   description = "Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. WARNING: Changing the name will result in destruction of the existing cluster and the creation of a new cluster."
   type        = string
 }
 
-variable "cluster_region" {
-  description = "The AWS region to deploy the cluster into."
+variable "project_name" {
+  description = "Name of the project as it appears in Atlas to deploy the cluster into."
   type        = string
-  default     = "us-east-1"
+}
+
+
+# --------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+#
+# These values are optional and have default values provided
+# --------------------------------------------------------------------
+
+variable "cluster_disk_size_gb" {
+  description = "Capacity, in gigabytes, of the host's root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive integer."
+  type        = number
+  default     = 10
   validation {
-    condition     = contains(["us-east-1", "us-east-2", "us-west-1", "us-west-2"], var.cluster_region)
-    error_message = "Region support is only for US. Must be one of the following, us-east-1, us-east-2, us-west-1, us-west-2. Contact module maintainer for more info."
+    condition     = var.cluster_disk_size_gb >= 10 && var.cluster_disk_size_gb <= 4096
+    error_message = "Disk size must be greater than 10 and less than or equal to 4096"
   }
 }
 
@@ -28,16 +48,6 @@ variable "cluster_instance_name" {
   }
 }
 
-variable "cluster_disk_size_gb" {
-  description = "Capacity, in gigabytes, of the host's root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive integer."
-  type        = number
-  default     = 10
-  validation {
-    condition     = var.cluster_disk_size_gb >= 10 && var.cluster_disk_size_gb <= 4096
-    error_message = "Disk size must be greater than 10 and less than or equal to 4096"
-  }
-}
-
 variable "cluster_mongodb_version" {
   description = "Version of the cluster to deploy. This module supports 4.4, 5.0, or 6.0. By default 5.0 is deployed."
   type        = string
@@ -45,6 +55,36 @@ variable "cluster_mongodb_version" {
   validation {
     condition     = contains(["4.4", "5.0", "6.0"], var.cluster_mongodb_version)
     error_message = "MongoDB version support is only for 4.4, 5.0, 6.0. Contact module maintainer for more info."
+  }
+}
+
+variable "cluster_region" {
+  description = "The AWS region to deploy the cluster into."
+  type        = string
+  default     = "us-east-1"
+  validation {
+    condition     = contains(["us-east-1", "us-east-2", "us-west-1", "us-west-2"], var.cluster_region)
+    error_message = "Region support is only for US. Must be one of the following, us-east-1, us-east-2, us-west-1, us-west-2. Contact module maintainer for more info."
+  }
+}
+
+variable "cluster_authorized_iam_users" {
+  description = "Create a map of AWS IAM users to assign an admin, readWrite, or read database role to the cluster's databases."
+  type        = map(string)
+  default     = {}
+  validation {
+    condition     = alltrue([for k, v in var.cluster_authorized_iam_users : contains(["admin", "read", "readWrite"], v)])
+    error_message = "A database role must be one of the following: admin, readWrite, read."
+  }
+}
+
+variable "cluster_authorized_iam_roles" {
+  description = "Create a map of AWS IAM roles to assign an admin, readWrite, or read database role to the cluster's databases."
+  type        = map(string)
+  default     = {}
+  validation {
+    condition     = alltrue([for k, v in var.cluster_authorized_iam_roles : contains(["admin", "read", "readWrite"], v)])
+    error_message = "A database role must be one of the following: admin, readWrite, read."
   }
 }
 
@@ -60,14 +100,14 @@ variable "enable_cluster_automated_patches" {
   default     = true
 }
 
-variable "enable_cluster_terimination_protection" {
-  description = "Set to true to prevent terraform from deleting the Atlas cluster. Recommended for production clusters."
+variable "enable_cluster_backups" {
+  description = "Set to true to enable backups for the cluster. Recommended for production clusters."
   type        = bool
   default     = false
 }
 
-variable "enable_cluster_backups" {
-  description = "Set to true to enable backups for the cluster. Recommended for production clusters."
+variable "enable_cluster_terimination_protection" {
+  description = "Set to true to prevent terraform from deleting the Atlas cluster. Recommended for production clusters."
   type        = bool
   default     = false
 }
