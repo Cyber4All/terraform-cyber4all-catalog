@@ -88,6 +88,12 @@ variable "cluster_authorized_iam_roles" {
   }
 }
 
+variable "cluster_peering_subnets" {
+  description = "TODO update this description"
+  type        = list(string)
+  default     = []
+}
+
 variable "enable_cluster_auto_scaling" {
   description = "Set to true to enable auto scaling for the cluster's compute and storage. Recommended for production clusters."
   type        = bool
@@ -116,4 +122,10 @@ variable "enable_retain_deleted_cluster_backups" {
   description = "Set to true to retain backup snapshots for the deleted cluster. Recommended for production clusters."
   type        = bool
   default     = false
+}
+
+variable "enable_vpc_peering" {
+  description = "Set to true to enable a peering connection with an existing VPC."
+  type        = bool
+  default     = true
 }

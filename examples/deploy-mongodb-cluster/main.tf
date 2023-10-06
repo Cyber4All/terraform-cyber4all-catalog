@@ -12,6 +12,15 @@ provider "mongodbatlas" {
   private_key = var.private_key
 }
 
+module "vpc" {
+  source = "../../modules/vpc"
+
+  vpc_name = "test-vpc"
+
+  num_availability_zones = 3
+
+  create_private_subnets = false
+}
 
 module "mongodb" {
   source = "../../modules/mongodb"
@@ -32,6 +41,8 @@ module "mongodb" {
   cluster_authorized_iam_roles = {
     "ecsTaskExecutionRole" = "read"
   }
+
+  cluster_peering_subnets = module.vpc.public_subnet_ids
 
   # Disabled for testing purposes
   enable_cluster_terimination_protection = false

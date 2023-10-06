@@ -30,7 +30,7 @@ output "private_subnet_ids" {
 
 output "private_subnet_route_table_id" {
   description = "The ID of the private subnet route table."
-  value       = aws_route_table.private[0].id
+  value       = var.create_private_subnets ? aws_route_table.private[0].id : null
 }
 
 output "private_subnets" {

@@ -297,16 +297,77 @@ resource "mongodbatlas_database_user" "role" {
 }
 
 
-# # ------------------------------------------------------------
+# ------------------------------------------------------------
 
-# # THE FOLLOWING SECTION IS USED TO CONFIGURE
+# THE FOLLOWING SECTION IS USED TO CONFIGURE
 
-# # THE VPC PEERING FOR AWS
+# THE VPC PEERING FOR AWS
 
-# # ------------------------------------------------------------
+# ------------------------------------------------------------
 
-# resource "mongodbatlas_network_peering" "peering" {}
+locals {
+  vpc_id = data.aws_subnet.peering[0].vpc_id # TODO this needs to be updated to support multiple VPCs
 
-# resource "aws_vpc_peering_connection_accepter" "peering" {}
+  # TODO this needs to be updated to support multiple VPCs
+  # A map can be created with all the vpc_id mapping to a list of subnet/route table combos
+}
 
-# resource "aws_route" "peering" {}
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+data "aws_subnet" "peering" {
+  count = var.enable_vpc_peering && length(var.cluster_peering_subnets) > 0 ? length(var.cluster_peering_subnets) : 0
+
+  id = var.cluster_peering_subnets[count.index]
+}
+
+data "aws_vpc" "peering" { # TODO this needs to be updated to support multiple VPCs
+  count = var.enable_vpc_peering && length(var.cluster_peering_subnets) > 0 ? length(var.cluster_peering_subnets) : 0
+
+  id = local.vpc_id
+}
+
+
+resource "mongodbatlas_network_peering" "peering" { # TODO this needs to be updated to support multiple VPCs
+  count = var.enable_vpc_peering && local.vpc_id != null ? 1 : 0
+
+  project_id    = data.mongodbatlas_project.project.id
+  container_id  = mongodbatlas_cluster.cluster.container_id
+  provider_name = "AWS"
+
+  accepter_region_name   = data.aws_region.current.name
+  aws_account_id         = data.aws_caller_identity.current.account_id
+  vpc_id                 = local.vpc_id
+  route_table_cidr_block = data.aws_vpc.peering[count.index].cidr_block_associations[0].cidr_block
+}
+
+resource "aws_vpc_peering_connection_accepter" "peering" {
+  count = var.enable_vpc_peering && local.vpc_id != null ? 1 : 0
+
+  vpc_peering_connection_id = mongodbatlas_network_peering.peering[count.index].id
+  auto_accept               = true
+
+  tags = {
+    Side = "Accepter"
+    Name = "${var.cluster_name}-peering-accepter"
+  }
+}
+
+
+# -------------------------------------------
+# CREATE THE ROUTE FOR THE PEERING CONNECTION
+# -------------------------------------------
+
+# data "aws_route_table" "peering" {
+#   count = var.enable_vpc_peering && length(var.cluster_peering_subnets) > 0 ? length(data.aws_subnet.peering) : 0
+
+#   subnet_id = data.aws_subnet.peering[count.index].id
+# }
+
+# resource "aws_route" "peering" {
+#   count = var.enable_vpc_peering && length(var.cluster_peering_subnets) > 0 ? length(data.aws_subnet.peering) : 0
+
+#   route_table_id = data.aws_route_table.peering[count.index].id
+
+# }

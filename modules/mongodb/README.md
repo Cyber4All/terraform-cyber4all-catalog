@@ -68,6 +68,10 @@ module "example" {
 	 cluster_mongodb_version  = string
 
 
+	 # TODO update this description
+	 cluster_peering_subnets  = list(string)
+
+
 	 # The AWS region to deploy the cluster into.
 	 cluster_region  = string
 
@@ -90,6 +94,10 @@ module "example" {
 
 	 # Set to true to retain backup snapshots for the deleted cluster. Recommended for production clusters.
 	 enable_retain_deleted_cluster_backups  = bool
+
+
+	 # Set to true to enable a peering connection with an existing VPC.
+	 enable_vpc_peering  = bool
 
 
 
@@ -155,6 +163,14 @@ Type: `string`
 
 Default: `"5.0"`
 
+### <a name="input_cluster_peering_subnets"></a> [cluster\_peering\_subnets](#input\_cluster\_peering\_subnets)
+
+Description: TODO update this description
+
+Type: `list(string)`
+
+Default: `[]`
+
 ### <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region)
 
 Description: The AWS region to deploy the cluster into.
@@ -202,5 +218,13 @@ Description: Set to true to retain backup snapshots for the deleted cluster. Rec
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_enable_vpc_peering"></a> [enable\_vpc\_peering](#input\_enable\_vpc\_peering)
+
+Description: Set to true to enable a peering connection with an existing VPC.
+
+Type: `bool`
+
+Default: `true`
 
 <!-- END_TF_DOCS -->
