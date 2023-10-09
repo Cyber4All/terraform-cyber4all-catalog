@@ -88,10 +88,16 @@ variable "cluster_authorized_iam_roles" {
   }
 }
 
-variable "cluster_peering_subnets" {
+variable "cluster_peering_route_table_ids" {
   description = "TODO update this description"
   type        = list(string)
   default     = []
+}
+
+variable "cluster_peering_cidr_block" {
+  description = "The CIDR block of the VPC to peer with."
+  type        = string
+  default     = ""
 }
 
 variable "enable_cluster_auto_scaling" {

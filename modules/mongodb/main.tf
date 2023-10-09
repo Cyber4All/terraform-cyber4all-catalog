@@ -305,32 +305,26 @@ resource "mongodbatlas_database_user" "role" {
 
 # ------------------------------------------------------------
 
-locals {
-  vpc_id = data.aws_subnet.peering[0].vpc_id # TODO this needs to be updated to support multiple VPCs
-
-  # TODO this needs to be updated to support multiple VPCs
-  # A map can be created with all the vpc_id mapping to a list of subnet/route table combos
-}
-
 data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
-data "aws_subnet" "peering" {
-  count = var.enable_vpc_peering && length(var.cluster_peering_subnets) > 0 ? length(var.cluster_peering_subnets) : 0
+data "aws_route_table" "peering" {
+  count = var.enable_vpc_peering && length(var.cluster_peering_route_table_ids) > 0 ? length(var.cluster_peering_route_table_ids) : 0
 
-  id = var.cluster_peering_subnets[count.index]
+  route_table_id = var.cluster_peering_route_table_ids[count.index]
 }
 
-data "aws_vpc" "peering" { # TODO this needs to be updated to support multiple VPCs
-  count = var.enable_vpc_peering && length(var.cluster_peering_subnets) > 0 ? length(var.cluster_peering_subnets) : 0
-
-  id = local.vpc_id
+locals {
+  # Get a list of unique vpc ids
+  vpc_ids = distinct([
+    for rt in data.aws_route_table.peering :
+    rt.vpc_id
+  ])
 }
 
-
-resource "mongodbatlas_network_peering" "peering" { # TODO this needs to be updated to support multiple VPCs
-  count = var.enable_vpc_peering && local.vpc_id != null ? 1 : 0
+resource "mongodbatlas_network_peering" "peering" {
+  count = var.enable_vpc_peering && length(local.vpc_ids) > 0 ? length(local.vpc_ids) : 0
 
   project_id    = data.mongodbatlas_project.project.id
   container_id  = mongodbatlas_cluster.cluster.container_id
@@ -338,20 +332,38 @@ resource "mongodbatlas_network_peering" "peering" { # TODO this needs to be upda
 
   accepter_region_name   = data.aws_region.current.name
   aws_account_id         = data.aws_caller_identity.current.account_id
-  vpc_id                 = local.vpc_id
-  route_table_cidr_block = data.aws_vpc.peering[count.index].cidr_block_associations[0].cidr_block
+  vpc_id                 = local.vpc_ids[count.index]
+  route_table_cidr_block = var.cluster_peering_cidr_block
+
+  depends_on = [
+    data.aws_route_table.peering
+  ]
 }
 
 resource "aws_vpc_peering_connection_accepter" "peering" {
-  count = var.enable_vpc_peering && local.vpc_id != null ? 1 : 0
+  count = var.enable_vpc_peering && length(mongodbatlas_network_peering.peering) > 0 ? length(mongodbatlas_network_peering.peering) : 0
 
-  vpc_peering_connection_id = mongodbatlas_network_peering.peering[count.index].id
+  vpc_peering_connection_id = mongodbatlas_network_peering.peering[count.index].connection_id
   auto_accept               = true
 
   tags = {
     Side = "Accepter"
-    Name = "${var.cluster_name}-peering-accepter"
+    Name = "${var.cluster_name}-peering-accepter${count.index}"
   }
+
+  depends_on = [
+    mongodbatlas_network_peering.peering
+  ]
+}
+
+data "aws_vpc_peering_connection" "peering" {
+  count = var.enable_vpc_peering && length(mongodbatlas_network_peering.peering) > 0 ? length(mongodbatlas_network_peering.peering) : 0
+
+  id = mongodbatlas_network_peering.peering[count.index].connection_id
+
+  depends_on = [
+    aws_vpc_peering_connection_accepter.peering
+  ]
 }
 
 
@@ -359,15 +371,55 @@ resource "aws_vpc_peering_connection_accepter" "peering" {
 # CREATE THE ROUTE FOR THE PEERING CONNECTION
 # -------------------------------------------
 
-# data "aws_route_table" "peering" {
-#   count = var.enable_vpc_peering && length(var.cluster_peering_subnets) > 0 ? length(data.aws_subnet.peering) : 0
+locals {
+  route_table_id_to_vpc_id = {
+    for rt in data.aws_route_table.peering :
+    # The "..." represents ellipsis and is used to
+    # spread the values of the map into a list of values
+    # All values in the list are the same which is why
+    # it is safe to use the first value
+    rt.route_table_id => rt.vpc_id...
+  }
 
-#   subnet_id = data.aws_subnet.peering[count.index].id
-# }
+  # THESE TWO MAPS CAN BE USE THE VPC ID
+  # TO GET THE PEERING CONNECTION INFORMATION
 
-# resource "aws_route" "peering" {
-#   count = var.enable_vpc_peering && length(var.cluster_peering_subnets) > 0 ? length(data.aws_subnet.peering) : 0
+  vpc_id_to_peering_connection_cidr_block = {
+    for pcx in data.aws_vpc_peering_connection.peering :
+    pcx.peer_vpc_id => pcx.cidr_block
+  }
 
-#   route_table_id = data.aws_route_table.peering[count.index].id
+  vpc_id_to_peering_connection_id = {
+    for pcx in data.aws_vpc_peering_connection.peering :
+    pcx.peer_vpc_id => pcx.id
+  }
 
-# }
+
+  # THE FOLLOWING CREATES A LIST OF OBJECTS THAT ASSOCIATE
+  # THE ROUTE TABLE ID WITH THE PEERING CONNECTION ID
+  # AND THE PEER DESTINATION CIDR BLOCK
+
+  route_table_ids = distinct([
+    for rt in data.aws_route_table.peering :
+    rt.route_table_id
+  ])
+
+  route_list = [
+    for route_table_id in local.route_table_ids :
+    {
+      route_table_id = route_table_id
+
+      destination_cidr_block    = local.vpc_id_to_peering_connection_cidr_block[local.route_table_id_to_vpc_id[route_table_id][0]]
+      vpc_peering_connection_id = local.vpc_id_to_peering_connection_id[local.route_table_id_to_vpc_id[route_table_id][0]]
+    }
+  ]
+}
+
+resource "aws_route" "peering" {
+  count = var.enable_vpc_peering && length(local.route_list) > 0 ? length(local.route_list) : 0
+
+  route_table_id = local.route_list[count.index].route_table_id
+
+  destination_cidr_block    = local.route_list[count.index].destination_cidr_block
+  vpc_peering_connection_id = local.route_list[count.index].vpc_peering_connection_id
+}

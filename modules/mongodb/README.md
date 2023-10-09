@@ -68,8 +68,12 @@ module "example" {
 	 cluster_mongodb_version  = string
 
 
+	 # The CIDR block of the VPC to peer with.
+	 cluster_peering_cidr_block  = string
+
+
 	 # TODO update this description
-	 cluster_peering_subnets  = list(string)
+	 cluster_peering_route_table_ids  = list(string)
 
 
 	 # The AWS region to deploy the cluster into.
@@ -163,7 +167,15 @@ Type: `string`
 
 Default: `"5.0"`
 
-### <a name="input_cluster_peering_subnets"></a> [cluster\_peering\_subnets](#input\_cluster\_peering\_subnets)
+### <a name="input_cluster_peering_cidr_block"></a> [cluster\_peering\_cidr\_block](#input\_cluster\_peering\_cidr\_block)
+
+Description: The CIDR block of the VPC to peer with.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_cluster_peering_route_table_ids"></a> [cluster\_peering\_route\_table\_ids](#input\_cluster\_peering\_route\_table\_ids)
 
 Description: TODO update this description
 
@@ -226,5 +238,27 @@ Description: Set to true to enable a peering connection with an existing VPC.
 Type: `bool`
 
 Default: `true`
+## Outputs
 
+The following outputs are exported:
+
+### <a name="output_route_list"></a> [route\_list](#output\_route\_list)
+
+Description: n/a
+
+### <a name="output_route_table_id_to_vpc_id"></a> [route\_table\_id\_to\_vpc\_id](#output\_route\_table\_id\_to\_vpc\_id)
+
+Description: n/a
+
+### <a name="output_route_table_ids"></a> [route\_table\_ids](#output\_route\_table\_ids)
+
+Description: n/a
+
+### <a name="output_vpc_id_to_peering_connection_cidr_block"></a> [vpc\_id\_to\_peering\_connection\_cidr\_block](#output\_vpc\_id\_to\_peering\_connection\_cidr\_block)
+
+Description: n/a
+
+### <a name="output_vpc_id_to_peering_connection_id"></a> [vpc\_id\_to\_peering\_connection\_id](#output\_vpc\_id\_to\_peering\_connection\_id)
+
+Description: n/a
 <!-- END_TF_DOCS -->
