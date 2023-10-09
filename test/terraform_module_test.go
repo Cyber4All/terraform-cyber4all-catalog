@@ -53,6 +53,18 @@ func TestExamplesForTerraformModules(t *testing.T) {
 		// 	workingDir:      "../examples/deploy-vpc-wo-nat",
 		// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
 		// },
+		{
+			name:            "alb https",
+			workingDir:      "../examples/deploy-alb",
+			genTestDataFunc: modules.DeployAlb,
+			validateFunc:    modules.ValidateAlbHttps,
+		},
+		{
+			name:            "alb w/o https",
+			workingDir:      "../examples/deploy-alb-wo-https",
+			genTestDataFunc: modules.DeployAlb,
+			validateFunc:    modules.ValidateAlbNoHttps,
+		},
 	}
 
 	// Run tests in parallel
