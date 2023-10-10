@@ -1,9 +1,8 @@
 # ------------------------------------------------------------------------------
-# DEPLOY AN ECS EVENT DRIVEN TASK
+# DEPLOY AN ECS SCHEDULED TASK
 #
-# This example shows how to deploy an ECS scheduled task that is triggered by an
-# eventbridge events rule. The events rule is triggered by an API call whether it
-# be the SDK or CLI.
+# This example shows how to deploy an ECS scheduled task that is triggered by a
+# cron expression.
 # 
 # Unique Test Cases Covered:
 # - Assert tasks are being placed
@@ -75,7 +74,7 @@ module "cluster" {
 
 
 # -------------------------------------------
-# DEPLOY ECS EVENT TASK
+# DEPLOY ECS SCHEDULED TASK
 # -------------------------------------------
 
 module "ecs-scheduled-task" {
@@ -89,11 +88,7 @@ module "ecs-scheduled-task" {
     "MOCK_TYPE" = "single-process"
   }
 
-  create_scheduled_task = true
-  scheduled_task_event_pattern = {
-    "source"      = ["terraform-test"]
-    "detail-type" = "terraform-test:place-task"
-  }
-  scheduled_task_subnet_ids = module.vpc.public_subnet_ids
+  create_scheduled_task          = true
+  scheduled_task_cron_expression = "rate(2 minutes)"
+  scheduled_task_subnet_ids      = module.vpc.public_subnet_ids
 }
-

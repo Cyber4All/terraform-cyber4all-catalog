@@ -44,7 +44,7 @@ terraform {
 # -------------------------------------------
 
 data "aws_iam_role" "service" {
-  count = !var.create_scheduled_task ? 1 : 0
+  count = var.enable_load_balancer && !var.create_scheduled_task ? 1 : 0
 
   name = "AWSServiceRoleForECS"
 }
@@ -55,28 +55,21 @@ data "aws_iam_role" "service" {
 # -------------------------------------------
 
 data "aws_ecs_cluster" "cluster" {
-  name = var.ecs_cluster_name
+  cluster_name = var.ecs_cluster_name
 
   lifecycle {
     # If the ECS cluster is not in an ACTIVE state, then the ECS service cannot 
     # be created and the module should fail.
     postcondition {
-      condition = self.status == "ACTIVE"
-      message   = "The ECS cluster must be in an ACTIVE state before creating the ECS service. Currently the ECS cluster is ${self.status}."
-    }
-
-    # If the ECS service is using EC2 compute, then the ECS cluster must have
-    # EC2 container instances registered to it.
-    postcondition {
-      condition = self.registered_container_instances_count > 0
-      message   = "An ECS service using EC2 launch type must have at least one EC2 container instance registered to the ECS cluster."
+      condition     = self.status == "ACTIVE"
+      error_message = "The ECS cluster must be in an ACTIVE state before creating the ECS service. Currently the ECS cluster is ${self.status}."
     }
 
     # If the ECS service is using Service Connect, a default namespace must be
     # configured for the ECS cluster.
     postcondition {
-      condition = var.enable_service_connect && self.default_capacity_provider_strategy != null
-      message   = "An ECS service using Service Connect must have a default namespace configured for the ECS cluster."
+      condition     = !var.enable_service_connect || self.service_connect_defaults[0].namespace != null
+      error_message = "An ECS service using Service Connect must have a default namespace configured for the ECS cluster."
     }
   }
 }
@@ -96,14 +89,7 @@ resource "aws_ecs_service" "service" {
   name            = var.ecs_service_name
   task_definition = local.task_definition
 
-  iam_role = data.aws_iam_role.service.arn
-
-  # TODO Before setting this we should test if the default works
-  # launch type is ignored if capacity provider is set but since
-  # a default is set it should use that. Since we will always use Ec2
-  # for ecs service then this should need to be set.
-  # launch_type             = "EC2"
-  # capacity_provider_strategy {}
+  iam_role = var.enable_load_balancer ? data.aws_iam_role.service[0].arn : null
 
   deployment_circuit_breaker {
     enable   = var.enable_deployment_rollback
@@ -128,8 +114,8 @@ resource "aws_ecs_service" "service" {
 
     content {
       container_name   = var.ecs_service_name
-      container_port   = 80 # TODO same as service and container port
-      target_group_arn = "" # TODO same as alb target group
+      container_port   = var.container_port
+      target_group_arn = aws_lb_target_group.alb[0].arn
     }
   }
 
@@ -137,7 +123,8 @@ resource "aws_ecs_service" "service" {
   # least amount of unused CPU or memory. This strategy minimizes
   # the number of container instances in use.
   ordered_placement_strategy {
-    type = "binpack"
+    type  = "binpack"
+    field = "memory"
   }
 
   # TODO before changing other configuration we should test this
@@ -151,6 +138,7 @@ resource "aws_ecs_service" "service" {
 
   lifecycle {
     ignore_changes = [
+      capacity_provider_strategy,
       desired_count
     ]
   }
@@ -193,11 +181,11 @@ resource "aws_appautoscaling_target" "service" {
 resource "aws_appautoscaling_policy" "cpu" {
   count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
 
-  name               = "${var.ecs_service_name}-scale-in"
+  name               = "${var.ecs_service_name}-cpu-scaling"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.service.resource_id
-  scalable_dimension = aws_appautoscaling_target.service.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.service.service_namespace
+  resource_id        = aws_appautoscaling_target.service[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.service[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.service[0].service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
@@ -218,11 +206,11 @@ resource "aws_appautoscaling_policy" "cpu" {
 resource "aws_appautoscaling_policy" "memory" {
   count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
 
-  name               = "${var.ecs_service_name}-scale-in"
+  name               = "${var.ecs_service_name}-mem-scaling"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.service.resource_id
-  scalable_dimension = aws_appautoscaling_target.service.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.service.service_namespace
+  resource_id        = aws_appautoscaling_target.service[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.service[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.service[0].service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
@@ -261,13 +249,49 @@ locals {
     }
   }
 
+  repositoryCredentials = {
+    credentialsParameter = var.docker_credentials_secret_arn
+  }
+
+  # TODO we need to figure out how to enable good health checks
+  # healthCheck = {
+  #   command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/ || exit 1"]
+  #   interval    = 30
+  #   retries     = 5
+  #   startPeriod = 0
+  #   timeout     = 5
+  # }
+
   # This allows us to query both the existing as well as Terraform's state and get
   # and get the max version of either source, useful for when external resources
   # update the container definition
   max_task_def_revision = max(aws_ecs_task_definition.task.revision, data.aws_ecs_task_definition.task.revision)
-  task_definition       = "${aws_ecs_task_definition.task.family}:${local.max_task_def_revision}}"
+  task_definition       = "${aws_ecs_task_definition.task.family}:${local.max_task_def_revision}"
 
-  image = var.override_image ? var.image : data.aws_ecs_container_definition.task[0].image
+  # If the container image is not specified, then the latest version of the
+  # essential container definition image will be used.
+  lookup_deployed_image = var.container_image == ""
+
+  # If the container image is not specified, then the latest version of the
+  # essential container definition image will be used.
+  image = !local.lookup_deployed_image ? var.container_image : data.aws_ecs_container_definition.task[0].image
+}
+
+data "aws_ecs_service" "service" {
+  count = local.lookup_deployed_image && !var.create_scheduled_task ? 1 : 0
+
+  cluster_arn  = data.aws_ecs_cluster.cluster.arn
+  service_name = var.ecs_service_name
+}
+
+# This will get the latest container definition from the task definition
+# that is currently deployed and use that as the image for new container
+# definitions
+data "aws_ecs_container_definition" "task" {
+  count = local.lookup_deployed_image && !var.create_scheduled_task ? 1 : 0
+
+  task_definition = data.aws_ecs_service.service[0].task_definition
+  container_name  = var.ecs_service_name
 }
 
 # This allows us to query both the existing as well as Terraform's state and get
@@ -275,17 +299,11 @@ locals {
 # update the container definition
 data "aws_ecs_task_definition" "task" {
   task_definition = aws_ecs_task_definition.task.family
+
+  depends_on = [
+    aws_ecs_task_definition.task
+  ]
 }
-
-# This will get the latest container definition from the task definition
-# and use that as the image for new container definitions
-data "aws_ecs_container_definition" "task" {
-  count = !var.override_image ? 1 : 0
-
-  task_definition = data.aws_ecs_task_definition.task.arn
-  container_name  = var.ecs_service_name
-}
-
 
 # -------------------------------------------
 # CREATE THE ECS TASK DEFINITION
@@ -296,10 +314,10 @@ resource "aws_ecs_task_definition" "task" {
 
   cpu          = 256
   memory       = 256
-  network_mode = "bridge"
+  network_mode = var.create_scheduled_task ? "awsvpc" : "bridge"
 
-  execution_role_arn = ""
-  task_role_arn      = ""
+  execution_role_arn = aws_iam_role.task_execution.arn
+  # task_role_arn      = "" # TODO add this in development
 
   container_definitions = jsonencode([
     {
@@ -307,10 +325,7 @@ resource "aws_ecs_task_definition" "task" {
 
       image = local.image
 
-      # Conditionally set the docker credentials if the secret ARN is provided
-      repositoryCredentials = var.docker_credentials_secret_arn != "" ? {
-        credentialsParameter = var.docker_credentials_secret_arn
-      } : null
+      repositoryCredentials = var.docker_credentials_secret_arn != "" ? local.repositoryCredentials : null
 
       portMappings = [{
         containerPort = var.container_port
@@ -328,17 +343,11 @@ resource "aws_ecs_task_definition" "task" {
 
       logConfiguration = var.enable_container_logs ? local.log_configuration : null
 
-      healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port} || exit 1"]
-        interval    = 30
-        retries     = 5
-        startPeriod = 0
-        timeout     = 5
-      }
+      # healthCheck = !var.create_scheduled_task ? local.healthCheck : null
     }
   ])
 
-  requires_compatibilities = ["EC2", "FARGATE"]
+  requires_compatibilities = var.create_scheduled_task ? ["FARGATE"] : ["EC2"]
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -346,7 +355,7 @@ resource "aws_ecs_task_definition" "task" {
   }
 
   depends_on = [
-    aws.cloudwatch_log_group.task
+    aws_cloudwatch_log_group.task
   ]
 
   lifecycle {
@@ -364,6 +373,10 @@ resource "aws_cloudwatch_log_group" "task" {
 
   name              = local.cloudwatch_log_group_name
   retention_in_days = 30
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 
@@ -375,7 +388,8 @@ locals {
   # The secrets manager ARNs are used to create the IAM policy
   # for the task execution role. The docker credentials secret
   # is also included in the list of secrets manager ARNs.
-  secrets_manager_arns = concat([for k, v in var.secrets : v], [var.docker_credentials_secret_arn])
+  docker_credentials_secret_arn = var.docker_credentials_secret_arn != "" ? [var.docker_credentials_secret_arn] : []
+  secrets_manager_arns          = concat([for k, v in var.secrets : v], local.docker_credentials_secret_arn)
 }
 
 resource "aws_iam_role" "task_execution" {
@@ -413,7 +427,7 @@ resource "aws_iam_role_policy_attachment" "secrets_manager" {
   count = length(local.secrets_manager_arns) > 0 ? 1 : 0
 
   role       = aws_iam_role.task_execution.name
-  policy_arn = aws_iam_policy.task_execution.arn
+  policy_arn = aws_iam_policy.task_execution[0].arn
 }
 
 resource "aws_iam_role_policy_attachment" "task_execution" {
@@ -443,16 +457,16 @@ resource "aws_cloudwatch_event_target" "scheduled" {
   count = var.create_scheduled_task ? 1 : 0
 
   target_id = "${var.ecs_service_name}-scheduled"
-  arn       = aws_ecs_cluster.cluster.arn
-  rule      = aws_cloudwatch_event_rule.scheduled.name
-  role_arn  = aws_iam_role.scheduled.arn
+  arn       = data.aws_ecs_cluster.cluster.arn
+  rule      = aws_cloudwatch_event_rule.scheduled[0].name
+  role_arn  = aws_iam_role.scheduled[0].arn
 
   ecs_target {
     task_count          = var.desired_number_of_tasks
     task_definition_arn = local.task_definition
     launch_type         = "FARGATE"
     network_configuration {
-      subnets          = var.scheduled_task_subnets
+      subnets          = var.scheduled_task_subnet_ids
       security_groups  = var.scheduled_task_security_group_ids
       assign_public_ip = var.scheduled_task_assign_public_ip
     }
@@ -493,8 +507,8 @@ data "aws_iam_policy_document" "scheduled" {
   count = var.create_scheduled_task ? 1 : 0
 
   statement {
-    actions  = ["iam:PassRole"]
-    resource = ["*"]
+    actions   = ["iam:PassRole"]
+    resources = ["*"]
   }
 
   statement {
@@ -507,8 +521,8 @@ resource "aws_iam_role_policy" "scheduled" {
   count = var.create_scheduled_task ? 1 : 0
 
   name   = "${var.ecs_service_name}-run-task"
-  role   = aws_iam_role.scheduled.id
-  policy = data.aws_iam_policy_document.scheduled.json
+  role   = aws_iam_role.scheduled[0].id
+  policy = data.aws_iam_policy_document.scheduled[0].json
 }
 
 
@@ -543,22 +557,23 @@ resource "aws_cloudwatch_event_rule" "scheduled" {
 # -------------------------------------------
 
 resource "aws_lb_listener_rule" "alb" {
-  count = var.enable_alb_attachment ? 1 : 0
+  count = var.enable_load_balancer ? 1 : 0
 
-  listener_arn = var.alb_listener
+  listener_arn = var.lb_listener_arn
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.alb.arn
+    target_group_arn = aws_lb_target_group.alb[0].arn
   }
 
   condition {
-    field  = "path-pattern"
-    values = ["/"]
+    path_pattern {
+      values = ["/"]
+    }
   }
 
   depends_on = [
-    var.alb_listener,
+    var.load_balancer_listener_arn,
     aws_lb_target_group.alb
   ]
 }
@@ -569,13 +584,13 @@ resource "aws_lb_listener_rule" "alb" {
 # -------------------------------------------
 
 resource "aws_lb_target_group" "alb" {
-  count = var.enable_alb_attachment ? 1 : 0
+  count = var.enable_load_balancer ? 1 : 0
 
   name     = var.ecs_service_name
   port     = var.container_port
   protocol = "HTTP"
 
-  vpc_id = var.vpc_id
+  vpc_id = var.lb_target_group_vpc_id
 
   health_check {
     healthy_threshold   = 3
