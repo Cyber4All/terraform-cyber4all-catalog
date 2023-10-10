@@ -242,23 +242,31 @@ Default: `true`
 
 The following outputs are exported:
 
-### <a name="output_route_list"></a> [route\_list](#output\_route\_list)
+### <a name="output_cluster_authorized_users"></a> [cluster\_authorized\_users](#output\_cluster\_authorized\_users)
 
-Description: n/a
+Description: The list of users/roles authorized to access the cluster.
 
-### <a name="output_route_table_id_to_vpc_id"></a> [route\_table\_id\_to\_vpc\_id](#output\_route\_table\_id\_to\_vpc\_id)
+### <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id)
 
-Description: n/a
+Description: The mongodb cluster ID
 
-### <a name="output_route_table_ids"></a> [route\_table\_ids](#output\_route\_table\_ids)
+### <a name="output_cluster_mongodb_base_uri"></a> [cluster\_mongodb\_base\_uri](#output\_cluster\_mongodb\_base\_uri)
 
-Description: n/a
+Description: The base connection string for the cluster. The field is available only when the cluster is in an operational state.
 
-### <a name="output_vpc_id_to_peering_connection_cidr_block"></a> [vpc\_id\_to\_peering\_connection\_cidr\_block](#output\_vpc\_id\_to\_peering\_connection\_cidr\_block)
+### <a name="output_cluster_mongodb_uri_with_options"></a> [cluster\_mongodb\_uri\_with\_options](#output\_cluster\_mongodb\_uri\_with\_options)
 
-Description: n/a
+Description: The connection string for the cluster with replicaSet, ssl, and authSource query parameters with values appropriate for the cluster. The field is available only when the cluster is in an operational state.
 
-### <a name="output_vpc_id_to_peering_connection_id"></a> [vpc\_id\_to\_peering\_connection\_id](#output\_vpc\_id\_to\_peering\_connection\_id)
+### <a name="output_cluster_mongodb_version"></a> [cluster\_mongodb\_version](#output\_cluster\_mongodb\_version)
 
-Description: n/a
+Description: The mongodb cluster version
+
+### <a name="output_cluster_peering_route_table_ids"></a> [cluster\_peering\_route\_table\_ids](#output\_cluster\_peering\_route\_table\_ids)
+
+Description: The list of peering route table IDs.
+
+### <a name="output_cluster_state"></a> [cluster\_state](#output\_cluster\_state)
+
+Description: The state that the cluster is in. Possible values are: IDLE, CREATING, UPDATING, DELETING, DELETED, REPAIRING.
 <!-- END_TF_DOCS -->
