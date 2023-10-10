@@ -41,21 +41,8 @@ variable "create_nat_gateway" {
   default     = true
 }
 
-# variable "num_availability_zones" {
-#   type        = number
-#   description = "How many AWS Availability Zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ. Note that this must be less than or equal to the total number of AZs in a region. A value of null means all AZs should be used. For example, if you specify 3 in a region with 5 AZs, subnets will be created in just 3 AZs instead of all 5. Defaults to all AZs in a region."
-#   default     = null
-# }
-
-variable "availability_zones" {
-  type        = list(string)
-  description = "A list of availability zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ."
-  default = [
-    "us-east-1a",
-    "us-east-1b",
-    "us-east-1c",
-    "us-east-1d",
-    "us-east-1e",
-    "us-east-1f"
-  ]
+variable "num_availability_zones" {
+  type        = number
+  description = "How many AWS Availability Zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ. Note that this must be less than or equal to the total number of AZs in a region. A value of null means all AZs should be used. For example, if you specify 3 in a region with 5 AZs, subnets will be created in just 3 AZs instead of all 5. Defaults to all AZs in a region."
+  default     = null
 }

@@ -52,10 +52,6 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # A list of availability zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ.
-	 availability_zones  = list(string)
-
-
 	 # Whether or not to create a NAT gateway.
 	 create_nat_gateway  = bool
 
@@ -66,6 +62,10 @@ module "example" {
 
 	 # Whether or not to create public subnets.
 	 create_public_subnets  = bool
+
+
+	 # How many AWS Availability Zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ. Note that this must be less than or equal to the total number of AZs in a region. A value of null means all AZs should be used. For example, if you specify 3 in a region with 5 AZs, subnets will be created in just 3 AZs instead of all 5. Defaults to all AZs in a region.
+	 num_availability_zones  = number
 
 
 
@@ -84,25 +84,6 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
-
-### <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones)
-
-Description: A list of availability zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ.
-
-Type: `list(string)`
-
-Default:
-
-```json
-[
-  "us-east-1a",
-  "us-east-1b",
-  "us-east-1c",
-  "us-east-1d",
-  "us-east-1e",
-  "us-east-1f"
-]
-```
 
 ### <a name="input_create_nat_gateway"></a> [create\_nat\_gateway](#input\_create\_nat\_gateway)
 
@@ -127,6 +108,14 @@ Description: Whether or not to create public subnets.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_num_availability_zones"></a> [num\_availability\_zones](#input\_num\_availability\_zones)
+
+Description: How many AWS Availability Zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ. Note that this must be less than or equal to the total number of AZs in a region. A value of null means all AZs should be used. For example, if you specify 3 in a region with 5 AZs, subnets will be created in just 3 AZs instead of all 5. Defaults to all AZs in a region.
+
+Type: `number`
+
+Default: `null`
 ## Outputs
 
 The following outputs are exported:
