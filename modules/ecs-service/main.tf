@@ -573,7 +573,7 @@ resource "aws_lb_listener_rule" "alb" {
   }
 
   depends_on = [
-    var.load_balancer_listener_arn,
+    var.lb_listener_arn,
     aws_lb_target_group.alb
   ]
 }

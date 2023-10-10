@@ -72,7 +72,7 @@ module "example" {
 	 cluster_peering_cidr_block  = string
 
 
-	 # TODO update this description
+	 # The route table IDs of the VPC to peer with.
 	 cluster_peering_route_table_ids  = list(string)
 
 
@@ -177,7 +177,7 @@ Default: `""`
 
 ### <a name="input_cluster_peering_route_table_ids"></a> [cluster\_peering\_route\_table\_ids](#input\_cluster\_peering\_route\_table\_ids)
 
-Description: TODO update this description
+Description: The route table IDs of the VPC to peer with.
 
 Type: `list(string)`
 
@@ -197,7 +197,7 @@ Description: Set to true to enable auto scaling for the cluster's compute and st
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
 
 ### <a name="input_enable_cluster_automated_patches"></a> [enable\_cluster\_automated\_patches](#input\_enable\_cluster\_automated\_patches)
 
@@ -213,7 +213,7 @@ Description: Set to true to enable backups for the cluster. Recommended for prod
 
 Type: `bool`
 
-Default: `false`
+Default: `true`
 
 ### <a name="input_enable_cluster_terimination_protection"></a> [enable\_cluster\_terimination\_protection](#input\_enable\_cluster\_terimination\_protection)
 

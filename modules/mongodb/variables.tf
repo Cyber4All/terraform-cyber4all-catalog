@@ -89,7 +89,7 @@ variable "cluster_authorized_iam_roles" {
 }
 
 variable "cluster_peering_route_table_ids" {
-  description = "TODO update this description"
+  description = "The route table IDs of the VPC to peer with."
   type        = list(string)
   default     = []
 }
@@ -103,7 +103,7 @@ variable "cluster_peering_cidr_block" {
 variable "enable_cluster_auto_scaling" {
   description = "Set to true to enable auto scaling for the cluster's compute and storage. Recommended for production clusters."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_cluster_automated_patches" {
@@ -115,7 +115,7 @@ variable "enable_cluster_automated_patches" {
 variable "enable_cluster_backups" {
   description = "Set to true to enable backups for the cluster. Recommended for production clusters."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_cluster_terimination_protection" {

@@ -22,7 +22,7 @@ module "vpc" {
 
   vpc_name = "test-vpc"
 
-  # num_availability_zones = 3
+  num_availability_zones = 3
 
   create_private_subnets = false
 }
@@ -32,11 +32,6 @@ module "mongodb" {
 
   project_name = "CARD-Development"
   cluster_name = "test-cluster"
-
-  enable_cluster_auto_scaling           = true
-  enable_cluster_automated_patches      = true
-  enable_cluster_backups                = true
-  enable_retain_deleted_cluster_backups = true
 
   cluster_authorized_iam_users = {
     "cwagne17-cli"             = "admin"

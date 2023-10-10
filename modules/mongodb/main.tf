@@ -3,11 +3,18 @@
 # 
 # This module will create a mongodb cluster that integrates with an existing AWS VPC.
 #
-# The MongoDB cluster can...
+# The MongoDB cluster can be configured to use VPC peering to connect to the VPC of 
+# the application. This allows the application to connect to the MongoDB cluster
+# without exposing the cluster to the public internet.
+#
+# Additionally, the module can be configured to use AWS IAM to manage access to the
+# MongoDB cluster. This allows the application to use the same AWS IAM users and roles
+# to access the MongoDB cluster.
 #
 # The module includes the following:
-#
-# - TODO: ADD THIS IN DEVELOPMENT
+# - MongoDB Cluster
+# - MongoDB Database Users
+# - VPC Peering Connection
 #
 # -------------------------------------------------------------------------------------
 
@@ -162,15 +169,6 @@ resource "mongodbatlas_cluster" "cluster" {
   ]
 }
 
-
-# -------------------------------------------
-# CREATE THE NOTIFCATION
-# -------------------------------------------
-
-# should send notification to slack and/or email
-# notify if storage is x % full
-# any other metrics deemed useful here https://www.mongodb.com/basics/how-to-monitor-mongodb-and-what-metrics-to-monitor
-# resource "mongodbatlas_alert_configuration" "cluster" {}
 
 # --------------------------------------------------------------
 
