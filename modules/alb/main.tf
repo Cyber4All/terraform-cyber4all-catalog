@@ -105,10 +105,6 @@ data "aws_acm_certificate" "cert" {
   domain      = var.hosted_zone_name
   types       = ["AMAZON_ISSUED"]
   most_recent = true
-
-  depends_on = [
-    var.hosted_zone_name
-  ]
 }
 
 resource "aws_lb_listener" "redirect" {
@@ -218,10 +214,6 @@ data "aws_route53_zone" "zone" {
   count = var.hosted_zone_name != "" ? 1 : 0
 
   name = var.hosted_zone_name
-
-  depends_on = [
-    var.hosted_zone_name
-  ]
 }
 
 resource "aws_route53_record" "alb" {

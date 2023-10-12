@@ -84,8 +84,8 @@ module "ecs-scheduled-task" {
   ecs_cluster_name = module.cluster.ecs_cluster_name
   ecs_service_name = local.name
 
-  container_image = var.container_image
-  environment_variables = {
+  ecs_container_image = var.container_image
+  ecs_container_environment_variables = {
     "MOCK_TYPE" = "single-process"
   }
 

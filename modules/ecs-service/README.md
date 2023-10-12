@@ -38,11 +38,11 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The name of the ECS cluster to deploy the ECS service onto.
+	 # The name of the ECS cluster.
 	 ecs_cluster_name  = string
 
 
-	 # The name of the ECS service to create.
+	 # The name of the ECS service.
 	 ecs_service_name  = string
 
 
@@ -51,16 +51,20 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The docker image to use for the ECS task. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform.
-	 container_image  = string
+	 # The percentage for the ECS service's average CPU utilization threshold. The service uses a target tracking scaling policy.
+	 auto_scaling_cpu_util_threshold  = number
 
 
-	 # The port that the container listens on.
-	 container_port  = number
+	 # The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
+	 auto_scaling_max_number_of_tasks  = number
 
 
-	 # Percentage for the target tracking scaling threshold for the ECS Service average CPU utiliziation.
-	 cpu_utilization_threshold  = number
+	 # The percentage for the ECS service's average Memory utilization threshold. The service uses a target tracking scaling policy.
+	 auto_scaling_memory_util_threshold  = number
+
+
+	 # The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number.
+	 auto_scaling_min_number_of_tasks  = number
 
 
 	 # The ECS task should be deployed as a scheduled task rather than a managed ECS service.
@@ -72,7 +76,23 @@ module "example" {
 
 
 	 # The ARN of the AWS Secrets Manager secret containing the Docker credentials.
-	 docker_credentials_secret_arn  = string
+	 docker_credential_secretsmanager_arn  = string
+
+
+	 # A map of environment variables to set in the ECS container definition. These values should NOT be sensitive.
+	 ecs_container_environment_variables  = map(string)
+
+
+	 # The name and tag of the docker image to use for the ECS essential container definition. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform. This value is required for initial deployments and when changing the base image (image without the tag).
+	 ecs_container_image  = string
+
+
+	 # The container port that the application is listening on.
+	 ecs_container_port  = number
+
+
+	 # A map of secrets to configure in the ECS container definition. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
+	 ecs_container_secrets  = map(string)
 
 
 	 # Enable container logging to CloudWatch Logs.
@@ -95,28 +115,12 @@ module "example" {
 	 enable_service_connect  = bool
 
 
-	 # A map of environment variables to pass to the ECS task.
-	 environment_variables  = map(string)
-
-
 	 # The load balancer listener arn to attach the ECS service to. This value is required when enable_load_balancer is true.
 	 lb_listener_arn  = string
 
 
 	 # The VPC id to deploy the ECS service's load balancer traget group into. Required when enable_load_balancer is true.
 	 lb_target_group_vpc_id  = string
-
-
-	 # The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
-	 max_number_of_tasks  = number
-
-
-	 # Percentage for the target tracking scaling threshold for the ECS Service average memory utiliziation.
-	 memory_utilization_threshold  = number
-
-
-	 # The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number.
-	 min_number_of_tasks  = number
 
 
 	 # Assign a public IP address to the ECS task.
@@ -139,10 +143,6 @@ module "example" {
 	 scheduled_task_subnet_ids  = list(string)
 
 
-	 # A map of secrets to pass to the ECS task. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
-	 secrets  = map(string)
-
-
 
 }
 ```
@@ -152,13 +152,13 @@ The following input variables are required:
 
 ### <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name)
 
-Description: The name of the ECS cluster to deploy the ECS service onto.
+Description: The name of the ECS cluster.
 
 Type: `string`
 
 ### <a name="input_ecs_service_name"></a> [ecs\_service\_name](#input\_ecs\_service\_name)
 
-Description: The name of the ECS service to create.
+Description: The name of the ECS service.
 
 Type: `string`
 
@@ -166,29 +166,37 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_container_image"></a> [container\_image](#input\_container\_image)
+### <a name="input_auto_scaling_cpu_util_threshold"></a> [auto\_scaling\_cpu\_util\_threshold](#input\_auto\_scaling\_cpu\_util\_threshold)
 
-Description: The docker image to use for the ECS task. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform.
-
-Type: `string`
-
-Default: `""`
-
-### <a name="input_container_port"></a> [container\_port](#input\_container\_port)
-
-Description: The port that the container listens on.
-
-Type: `number`
-
-Default: `null`
-
-### <a name="input_cpu_utilization_threshold"></a> [cpu\_utilization\_threshold](#input\_cpu\_utilization\_threshold)
-
-Description: Percentage for the target tracking scaling threshold for the ECS Service average CPU utiliziation.
+Description: The percentage for the ECS service's average CPU utilization threshold. The service uses a target tracking scaling policy.
 
 Type: `number`
 
 Default: `50`
+
+### <a name="input_auto_scaling_max_number_of_tasks"></a> [auto\_scaling\_max\_number\_of\_tasks](#input\_auto\_scaling\_max\_number\_of\_tasks)
+
+Description: The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
+
+Type: `number`
+
+Default: `4`
+
+### <a name="input_auto_scaling_memory_util_threshold"></a> [auto\_scaling\_memory\_util\_threshold](#input\_auto\_scaling\_memory\_util\_threshold)
+
+Description: The percentage for the ECS service's average Memory utilization threshold. The service uses a target tracking scaling policy.
+
+Type: `number`
+
+Default: `50`
+
+### <a name="input_auto_scaling_min_number_of_tasks"></a> [auto\_scaling\_min\_number\_of\_tasks](#input\_auto\_scaling\_min\_number\_of\_tasks)
+
+Description: The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number.
+
+Type: `number`
+
+Default: `1`
 
 ### <a name="input_create_scheduled_task"></a> [create\_scheduled\_task](#input\_create\_scheduled\_task)
 
@@ -206,13 +214,45 @@ Type: `number`
 
 Default: `1`
 
-### <a name="input_docker_credentials_secret_arn"></a> [docker\_credentials\_secret\_arn](#input\_docker\_credentials\_secret\_arn)
+### <a name="input_docker_credential_secretsmanager_arn"></a> [docker\_credential\_secretsmanager\_arn](#input\_docker\_credential\_secretsmanager\_arn)
 
 Description: The ARN of the AWS Secrets Manager secret containing the Docker credentials.
 
 Type: `string`
 
 Default: `""`
+
+### <a name="input_ecs_container_environment_variables"></a> [ecs\_container\_environment\_variables](#input\_ecs\_container\_environment\_variables)
+
+Description: A map of environment variables to set in the ECS container definition. These values should NOT be sensitive.
+
+Type: `map(string)`
+
+Default: `{}`
+
+### <a name="input_ecs_container_image"></a> [ecs\_container\_image](#input\_ecs\_container\_image)
+
+Description: The name and tag of the docker image to use for the ECS essential container definition. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform. This value is required for initial deployments and when changing the base image (image without the tag).
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_ecs_container_port"></a> [ecs\_container\_port](#input\_ecs\_container\_port)
+
+Description: The container port that the application is listening on.
+
+Type: `number`
+
+Default: `null`
+
+### <a name="input_ecs_container_secrets"></a> [ecs\_container\_secrets](#input\_ecs\_container\_secrets)
+
+Description: A map of secrets to configure in the ECS container definition. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
+
+Type: `map(string)`
+
+Default: `{}`
 
 ### <a name="input_enable_container_logs"></a> [enable\_container\_logs](#input\_enable\_container\_logs)
 
@@ -254,14 +294,6 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_environment_variables"></a> [environment\_variables](#input\_environment\_variables)
-
-Description: A map of environment variables to pass to the ECS task.
-
-Type: `map(string)`
-
-Default: `{}`
-
 ### <a name="input_lb_listener_arn"></a> [lb\_listener\_arn](#input\_lb\_listener\_arn)
 
 Description: The load balancer listener arn to attach the ECS service to. This value is required when enable\_load\_balancer is true.
@@ -277,30 +309,6 @@ Description: The VPC id to deploy the ECS service's load balancer traget group i
 Type: `string`
 
 Default: `""`
-
-### <a name="input_max_number_of_tasks"></a> [max\_number\_of\_tasks](#input\_max\_number\_of\_tasks)
-
-Description: The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
-
-Type: `number`
-
-Default: `4`
-
-### <a name="input_memory_utilization_threshold"></a> [memory\_utilization\_threshold](#input\_memory\_utilization\_threshold)
-
-Description: Percentage for the target tracking scaling threshold for the ECS Service average memory utiliziation.
-
-Type: `number`
-
-Default: `50`
-
-### <a name="input_min_number_of_tasks"></a> [min\_number\_of\_tasks](#input\_min\_number\_of\_tasks)
-
-Description: The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number.
-
-Type: `number`
-
-Default: `1`
 
 ### <a name="input_scheduled_task_assign_public_ip"></a> [scheduled\_task\_assign\_public\_ip](#input\_scheduled\_task\_assign\_public\_ip)
 
@@ -341,13 +349,5 @@ Description: A list of subnet IDs to associate with the ECS task. This value is 
 Type: `list(string)`
 
 Default: `[]`
-
-### <a name="input_secrets"></a> [secrets](#input\_secrets)
-
-Description: A map of secrets to pass to the ECS task. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
-
-Type: `map(string)`
-
-Default: `{}`
 
 <!-- END_TF_DOCS -->

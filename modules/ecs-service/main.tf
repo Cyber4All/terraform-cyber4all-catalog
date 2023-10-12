@@ -115,7 +115,7 @@ resource "aws_ecs_service" "service" {
 
     content {
       container_name   = var.ecs_service_name
-      container_port   = var.container_port
+      container_port   = var.ecs_container_port
       target_group_arn = aws_lb_target_group.alb[0].arn
     }
   }
@@ -162,8 +162,8 @@ resource "aws_ecs_service" "service" {
 resource "aws_appautoscaling_target" "service" {
   count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
 
-  max_capacity = max(var.max_number_of_tasks, var.desired_number_of_tasks)
-  min_capacity = min(var.min_number_of_tasks, var.desired_number_of_tasks)
+  max_capacity = max(var.auto_scaling_max_number_of_tasks, var.desired_number_of_tasks)
+  min_capacity = min(var.auto_scaling_min_number_of_tasks, var.desired_number_of_tasks)
 
   resource_id        = "service/${var.ecs_cluster_name}/${var.ecs_service_name}"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -196,7 +196,7 @@ resource "aws_appautoscaling_policy" "cpu" {
     scale_in_cooldown  = 60
     scale_out_cooldown = 60
 
-    target_value = var.cpu_utilization_threshold
+    target_value = var.auto_scaling_cpu_util_threshold
   }
 
   depends_on = [
@@ -221,7 +221,7 @@ resource "aws_appautoscaling_policy" "memory" {
     scale_in_cooldown  = 60
     scale_out_cooldown = 60
 
-    target_value = var.memory_utilization_threshold
+    target_value = var.auto_scaling_memory_util_threshold
   }
 
   depends_on = [
@@ -251,12 +251,12 @@ locals {
   }
 
   repositoryCredentials = {
-    credentialsParameter = var.docker_credentials_secret_arn
+    credentialsParameter = var.docker_credential_secretsmanager_arn
   }
 
   # TODO we need to figure out how to enable good health checks
   # healthCheck = {
-  #   command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/ || exit 1"]
+  #   command     = ["CMD-SHELL", "curl -f http://localhost:${var.ecs_container_port}/ || exit 1"]
   #   interval    = 30
   #   retries     = 5
   #   startPeriod = 0
@@ -271,11 +271,11 @@ locals {
 
   # If the container image is not specified, then the latest version of the
   # essential container definition image will be used.
-  lookup_deployed_image = var.container_image == ""
+  lookup_deployed_image = var.ecs_container_image == ""
 
   # If the container image is not specified, then the latest version of the
   # essential container definition image will be used.
-  image = !local.lookup_deployed_image ? var.container_image : data.aws_ecs_container_definition.task[0].image
+  image = !local.lookup_deployed_image ? var.ecs_container_image : data.aws_ecs_container_definition.task[0].image
 }
 
 data "aws_ecs_service" "service" {
@@ -326,10 +326,10 @@ resource "aws_ecs_task_definition" "task" {
 
       image = local.image
 
-      repositoryCredentials = var.docker_credentials_secret_arn != "" ? local.repositoryCredentials : null
+      repositoryCredentials = var.docker_credential_secretsmanager_arn != "" ? local.repositoryCredentials : null
 
       portMappings = [{
-        containerPort = var.container_port
+        containerPort = var.ecs_container_port
       }]
 
       # Environment Variables and Secrets are both string maps with
@@ -339,8 +339,8 @@ resource "aws_ecs_task_definition" "task" {
       # environment = [{ "name" : "", "value" : ""}]
       # secrets = [{ "name" : "", "valueFrom" : ""}]
       #
-      environment = [for k, v in var.environment_variables : { name = k, value = v }]
-      secrets     = [for k, v in var.secrets : { name = k, valueFrom = v }]
+      environment = [for k, v in var.ecs_container_environment_variables : { name = k, value = v }]
+      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = v }]
 
       logConfiguration = var.enable_container_logs ? local.log_configuration : null
 
@@ -389,8 +389,8 @@ locals {
   # The secrets manager ARNs are used to create the IAM policy
   # for the task execution role. The docker credentials secret
   # is also included in the list of secrets manager ARNs.
-  docker_credentials_secret_arn = var.docker_credentials_secret_arn != "" ? [var.docker_credentials_secret_arn] : []
-  secrets_manager_arns          = concat([for k, v in var.secrets : v], local.docker_credentials_secret_arn)
+  docker_credentials_secret_arn = var.docker_credential_secretsmanager_arn != "" ? [var.docker_credential_secretsmanager_arn] : []
+  secrets_manager_arns          = concat([for k, v in var.ecs_container_secrets : v], local.docker_credentials_secret_arn)
 }
 
 resource "aws_iam_role" "task_execution" {
@@ -574,7 +574,6 @@ resource "aws_lb_listener_rule" "alb" {
   }
 
   depends_on = [
-    var.load_balancer_listener_arn,
     aws_lb_target_group.alb
   ]
 }
@@ -588,7 +587,7 @@ resource "aws_lb_target_group" "alb" {
   count = var.enable_load_balancer ? 1 : 0
 
   name     = var.ecs_service_name
-  port     = var.container_port
+  port     = var.ecs_container_port
   protocol = "HTTP"
 
   vpc_id = var.lb_target_group_vpc_id
