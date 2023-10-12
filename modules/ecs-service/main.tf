@@ -41,14 +41,10 @@ terraform {
 
 
 # -------------------------------------------
-# RETRIEVE THE AWS MANAGED SERVICE ROLE
+# RETRIEVE GENERAL AWS INFORMATION
 # -------------------------------------------
 
-data "aws_iam_role" "service" {
-  count = var.enable_load_balancer && !var.create_scheduled_task ? 1 : 0
-
-  name = "AWSServiceRoleForECS"
-}
+data "aws_caller_identity" "current" {}
 
 
 # -------------------------------------------
@@ -80,7 +76,9 @@ data "aws_ecs_cluster" "cluster" {
 # CREATE THE ECS SERVICE
 # -------------------------------------------
 
-# Condition: Network type should only support bridge mode
+locals {
+  aws_ecs_service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
+}
 
 resource "aws_ecs_service" "service" {
   count = !var.create_scheduled_task ? 1 : 0
@@ -90,7 +88,7 @@ resource "aws_ecs_service" "service" {
   name            = var.ecs_service_name
   task_definition = local.task_definition
 
-  iam_role = var.enable_load_balancer ? data.aws_iam_role.service[0].arn : null
+  iam_role = var.enable_load_balancer ? local.aws_ecs_service_role : null
 
   deployment_circuit_breaker {
     enable   = var.enable_deployment_rollback
@@ -128,7 +126,6 @@ resource "aws_ecs_service" "service" {
     field = "memory"
   }
 
-  # TODO before changing other configuration we should test this
   service_connect_configuration {
     enabled = var.enable_service_connect
   }
@@ -238,15 +235,13 @@ resource "aws_appautoscaling_policy" "memory" {
 
 # ------------------------------------------------------------
 
-data "aws_region" "current" {}
-
 locals {
   cloudwatch_log_group_name = "/ecs/${var.ecs_service_name}"
   log_configuration = {
     logDriver = "awslogs"
     options = {
-      awslogs-group  = local.cloudwatch_log_group_name
-      awslogs-region = data.aws_region.current.name
+      awslogs-group = local.cloudwatch_log_group_name
+      # awslogs-region = data.aws_region.current.name # TODO this may need to be added back
     }
   }
 

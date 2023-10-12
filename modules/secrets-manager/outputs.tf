@@ -9,8 +9,8 @@ output "secret_arn_references" {
   value = flatten([
     for i in range(length(var.secrets)) :
     [
-      for key in [for s in var.secrets[i].environment : s["name"]] :
-      "${aws_secretsmanager_secret_version.secret[i].arn}:${key}::"
+      for k, v in var.secrets[i].environment_variables :
+      "${aws_secretsmanager_secret_version.secret[i].arn}:${k}::"
     ]
   ])
 }

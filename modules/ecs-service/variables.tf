@@ -72,7 +72,7 @@ variable "docker_credential_secretsmanager_arn" {
   description = "The ARN of the AWS Secrets Manager secret containing the Docker credentials."
   default     = ""
   validation {
-    condition     = var.docker_credentials_secret_arn == "" || length(split(":", var.docker_credentials_secret_arn)) == 7
+    condition     = var.docker_credential_secretsmanager_arn == "" || length(split(":", var.docker_credential_secretsmanager_arn)) == 7
     error_message = "The docker_credentials_secret_arn must be a valid ARN."
   }
 }

@@ -59,12 +59,9 @@ module "secrets-manager" {
   secrets = [
     {
       name = "testing/example/${local.name}"
-      environment = [
-        {
-          name  = "SECRET",
-          value = "SUPER_SECRET_VALUE"
-        }
-      ]
+      environment_variables = {
+        "SECRET" = "SUPER_SECRET_VALUE"
+      }
     }
   ]
 }
@@ -77,8 +74,7 @@ module "secrets-manager" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_name               = local.name
-  num_availability_zones = 3
+  vpc_name = local.name
 }
 
 
@@ -92,7 +88,7 @@ module "alb" {
   alb_name = local.name
 
   vpc_id         = module.vpc.vpc_id
-  vpc_subnet_ids = module.vpc.public_subnets
+  vpc_subnet_ids = module.vpc.public_subnet_ids
 
   enable_https_listener = false
 }
@@ -139,7 +135,7 @@ module "ecs-service" {
 
   enable_load_balancer   = true
   lb_listener_arn        = module.alb.http_listener_arn
-  lb_target_group_vpc_id = module.vpc_id
+  lb_target_group_vpc_id = module.vpc.vpc_id
 }
 
 module "internal-ecs-service" {
