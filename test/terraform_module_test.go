@@ -20,39 +20,18 @@ func TestExamplesForTerraformModules(t *testing.T) {
 		genTestDataFunc func(t *testing.T, workingDir string)
 		validateFunc    func(t *testing.T, workingDir string)
 	}{
-		// {
-		// 	name:            "ecs-cluster",
-		// 	workingDir:      "../examples/ecs-cluster",
-		// 	genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
-		// 	validateFunc:    modules.ValidateEcsCluster,
-		// },
-		// {
-		// 	name:            "secrets-manager",
-		// 	workingDir:      "../examples/secrets-manager",
-		// 	genTestDataFunc: modules.DeployUsingTerraform,
-		// 	validateFunc:    modules.ValidateSecretsContainSecrets,
-		// },
 		{
-			name:            "vpc",
-			workingDir:      "../examples/deploy-vpc",
-			genTestDataFunc: modules.DeployVpcUsingTerraform,
-			validateFunc:    modules.ValidateVpc,
+			name:            "ecs-cluster",
+			workingDir:      "../examples/ecs-cluster",
+			genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+			validateFunc:    modules.ValidateEcsCluster,
 		},
-		// {
-		// 	name:            "vpc-partial-azs",
-		// 	workingDir:      "../examples/deploy-vpc-partial-azs",
-		// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
-		// },
-		// {
-		// 	name:            "vpc-public-only",
-		// 	workingDir:      "../examples/deploy-vpc-public-only",
-		// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
-		// },
-		// {
-		// 	name:            "vpc-wo-nat",
-		// 	workingDir:      "../examples/deploy-vpc-wo-nat",
-		// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
-		// },
+		{
+			name:            "secrets-manager",
+			workingDir:      "../examples/secrets-manager",
+			genTestDataFunc: modules.DeployUsingTerraform,
+			validateFunc:    modules.ValidateSecretsContainSecrets,
+		},
 		{
 			name:            "alb https",
 			workingDir:      "../examples/deploy-alb",
@@ -64,6 +43,30 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			workingDir:      "../examples/deploy-alb-wo-https",
 			genTestDataFunc: modules.DeployAlb,
 			validateFunc:    modules.ValidateAlbNoHttps,
+		},
+		{
+			name:            "vpc",
+			workingDir:      "../examples/deploy-vpc",
+			genTestDataFunc: modules.DeployVpcUsingTerraform,
+			validateFunc:    modules.ValidateVpc,
+		},
+		{
+			name:            "vpc-partial-azs",
+			workingDir:      "../examples/deploy-vpc-partial-azs",
+			genTestDataFunc: modules.DeployVpcUsingTerraform,
+			validateFunc:    modules.ValidateVpc,
+		},
+		{
+			name:            "vpc-public-only",
+			workingDir:      "../examples/deploy-vpc-public-only",
+			genTestDataFunc: modules.DeployVpcUsingTerraform,
+			validateFunc:    modules.ValidateOnlyPublicSubnets,
+		},
+		{
+			name:            "vpc-wo-nat",
+			workingDir:      "../examples/deploy-vpc-wo-nat",
+			genTestDataFunc: modules.DeployVpcUsingTerraform,
+			validateFunc:    modules.ValidateVpcNoNat,
 		},
 	}
 
