@@ -65,6 +65,10 @@ data "aws_availability_zones" "current" {
       error_message = "The number of availability zones requested is greater than the number of availability zones in the region."
     }
   }
+
+  timeouts {
+    read = "20m"
+  }
 }
 
 
@@ -77,13 +81,11 @@ data "aws_availability_zones" "current" {
 # ------------------------------------------------------------
 
 locals {
+  num_availability_zones = var.num_availability_zones == null ? length(data.aws_availability_zones.current) : var.num_availability_zones
+
   # Gets a subset of the availability zones based on the number
   # of availability zones requested.
-  availability_zones = (
-    var.num_availability_zones != null ?
-    slice(data.aws_availability_zones.current.names, 0, var.num_availability_zones) :
-    data.aws_availability_zones.current.names
-  )
+  availability_zones = slice(data.aws_availability_zones.current.names, 0, local.num_availability_zones)
 }
 
 
