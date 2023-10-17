@@ -128,6 +128,13 @@ resource "aws_ecs_service" "service" {
 
   service_connect_configuration {
     enabled = var.enable_service_connect
+    service {
+      port_name = "default"
+      client_alias {
+        port     = var.ecs_container_port
+        dns_name = var.ecs_service_name
+      }
+    }
   }
 
   timeouts {
@@ -235,13 +242,15 @@ resource "aws_appautoscaling_policy" "memory" {
 
 # ------------------------------------------------------------
 
+data "aws_region" "current" {}
+
 locals {
   cloudwatch_log_group_name = "/ecs/${var.ecs_service_name}"
   log_configuration = {
     logDriver = "awslogs"
     options = {
-      awslogs-group = local.cloudwatch_log_group_name
-      # awslogs-region = data.aws_region.current.name # TODO this may need to be added back
+      awslogs-group  = local.cloudwatch_log_group_name
+      awslogs-region = data.aws_region.current.name
     }
   }
 
@@ -324,6 +333,7 @@ resource "aws_ecs_task_definition" "task" {
       repositoryCredentials = var.docker_credential_secretsmanager_arn != "" ? local.repositoryCredentials : null
 
       portMappings = [{
+        name          = "default"
         containerPort = var.ecs_container_port
       }]
 
@@ -385,7 +395,7 @@ locals {
   # for the task execution role. The docker credentials secret
   # is also included in the list of secrets manager ARNs.
   docker_credentials_secret_arn = var.docker_credential_secretsmanager_arn != "" ? [var.docker_credential_secretsmanager_arn] : []
-  secrets_manager_arns          = concat([for k, v in var.ecs_container_secrets : v], local.docker_credentials_secret_arn)
+  secrets_manager_arns          = concat([for k, v in var.ecs_container_secrets : replace(v, ":${k}::", "")], local.docker_credentials_secret_arn)
 }
 
 resource "aws_iam_role" "task_execution" {
@@ -563,8 +573,12 @@ resource "aws_lb_listener_rule" "alb" {
   }
 
   condition {
+
+  }
+
+  condition {
     path_pattern {
-      values = ["/"]
+      values = ["*"]
     }
   }
 
@@ -588,10 +602,13 @@ resource "aws_lb_target_group" "alb" {
   vpc_id = var.lb_target_group_vpc_id
 
   health_check {
-    healthy_threshold   = 3
+    # This is the default health check configuration for the target group.
+    # This would mean that a task could be considered healthy in 2 * 15 = 30 seconds.
+    # or the task could be considered unhealthy in 3 * 5 = 45 seconds.
+    healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 5
-    interval            = 10
+    interval            = 15
     path                = "/"
     matcher             = "200"
   }

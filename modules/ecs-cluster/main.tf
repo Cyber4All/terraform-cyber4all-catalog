@@ -359,9 +359,19 @@ resource "aws_security_group" "default" {
   vpc_id = var.vpc_id
 }
 
+resource "aws_vpc_security_group_ingress_rule" "agent" {
+  security_group_id = aws_security_group.default.id
+  description       = "Opens a dynamic ephemeral port for tasks using the bridge network mode."
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 32768
+  to_port     = 65535
+}
+
 resource "aws_vpc_security_group_egress_rule" "agent" {
   security_group_id = aws_security_group.default.id
-  description       = "Allow all TCP range to support ECS agent, Docker daemon, and Docker ephemeral port requirements."
+  description       = "Allow all outbound tcp traffic."
 
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "tcp"

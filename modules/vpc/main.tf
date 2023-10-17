@@ -40,6 +40,38 @@ terraform {
 }
 
 
+# -------------------------------------------
+# RETRIEVE REGION INFORMATION
+# -------------------------------------------
+
+data "aws_region" "current" {}
+
+data "aws_availability_zones" "current" {
+  filter {
+    name   = "region-name"
+    values = [data.aws_region.current.name]
+  }
+
+  filter {
+    name   = "zone-type"
+    values = ["availability-zone"]
+  }
+
+  lifecycle {
+    # If the number of availability zones requested is greater than the number
+    # of availability zones in the region, then the module should fail.
+    postcondition {
+      condition     = try(length(self.names) >= var.num_availability_zones, true)
+      error_message = "The number of availability zones requested is greater than the number of availability zones in the region."
+    }
+  }
+
+  timeouts {
+    read = "20m"
+  }
+}
+
+
 # ------------------------------------------------------------
 
 # THE FOLLOWING SECTION IS USED TO CREATE THE VPC,
@@ -49,12 +81,11 @@ terraform {
 # ------------------------------------------------------------
 
 locals {
-  # num_availability_zones = var.num_availability_zones == null ? length(data.aws_availability_zones.current) : var.num_availability_zones
+  num_availability_zones = var.num_availability_zones == null ? length(data.aws_availability_zones.current.names) : var.num_availability_zones
 
   # Gets a subset of the availability zones based on the number
   # of availability zones requested.
-  availability_zones = var.availability_zones
-  # availability_zones = slice(data.aws_availability_zones.current.names, 0, local.num_availability_zones)
+  availability_zones = slice(data.aws_availability_zones.current.names, 0, local.num_availability_zones)
 }
 
 
@@ -65,8 +96,6 @@ locals {
 # tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 resource "aws_vpc" "this" {
   cidr_block = "10.0.0.0/18"
-
-  #   ipv4_ipam_pool_id = "" # this should be set up
 
   enable_dns_support   = true
   enable_dns_hostnames = true

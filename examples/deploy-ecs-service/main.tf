@@ -74,7 +74,8 @@ module "secrets-manager" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_name = local.name
+  vpc_name               = local.name
+  num_availability_zones = 3
 }
 
 
