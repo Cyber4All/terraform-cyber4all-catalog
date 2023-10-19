@@ -14,7 +14,7 @@ provider "aws" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_name = "test-vpc-public-only"
+  vpc_name = "test-vpc-public-only-${var.random_id}}"
 
   create_private_subnets = false
 }

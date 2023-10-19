@@ -14,6 +14,6 @@ provider "aws" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_name               = "test-vpc-partial-azs"
+  vpc_name               = "test-vpc-partial-azs-${var.random_id}}"
   num_availability_zones = 3
 }
