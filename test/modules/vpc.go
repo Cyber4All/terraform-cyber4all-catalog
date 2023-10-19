@@ -3,12 +3,14 @@ package modules
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 
 	aws_sdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/gruntwork-io/terratest/modules/aws"
+	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
@@ -20,13 +22,17 @@ func DeployVpcUsingTerraform(t *testing.T, workingDir string) {
 	awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-east-2"}, nil)
 	test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
 
+	// Generate a unique ID to prevent a naming conflict
+	uniqueID := strings.ToLower(random.UniqueId())
+
 	// Construct the terraform options with default retryable errors to handle the most common retryable errors in
 	// terraform testing.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: workingDir,
 		Vars: map[string]interface{}{
-			"region": awsRegion,
+			"region":    awsRegion,
+			"random_id": uniqueID,
 		},
 	})
 
@@ -34,6 +40,7 @@ func DeployVpcUsingTerraform(t *testing.T, workingDir string) {
 	test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
 }
 
+// ValidateOnlyPublicSubnets validates the VPC has only public subnets
 func ValidateOnlyPublicSubnets(t *testing.T, workingDir string) {
 	// Load the terraform options
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
@@ -54,6 +61,8 @@ func ValidateOnlyPublicSubnets(t *testing.T, workingDir string) {
 	assert.NoError(t, err, "Error converting num_availability_zones to int")
 	assertVpcHasCorrectNumberOfSubnets(t, terraformOptions, awsRegion, "public_subnet_ids", numAzs)
 
+	// Get the vpc name
+	// vpcName := terraform.Output(t, terraformOptions, "vpc_name")
 	// Assert that the VPC has no private subnets
 	subnets, err := ec2Client.DescribeSubnets(&ec2.DescribeSubnetsInput{
 		Filters: []*ec2.Filter{
@@ -61,17 +70,35 @@ func ValidateOnlyPublicSubnets(t *testing.T, workingDir string) {
 				Name:   aws_sdk.String("vpc-id"),
 				Values: []*string{aws_sdk.String(vpcID)},
 			},
-			{
-				Name:   aws_sdk.String("tag:Name"),
-				Values: []*string{aws_sdk.String("Private Subnet")},
-			},
 		},
 	})
 	assert.NoError(t, err, "Error describing subnets")
 
-	assert.Equal(t, 0, len(subnets.Subnets), "Expected 0 Private Subnets, got %d", len(subnets.Subnets))
+	// get the route table id
+	rtID := terraform.Output(t, terraformOptions, "public_subnet_route_table_id")
+	rt, err := ec2Client.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
+		RouteTableIds: []*string{
+			aws_sdk.String(rtID),
+		},
+	})
+	assert.NoError(t, err, "Error describing Route Tables")
+
+	// Assert the number of associations is equal the number of subnets
+	assert.Equal(t, len(subnets.Subnets), len(rt.RouteTables[0].Associations), "Expected %d Route Table Associations, got %d", len(subnets.Subnets), len(rt.RouteTables[0].Associations))
+
+	// Assert that the route table routes to the internet gateway
+	foundIgw := false
+	for _, route := range rt.RouteTables[0].Routes {
+		if strings.Contains(*route.GatewayId, "igw") {
+			foundIgw = true
+			break
+		}
+	}
+
+	assert.True(t, foundIgw, "Expected Route Table %s to have a route to Internet Gateway", rtID)
 }
 
+// ValidateVpcNoNat validates the VPC has no NAT Gateway
 func ValidateVpcNoNat(t *testing.T, workingDir string) {
 	// Load the terraform options
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
@@ -109,7 +136,7 @@ func ValidateVpcNoNat(t *testing.T, workingDir string) {
 	assertVpcHasCorrectNumberOfSubnets(t, terraformOptions, awsRegion, "private_subnet_ids", numAzs)
 
 	// Assert that the Private CIDR blocks are computed correctly
-	assertCidrBlocksAreCorrect(t, terraformOptions, numAzs)
+	assertPrivateCidrBlocksAreCorrect(t, terraformOptions, numAzs)
 }
 
 // ValidateVpc validates the VPC
@@ -144,12 +171,13 @@ func ValidateVpc(t *testing.T, workingDir string) {
 	assertVpcHasCorrectNumberOfSubnets(t, terraformOptions, awsRegion, "private_subnet_ids", numAzs)
 
 	// Assert that the Private CIDR blocks are computed correctly
-	assertCidrBlocksAreCorrect(t, terraformOptions, numAzs)
+	assertPrivateCidrBlocksAreCorrect(t, terraformOptions, numAzs)
 
 	// Assert that the Private Route tables direct traffic to the NAT Gateway
 	assertPrivateRouteTableConfiguredCorrectly(t, terraformOptions, ec2Client, vpcID)
 }
 
+// assertPublicRouteTablesHaveCorrectRoutes asserts that the Public Route tables direct traffic to the Internet Gateway for the VPC
 func assertPublicRouteTablesHaveCorrectRoutes(t *testing.T, terraformOptions *terraform.Options, ec2Client *ec2.EC2, vpcID string) {
 	// Get the Internet Gateway for the VPC
 	igtw, err := ec2Client.DescribeInternetGateways(&ec2.DescribeInternetGatewaysInput{
@@ -164,8 +192,10 @@ func assertPublicRouteTablesHaveCorrectRoutes(t *testing.T, terraformOptions *te
 
 	// Assert There are Internet Gateways
 	assert.NotEqual(t, 0, len(igtw.InternetGateways), "Expected at least 1 Internet Gateway, got 0")
+
 	// Assert that the Internet Gateway has attachements
 	assert.NotEqual(t, 0, len(igtw.InternetGateways[0].Attachments), "Expected at least 1 Internet Gateway Attachment, got 0")
+
 	// Assert that the Internet Gateway is attached to the VPC
 	assert.Equal(t, vpcID, *igtw.InternetGateways[0].Attachments[0].VpcId, "Expected Internet Gateway to be attached to VPC %s, got %s", vpcID, *igtw.InternetGateways[0].Attachments[0].VpcId)
 
@@ -193,6 +223,7 @@ func assertPublicRouteTablesHaveCorrectRoutes(t *testing.T, terraformOptions *te
 	assert.True(t, found, "Expected Route Table %s to have a route to Internet Gateway %s", pubrtID, igtwID)
 }
 
+// assertPrivateRouteTableConfiguredCorrectly asserts that the Private Route tables direct traffic to the NAT Gateway for the VPC and that the NAT Gateway exists
 func assertPrivateRouteTableConfiguredCorrectly(t *testing.T, terraformOptions *terraform.Options, ec2Client *ec2.EC2, vpcID string) {
 	prtID := terraform.Output(t, terraformOptions, "private_subnet_route_table_id")
 	natgw, err := ec2Client.DescribeNatGateways(&ec2.DescribeNatGatewaysInput{})
@@ -202,7 +233,7 @@ func assertPrivateRouteTableConfiguredCorrectly(t *testing.T, terraformOptions *
 	assert.NotEqual(t, 0, len(natgw.NatGateways), "Expected at least 1 NAT Gateway, got 0")
 	natgwID := ""
 	for _, nat := range natgw.NatGateways {
-		if nat.State != nil && *nat.State == "available" {
+		if nat.State != nil && *nat.State == "available" && *nat.VpcId == vpcID {
 			natgwID = *nat.NatGatewayId
 			break
 		}
@@ -215,7 +246,7 @@ func assertPrivateRouteTableConfiguredCorrectly(t *testing.T, terraformOptions *
 		},
 	})
 	assert.NoError(t, err, "Error describing Route Tables")
-
+	fmt.Println(prt)
 	// Assert a Route Table was returned
 	assert.Equal(t, 1, len(prt.RouteTables), "Expected 1 Route Table, got %d", len(prt.RouteTables))
 	// Assert that the Private Route table has a route to the NAT Gateway
@@ -229,6 +260,7 @@ func assertPrivateRouteTableConfiguredCorrectly(t *testing.T, terraformOptions *
 	assert.True(t, found, "Expected Route Table %s to have a route to NAT Gateway %s", prtID, natgwID)
 }
 
+// assertPublicCidrBlocksAreCorrect asserts that the Public CIDR blocks are computed correctly for the VPC
 func assertPublicCidrBlocksAreCorrect(t *testing.T, terraformOptions *terraform.Options, numAzs int) {
 	publicCidrBlocks := terraform.OutputList(t, terraformOptions, "public_subnet_cidr_blocks")
 	assert.Equal(t, numAzs, len(publicCidrBlocks), "Expected %d Public CIDR Blocks, got %d", numAzs, (publicCidrBlocks))
@@ -239,7 +271,8 @@ func assertPublicCidrBlocksAreCorrect(t *testing.T, terraformOptions *terraform.
 	}
 }
 
-func assertCidrBlocksAreCorrect(t *testing.T, terraformOptions *terraform.Options, numAzs int) {
+// assertPrivateCidrBlocksAreCorrect asserts that the Private CIDR blocks are computed correctly for the VPC
+func assertPrivateCidrBlocksAreCorrect(t *testing.T, terraformOptions *terraform.Options, numAzs int) {
 	privateCidrBlocks := terraform.OutputList(t, terraformOptions, "private_subnet_cidr_blocks")
 	assert.Equal(t, numAzs, len(privateCidrBlocks), "Expected %d Private CIDR Blocks, got %d", numAzs, (privateCidrBlocks))
 
@@ -249,6 +282,7 @@ func assertCidrBlocksAreCorrect(t *testing.T, terraformOptions *terraform.Option
 	}
 }
 
+// assertVpcExists asserts that the VPC exists
 func assertVpcExists(t *testing.T, terraformOptions *terraform.Options, awsRegion string) string {
 	vpcID := terraform.Output(t, terraformOptions, "vpc_id")
 	vpc := aws.GetVpcById(t, vpcID, awsRegion)
@@ -256,6 +290,7 @@ func assertVpcExists(t *testing.T, terraformOptions *terraform.Options, awsRegio
 	return vpcID
 }
 
+// assertVpcHasCorrectNumberOfSubnets asserts that the VPC has the correct number of subnets
 func assertVpcHasCorrectNumberOfSubnets(t *testing.T, terraformOptions *terraform.Options, awsRegion string, subnetId string, numAzs int) {
 	subnets := terraform.OutputList(t, terraformOptions, subnetId)
 	assert.Equal(t, numAzs, len(subnets), "Expected %d Subnets, got %d", numAzs, len(subnets))
