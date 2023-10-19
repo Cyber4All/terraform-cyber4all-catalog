@@ -145,8 +145,8 @@ module "internal-ecs-service" {
   ecs_cluster_name = module.cluster.ecs_cluster_name
   ecs_service_name = "${local.name}-internal"
 
-  ecs_container_image = var.container_image
-  ecs_container_port  = 8080
+  # ecs_container_image = var.container_image
+  ecs_container_port = 8080
 
   ecs_container_environment_variables = {
     "MOCK_TYPE" = "rest-api"
