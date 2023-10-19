@@ -283,7 +283,7 @@ locals {
   # and get the max version of either source, useful for when external resources
   # update the container definition
   max_task_def_revision = max(aws_ecs_task_definition.task.revision, data.aws_ecs_task_definition.task.revision)
-  task_definition       = "${aws_ecs_task_definition.task.family}:${local.max_task_def_revision}"
+  task_definition       = "${aws_ecs_task_definition.task.arn_without_revision}:${local.max_task_def_revision}"
 
   # If the container image is not specified, then the latest version of the
   # essential container definition image will be used.
@@ -575,7 +575,7 @@ resource "aws_cloudwatch_event_rule" "scheduled" {
 # -------------------------------------------
 
 resource "aws_lb_listener_rule" "alb" {
-  count = var.enable_load_balancer ? 1 : 0
+  count = var.enable_load_balancer && !var.create_scheduled_task ? 1 : 0
 
   listener_arn = var.lb_listener_arn
 
@@ -605,7 +605,7 @@ resource "aws_lb_listener_rule" "alb" {
 # -------------------------------------------
 
 resource "aws_lb_target_group" "alb" {
-  count = var.enable_load_balancer ? 1 : 0
+  count = var.enable_load_balancer && !var.create_scheduled_task ? 1 : 0
 
   name     = var.ecs_service_name
   port     = var.ecs_container_port
@@ -629,5 +629,3 @@ resource "aws_lb_target_group" "alb" {
     create_before_destroy = true
   }
 }
-
-
