@@ -27,12 +27,6 @@ variable "ecs_service_name" {
 # These values are optional and have default values provided
 # --------------------------------------------------------------------
 
-variable "auto_scaling_cpu_util_threshold" {
-  type        = number
-  description = "The percentage for the ECS service's average CPU utilization threshold. The service uses a target tracking scaling policy."
-  default     = 50
-}
-
 variable "auto_scaling_max_number_of_tasks" {
   type        = number
   description = "The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number."

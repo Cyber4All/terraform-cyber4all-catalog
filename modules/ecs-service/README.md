@@ -16,6 +16,8 @@
 [Custom event pattern reference](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events-structure.html)
 [ECS service connect](https://aws.amazon.com/blogs/aws/new-amazon-ecs-service-connect-enabling-easy-communication-between-microservices/)
 [Service Connect Documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect-concepts.html)
+[Load testing ECS application](https://ecsworkshop.com/monitoring/container_insights/performloadtest/)
+[Speeding up ECS deployments](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/deployment.html)
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

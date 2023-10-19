@@ -50,7 +50,7 @@ output "ecs_task_event_rule_name" {
 
 output "service_auto_scaling_alarm_arns" {
   description = "The ARNs of the CloudWatch alarms that are used for the ECS service's Auto Scaling."
-  value       = var.enable_service_auto_scaling && !var.create_scheduled_task ? concat(aws_appautoscaling_policy.cpu[0].alarm_arns, aws_appautoscaling_policy.memory[0].alarm_arns) : null
+  value       = var.enable_service_auto_scaling && !var.create_scheduled_task ? aws_appautoscaling_policy.memory[0].alarm_arns : null
 }
 
 output "service_arn" {

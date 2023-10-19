@@ -195,31 +195,6 @@ resource "aws_appautoscaling_target" "service" {
 # CREATE THE AUTOSCALING POLICY
 # -------------------------------------------
 
-resource "aws_appautoscaling_policy" "cpu" {
-  count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
-
-  name               = "${var.ecs_service_name}-cpu-scaling"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.service[0].resource_id
-  scalable_dimension = aws_appautoscaling_target.service[0].scalable_dimension
-  service_namespace  = aws_appautoscaling_target.service[0].service_namespace
-
-  target_tracking_scaling_policy_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageCPUUtilization"
-    }
-
-    scale_in_cooldown  = 60
-    scale_out_cooldown = 60
-
-    target_value = var.auto_scaling_cpu_util_threshold
-  }
-
-  depends_on = [
-    aws_ecs_service.service
-  ]
-}
-
 resource "aws_appautoscaling_policy" "memory" {
   count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
 
@@ -234,8 +209,7 @@ resource "aws_appautoscaling_policy" "memory" {
       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
     }
 
-    scale_in_cooldown  = 60
-    scale_out_cooldown = 60
+    scale_in_cooldown = 60
 
     target_value = var.auto_scaling_memory_util_threshold
   }
@@ -612,6 +586,14 @@ resource "aws_lb_target_group" "alb" {
   protocol = "HTTP"
 
   vpc_id = var.lb_target_group_vpc_id
+
+  # Our applications are designed to have quick response times
+  # therefore we can afford using a shorter timeout.
+  # This provides faster draining of unhealthy or deregistering
+  # of tasks from the target group. Example being a deployment
+  # where the tasks are being replaced with new tasks. Default
+  # would take 5 minutes to deregister a task.
+  deregistration_delay = 5
 
   health_check {
     # This is the default health check configuration for the target group.
