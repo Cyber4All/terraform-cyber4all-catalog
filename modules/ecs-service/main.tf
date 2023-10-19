@@ -35,24 +35,17 @@ terraform {
 }
 
 
-# ------------------------------------------------------------
-
-# THE FOLLOWING SECTION IS USED TO CONFIGURE THE SERVICE,
-
-# AND ASSOCIATED RESOURCES (CloudWatch Alarms, IAM)
-
-# ------------------------------------------------------------
-
-
 # -------------------------------------------
 # RETRIEVE GENERAL AWS INFORMATION
 # -------------------------------------------
 
 data "aws_caller_identity" "current" {}
 
+data "aws_region" "current" {}
+
 
 # -------------------------------------------
-# RETRIEVE THE ECS CLUSTER
+# RETRIEVE THE ECS CLUSTER INFORMATION
 # -------------------------------------------
 
 data "aws_ecs_cluster" "cluster" {
@@ -77,18 +70,339 @@ data "aws_ecs_cluster" "cluster" {
 
 
 # -------------------------------------------
-# CREATE THE ECS SERVICE
+
+# IDENTIFY THE TASK DEFINITION REVISION TO USE 
+
+# FOR THE ECS SERVICE OR SCHEDULED TASK
+
+# -------------------------------------------
+
+locals {
+  # This allows us to query both the existing as well as Terraform's state and get
+  # and get the max version of either source, useful for when external resources
+  # update the container definition
+  max_task_def_revision = max(aws_ecs_task_definition.task.revision, data.aws_ecs_task_definition.task.revision)
+  task_definition       = "${aws_ecs_task_definition.task.arn_without_revision}:${local.max_task_def_revision}"
+}
+
+# This allows us to query both the existing as well as Terraform's state and get
+# and get the max version of either source, useful for when external resources
+# update the container definition
+data "aws_ecs_task_definition" "task" {
+  task_definition = aws_ecs_task_definition.task.family
+
+  depends_on = [
+    aws_ecs_task_definition.task
+  ]
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CONFIGURE THE ECS
+
+# TASK DEFINITION AND CONTAINER DEFINITION
+
+# ------------------------------------------------------------
+
+
+# -------------------------------------------
+# IDENTIFY IMAGE TO USE FOR THE TASK DEFINITION
+# -------------------------------------------
+
+locals {
+  # If the container image is not specified, then the latest version of the
+  # container definition image that is deployed will be used.
+  lookup_deployed_image = var.ecs_container_image == ""
+
+  # When looking up the deployed image, we need to distinguish between
+  # a scheduled task and a service. A scheduled task will not have a
+  # service associated with it
+  image = (
+    local.lookup_deployed_image ?
+    (
+      var.create_scheduled_task ?
+      data.aws_ecs_container_definition.scheduled[0].image :
+      data.aws_ecs_container_definition.service[0].image
+    )
+    : var.ecs_container_image
+  )
+}
+
+# -------------------------------------------
+# LOOKUP IMAGE FOR ECS SERVICE
+# -------------------------------------------
+
+# This will get the ECS service that is currently deployed.
+data "aws_ecs_service" "service" {
+  count = !var.create_scheduled_task && local.lookup_deployed_image ? 1 : 0
+
+  cluster_arn  = data.aws_ecs_cluster.cluster.arn
+  service_name = var.ecs_service_name
+}
+
+# This will get the latest container definition from the task definition
+# that is currently deployed to the ECS service.
+data "aws_ecs_container_definition" "service" {
+  count = !var.create_scheduled_task && local.lookup_deployed_image ? 1 : 0
+
+  task_definition = data.aws_ecs_service.service[0].task_definition
+  container_name  = var.ecs_service_name
+}
+
+
+# -------------------------------------------
+# LOOKUP IMAGE FOR SCHEDULED TASK
+# -------------------------------------------
+
+# Gets the latest container definition from the max
+# revision of the task definition.
+data "aws_ecs_container_definition" "scheduled" {
+  count = var.create_scheduled_task && local.lookup_deployed_image ? 1 : 0
+
+  task_definition = local.task_definition
+  container_name  = var.ecs_service_name
+
+  depends_on = [
+    data.aws_ecs_task_definition.task
+  ]
+}
+
+
+# -------------------------------------------
+# CREATE THE ECS TASK DEFINITION
+# -------------------------------------------
+
+locals {
+  cloudwatch_log_group_name = "/ecs/${var.ecs_service_name}"
+  log_configuration = {
+    logDriver = "awslogs"
+    options = {
+      awslogs-group  = local.cloudwatch_log_group_name
+      awslogs-region = data.aws_region.current.name
+    }
+  }
+
+  repositoryCredentials = {
+    credentialsParameter = var.docker_credential_secretsmanager_arn
+  }
+}
+
+resource "aws_ecs_task_definition" "task" {
+  family = var.ecs_service_name
+
+  cpu          = 256
+  memory       = 256
+  network_mode = var.create_scheduled_task ? "awsvpc" : "bridge"
+
+  execution_role_arn = aws_iam_role.task_execution.arn
+  task_role_arn      = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task.arn : null
+
+  container_definitions = jsonencode([
+    {
+      name = var.ecs_service_name
+
+      image = local.image
+
+      repositoryCredentials = var.docker_credential_secretsmanager_arn != "" ? local.repositoryCredentials : null
+
+      portMappings = [{
+        name          = random_id.service_connect[0].hex
+        containerPort = var.ecs_container_port
+      }]
+
+      # Environment Variables and Secrets are both string maps with
+      # the same key/value structure. They are mapped to the appropriate
+      # structure for the container definition
+      environment = [for k, v in var.ecs_container_environment_variables : { name = k, value = v }]
+      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = v }]
+
+      logConfiguration = var.enable_container_logs ? local.log_configuration : null
+
+      # healthCheck = !var.create_scheduled_task ? local.healthCheck : null
+    }
+  ])
+
+  requires_compatibilities = var.create_scheduled_task ? ["FARGATE"] : ["EC2"]
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "X86_64"
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.task
+  ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+
+# -------------------------------------------
+# CREATE THE CLOUDWATCH LOG GROUP FOR THE TASK
+# -------------------------------------------
+
+resource "aws_cloudwatch_log_group" "task" {
+  count = var.enable_container_logs ? 1 : 0
+
+  name              = local.cloudwatch_log_group_name
+  retention_in_days = 30
+
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
+
+# -------------------------------------------
+# CREATE THE TASK IAM ROLE
+# -------------------------------------------
+
+resource "aws_iam_role" "task" {
+  count = length(var.ecs_task_role_policy_arns) > 0 ? 1 : 0
+
+  name = "${var.ecs_service_name}-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+      Condition = {
+        test     = "ArnLike"
+        variable = "aws:SourceArn"
+        values = [
+          "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+        ]
+      }
+      Condition = {
+        test     = "StringEquals"
+        variable = "aws:SourceAccount"
+        values = [
+          data.aws_caller_identity.current.account_id
+        ]
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "task" {
+  count = length(var.ecs_task_role_policy_arns) > 0 ? length(var.ecs_task_role_policy_arns) : 0
+
+  role       = aws_iam_role.task.name
+  policy_arn = var.ecs_task_role_policy_arns[count.index]
+}
+
+
+# -------------------------------------------
+# CREATE THE TASK EXECUTION IAM ROLE
+# -------------------------------------------
+
+resource "aws_iam_role" "task_execution" {
+  name = "${var.ecs_service_name}-task-execution"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+
+# -------------------------------------------
+# CREATE THE SECRETS MANAGER TASK EXECUTION IAM POLICY
+# -------------------------------------------
+
+locals {
+  # A list of resource ARNs that will be authorized in the
+  # iam policy for the task execution role.
+  secrets_manager_arns = compact(
+    concat(
+      [
+        for k, v in var.ecs_container_secrets :
+        # Removes the key references from the SecretsManager ARNs
+        replace(v, ":${k}::", "")
+      ],
+      [var.docker_credential_secretsmanager_arn]
+    )
+  )
+}
+
+resource "aws_iam_policy" "secrets_manager" {
+  count = length(local.secrets_manager_arns) > 0 ? 1 : 0
+
+  name = "${var.ecs_service_name}-secretsmanager-read"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "secretsmanager:GetSecretValue"
+      ]
+      Resource = local.secrets_manager_arns
+    }]
+  })
+}
+
+
+# -------------------------------------------
+# ATTACH POLICIES TO THE TASK EXECUTION IAM ROLE
+# -------------------------------------------
+
+resource "aws_iam_role_policy_attachment" "secrets_manager" {
+  count = length(local.secrets_manager_arns) > 0 ? 1 : 0
+
+  role       = aws_iam_role.task_execution.name
+  policy_arn = aws_iam_policy.secrets_manager
+}
+
+resource "aws_iam_role_policy_attachment" "task_execution" {
+  role       = aws_iam_role.task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+
+# ------------------------------------------------------------
+
+# THE FOLLOWING SECTION IS USED TO CONFIGURE THE ECS SERVICE,
+
+# AND ASSOCIATED RESOURCES INCLUDING THE ALB, AUTOSCALING,
+
+# SERVICE CONNECT.
+
+# ------------------------------------------------------------
+
+
+# -------------------------------------------
+# CREATE THE SERVICE CONNECT RANDOM ID
 # -------------------------------------------
 
 # Namespaces the CloudMap services to avoid name conflicts
 # with other services sharing the same Service Connect namespace.
 resource "random_id" "service_connect" {
-  count = var.enable_service_connect ? 1 : 0
+  count = !var.create_scheduled_task && var.enable_service_connect ? 1 : 0
 
   byte_length = 8
 }
 
+
+# -------------------------------------------
+# CREATE THE ECS SERVICE
+# -------------------------------------------
+
 locals {
+  # The ECS service role is required when using an
+  # Application Load Balancer with the ECS service.
   aws_ecs_service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
 }
 
@@ -162,21 +476,12 @@ resource "aws_ecs_service" "service" {
 }
 
 
-# ------------------------------------------------------------
-
-# THE FOLLOWING SECTION IS USED TO CONFIGURE THE SERVICE
-
-# AUTO SCALING USING APP AUTOSCALING POLICIES AND TARGET
-
-# ------------------------------------------------------------
-
-
 # -------------------------------------------
 # CREATE THE AUTOSCALING TARGET
 # -------------------------------------------
 
 resource "aws_appautoscaling_target" "service" {
-  count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
+  count = !var.create_scheduled_task && var.enable_service_auto_scaling ? 1 : 0
 
   max_capacity = max(var.auto_scaling_max_number_of_tasks, var.desired_number_of_tasks)
   min_capacity = min(var.auto_scaling_min_number_of_tasks, var.desired_number_of_tasks)
@@ -196,7 +501,7 @@ resource "aws_appautoscaling_target" "service" {
 # -------------------------------------------
 
 resource "aws_appautoscaling_policy" "memory" {
-  count = var.enable_service_auto_scaling && !var.create_scheduled_task ? 1 : 0
+  count = !var.create_scheduled_task && var.enable_service_auto_scaling ? 1 : 0
 
   name               = "${var.ecs_service_name}-mem-scaling"
   policy_type        = "TargetTrackingScaling"
@@ -220,211 +525,69 @@ resource "aws_appautoscaling_policy" "memory" {
 }
 
 
-# ------------------------------------------------------------
+# -------------------------------------------
+# CREATE THE LISTENER RULE FOR THE ALB LISTENER
+# -------------------------------------------
 
-# THE FOLLOWING SECTION IS USED TO CONFIGURE THE ECS
+resource "aws_lb_listener_rule" "alb" {
+  count = !var.create_scheduled_task && var.enable_load_balancer ? 1 : 0
 
-# TASK-DEFINITION AND LOG GROUP
+  listener_arn = var.lb_listener_arn
 
-# ------------------------------------------------------------
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.alb[0].arn
+  }
 
-data "aws_region" "current" {}
-
-locals {
-  cloudwatch_log_group_name = "/ecs/${var.ecs_service_name}"
-  log_configuration = {
-    logDriver = "awslogs"
-    options = {
-      awslogs-group  = local.cloudwatch_log_group_name
-      awslogs-region = data.aws_region.current.name
+  condition {
+    path_pattern {
+      # direct all traffic to the service
+      values = ["*"]
     }
   }
 
-  repositoryCredentials = {
-    credentialsParameter = var.docker_credential_secretsmanager_arn
-  }
-
-  # TODO we need to figure out how to enable good health checks
-  # healthCheck = {
-  #   command     = ["CMD-SHELL", "curl -f http://localhost:${var.ecs_container_port}/ || exit 1"]
-  #   interval    = 30
-  #   retries     = 5
-  #   startPeriod = 0
-  #   timeout     = 5
-  # }
-
-  # This allows us to query both the existing as well as Terraform's state and get
-  # and get the max version of either source, useful for when external resources
-  # update the container definition
-  max_task_def_revision = max(aws_ecs_task_definition.task.revision, data.aws_ecs_task_definition.task.revision)
-  task_definition       = "${aws_ecs_task_definition.task.arn_without_revision}:${local.max_task_def_revision}"
-
-  # If the container image is not specified, then the latest version of the
-  # essential container definition image will be used.
-  lookup_deployed_image = var.ecs_container_image == ""
-
-  # If the container image is not specified, then the latest version of the
-  # essential container definition image will be used.
-  image = !local.lookup_deployed_image ? var.ecs_container_image : data.aws_ecs_container_definition.task[0].image
-}
-
-data "aws_ecs_service" "service" {
-  count = local.lookup_deployed_image && !var.create_scheduled_task ? 1 : 0
-
-  cluster_arn  = data.aws_ecs_cluster.cluster.arn
-  service_name = var.ecs_service_name
-}
-
-# This will get the latest container definition from the task definition
-# that is currently deployed and use that as the image for new container
-# definitions
-data "aws_ecs_container_definition" "task" {
-  count = local.lookup_deployed_image && !var.create_scheduled_task ? 1 : 0
-
-  task_definition = data.aws_ecs_service.service[0].task_definition
-  container_name  = var.ecs_service_name
-}
-
-# This allows us to query both the existing as well as Terraform's state and get
-# and get the max version of either source, useful for when external resources
-# update the container definition
-data "aws_ecs_task_definition" "task" {
-  task_definition = aws_ecs_task_definition.task.family
-
   depends_on = [
-    aws_ecs_task_definition.task
+    aws_lb_target_group.alb
   ]
 }
 
+
 # -------------------------------------------
-# CREATE THE ECS TASK DEFINITION
+# CREATE THE TARGET GROUP FOR THE LISTENER RULE
 # -------------------------------------------
 
-resource "aws_ecs_task_definition" "task" {
-  family = var.ecs_service_name
+resource "aws_lb_target_group" "alb" {
+  count = !var.create_scheduled_task && var.enable_load_balancer ? 1 : 0
 
-  cpu          = 256
-  memory       = 256
-  network_mode = var.create_scheduled_task ? "awsvpc" : "bridge"
+  name     = var.ecs_service_name
+  port     = var.ecs_container_port
+  protocol = "HTTP"
 
-  execution_role_arn = aws_iam_role.task_execution.arn
-  # task_role_arn      = "" # TODO add this in development
+  vpc_id = var.lb_target_group_vpc_id
 
-  container_definitions = jsonencode([
-    {
-      name = var.ecs_service_name
+  # Our applications are designed to have quick response times
+  # therefore we can afford using a shorter timeout.
+  # This provides faster draining of unhealthy or deregistering
+  # of tasks from the target group. Example being a deployment
+  # where the tasks are being replaced with new tasks. Default
+  # would take 5 minutes to deregister a task.
+  deregistration_delay = 5
 
-      image = local.image
-
-      repositoryCredentials = var.docker_credential_secretsmanager_arn != "" ? local.repositoryCredentials : null
-
-      portMappings = [{
-        name          = random_id.service_connect[0].hex
-        containerPort = var.ecs_container_port
-      }]
-
-      # Environment Variables and Secrets are both string maps with
-      # the same key/value structure. They are mapped to the following
-      # structure for the container definition:
-      #
-      # environment = [{ "name" : "", "value" : ""}]
-      # secrets = [{ "name" : "", "valueFrom" : ""}]
-      #
-      environment = [for k, v in var.ecs_container_environment_variables : { name = k, value = v }]
-      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = v }]
-
-      logConfiguration = var.enable_container_logs ? local.log_configuration : null
-
-      # healthCheck = !var.create_scheduled_task ? local.healthCheck : null
-    }
-  ])
-
-  requires_compatibilities = var.create_scheduled_task ? ["FARGATE"] : ["EC2"]
-
-  runtime_platform {
-    operating_system_family = "LINUX"
-    cpu_architecture        = "X86_64"
+  health_check {
+    # This is the default health check configuration for the target group.
+    # This would mean that a task could be considered healthy in 2 * 15 = 30 seconds.
+    # or the task could be considered unhealthy in 3 * 5 = 45 seconds.
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 15
+    path                = "/"
+    matcher             = "200"
   }
-
-  depends_on = [
-    aws_cloudwatch_log_group.task
-  ]
 
   lifecycle {
     create_before_destroy = true
   }
-}
-
-
-# -------------------------------------------
-# CREATE THE ECS LOG GROUP FOR THE ESSENTIAL DEFINITION
-# -------------------------------------------
-
-resource "aws_cloudwatch_log_group" "task" {
-  count = var.enable_container_logs ? 1 : 0
-
-  name              = local.cloudwatch_log_group_name
-  retention_in_days = 30
-
-  lifecycle {
-    prevent_destroy = false
-  }
-}
-
-
-# -------------------------------------------
-# CREATE THE TASK EXECUTION IAM ROLE
-# -------------------------------------------
-
-locals {
-  # The secrets manager ARNs are used to create the IAM policy
-  # for the task execution role. The docker credentials secret
-  # is also included in the list of secrets manager ARNs.
-  docker_credentials_secret_arn = var.docker_credential_secretsmanager_arn != "" ? [var.docker_credential_secretsmanager_arn] : []
-  secrets_manager_arns          = concat([for k, v in var.ecs_container_secrets : replace(v, ":${k}::", "")], local.docker_credentials_secret_arn)
-}
-
-resource "aws_iam_role" "task_execution" {
-  name = "${var.ecs_service_name}-task-execution"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = {
-        Service = "ecs-tasks.amazonaws.com"
-      }
-      Action = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_policy" "task_execution" {
-  count = length(local.secrets_manager_arns) > 0 ? 1 : 0
-
-  name = "${var.ecs_service_name}-secretsmanager-read"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "secretsmanager:GetSecretValue"
-      ]
-      Resource = local.secrets_manager_arns
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "secrets_manager" {
-  count = length(local.secrets_manager_arns) > 0 ? 1 : 0
-
-  role       = aws_iam_role.task_execution.name
-  policy_arn = aws_iam_policy.task_execution[0].arn
-}
-
-resource "aws_iam_role_policy_attachment" "task_execution" {
-  role       = aws_iam_role.task_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 
@@ -467,58 +630,6 @@ resource "aws_cloudwatch_event_target" "scheduled" {
 
 
 # -------------------------------------------
-# CREATE THE ECS IAM ROLE FOR THE EVENT
-# -------------------------------------------
-
-data "aws_iam_policy_document" "assume_role" {
-  count = var.create_scheduled_task ? 1 : 0
-
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["events.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "scheduled" {
-  count = var.create_scheduled_task ? 1 : 0
-
-  name               = "${var.ecs_service_name}-scheduled"
-  assume_role_policy = data.aws_iam_policy_document.assume_role[0].json
-}
-
-
-# -------------------------------------------
-# CREATE THE ECS IAM POLICY FOR THE EVENT
-# -------------------------------------------
-
-data "aws_iam_policy_document" "scheduled" {
-  count = var.create_scheduled_task ? 1 : 0
-
-  statement {
-    actions   = ["iam:PassRole"]
-    resources = ["*"]
-  }
-
-  statement {
-    actions   = ["ecs:RunTask"]
-    resources = ["${aws_ecs_task_definition.task.arn_without_revision}:*"]
-  }
-}
-
-resource "aws_iam_role_policy" "scheduled" {
-  count = var.create_scheduled_task ? 1 : 0
-
-  name   = "${var.ecs_service_name}-run-task"
-  role   = aws_iam_role.scheduled[0].id
-  policy = data.aws_iam_policy_document.scheduled[0].json
-}
-
-
-# -------------------------------------------
 # CREATE THE RULE TO TRIGGER THE ECS TASK
 # -------------------------------------------
 
@@ -535,79 +646,46 @@ resource "aws_cloudwatch_event_rule" "scheduled" {
 }
 
 
-# ------------------------------------------------------------
-
-# THE FOLLOWING SECTION IS USED TO CONFIGURE
-
-# THE ALB ATTACHMENT FOR THE ECS SERVICE
-
-# ------------------------------------------------------------
-
-
 # -------------------------------------------
-# CREATE THE LISTENER RULE TO ATTACH TO THE EXISTING LISTENER
+# CREATE THE ECS IAM ROLE FOR THE EVENT
 # -------------------------------------------
 
-resource "aws_lb_listener_rule" "alb" {
-  count = var.enable_load_balancer && !var.create_scheduled_task ? 1 : 0
+resource "aws_iam_role" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
 
-  listener_arn = var.lb_listener_arn
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.alb[0].arn
-  }
-
-  condition {
-
-  }
-
-  condition {
-    path_pattern {
-      values = ["*"]
+  name = "${var.ecs_service_name}-scheduled"
+  assume_role_policy = jsonencode({
+    Statement = {
+      Effect = "Allow"
+      Principal = {
+        Service = "events.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
     }
-  }
-
-  depends_on = [
-    aws_lb_target_group.alb
-  ]
+  })
 }
 
 
 # -------------------------------------------
-# CREATE THE TARGET GROUP FOR THE RULE TO DIRECT TRAFFIC TO
+# CREATE THE ECS IAM POLICY FOR THE EVENT
 # -------------------------------------------
 
-resource "aws_lb_target_group" "alb" {
-  count = var.enable_load_balancer && !var.create_scheduled_task ? 1 : 0
+resource "aws_iam_role_policy" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
 
-  name     = var.ecs_service_name
-  port     = var.ecs_container_port
-  protocol = "HTTP"
+  role = aws_iam_role.scheduled[0].id
 
-  vpc_id = var.lb_target_group_vpc_id
-
-  # Our applications are designed to have quick response times
-  # therefore we can afford using a shorter timeout.
-  # This provides faster draining of unhealthy or deregistering
-  # of tasks from the target group. Example being a deployment
-  # where the tasks are being replaced with new tasks. Default
-  # would take 5 minutes to deregister a task.
-  deregistration_delay = 5
-
-  health_check {
-    # This is the default health check configuration for the target group.
-    # This would mean that a task could be considered healthy in 2 * 15 = 30 seconds.
-    # or the task could be considered unhealthy in 3 * 5 = 45 seconds.
-    healthy_threshold   = 2
-    unhealthy_threshold = 3
-    timeout             = 5
-    interval            = 15
-    path                = "/"
-    matcher             = "200"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
+  name = "${var.ecs_service_name}-run-task"
+  policy = jsonencode({
+    Statement = {
+      Effect   = "Allow"
+      Action   = ["ecs:RunTask"]
+      Resource = ["${aws_ecs_task_definition.task.arn_without_revision}:*"]
+    }
+    Statement = {
+      Effect   = "Allow"
+      Action   = ["iam:PassRole"]
+      Resource = ["*"]
+    }
+  })
 }

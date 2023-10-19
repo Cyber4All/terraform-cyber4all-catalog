@@ -95,6 +95,12 @@ variable "ecs_container_secrets" {
   default     = {}
 }
 
+variable "ecs_task_role_policy_arns" {
+  type        = list(string)
+  description = "A list of ARNs of IAM policies to attach to the ECS task role."
+  default     = []
+}
+
 variable "enable_container_logs" {
   type        = bool
   description = "Enable container logging to CloudWatch Logs."
