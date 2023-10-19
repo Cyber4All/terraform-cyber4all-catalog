@@ -27,6 +27,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.5.1"
+    }
   }
 }
 
@@ -75,6 +79,14 @@ data "aws_ecs_cluster" "cluster" {
 # -------------------------------------------
 # CREATE THE ECS SERVICE
 # -------------------------------------------
+
+# Namespaces the CloudMap services to avoid name conflicts
+# with other services sharing the same Service Connect namespace.
+resource "random_id" "service_connect" {
+  count = var.enable_service_connect ? 1 : 0
+
+  byte_length = 8
+}
 
 locals {
   aws_ecs_service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
@@ -129,7 +141,7 @@ resource "aws_ecs_service" "service" {
   service_connect_configuration {
     enabled = var.enable_service_connect
     service {
-      port_name = "default"
+      port_name = random_id.service_connect[0].hex
       client_alias {
         port     = var.ecs_container_port
         dns_name = var.ecs_service_name
@@ -333,7 +345,7 @@ resource "aws_ecs_task_definition" "task" {
       repositoryCredentials = var.docker_credential_secretsmanager_arn != "" ? local.repositoryCredentials : null
 
       portMappings = [{
-        name          = "default"
+        name          = random_id.service_connect[0].hex
         containerPort = var.ecs_container_port
       }]
 

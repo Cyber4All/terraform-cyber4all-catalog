@@ -15,6 +15,7 @@
 [Amazon EventBridge events](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events.html)
 [Custom event pattern reference](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events-structure.html)
 [ECS service connect](https://aws.amazon.com/blogs/aws/new-amazon-ecs-service-connect-enabling-easy-communication-between-microservices/)
+[Service Connect Documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect-concepts.html)
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -24,6 +25,8 @@ The following requirements are needed by this module:
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.5.5)
 
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
+
+- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.1)
 
 ## Sample Usage
 
