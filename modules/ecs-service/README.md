@@ -57,10 +57,6 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The percentage for the ECS service's average CPU utilization threshold. The service uses a target tracking scaling policy.
-	 auto_scaling_cpu_util_threshold  = number
-
-
 	 # The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
 	 auto_scaling_max_number_of_tasks  = number
 
@@ -99,6 +95,10 @@ module "example" {
 
 	 # A map of secrets to configure in the ECS container definition. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
 	 ecs_container_secrets  = map(string)
+
+
+	 # A list of ARNs of IAM policies to attach to the ECS task role.
+	 ecs_task_role_policy_arns  = list(string)
 
 
 	 # Enable container logging to CloudWatch Logs.
@@ -171,14 +171,6 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
-
-### <a name="input_auto_scaling_cpu_util_threshold"></a> [auto\_scaling\_cpu\_util\_threshold](#input\_auto\_scaling\_cpu\_util\_threshold)
-
-Description: The percentage for the ECS service's average CPU utilization threshold. The service uses a target tracking scaling policy.
-
-Type: `number`
-
-Default: `50`
 
 ### <a name="input_auto_scaling_max_number_of_tasks"></a> [auto\_scaling\_max\_number\_of\_tasks](#input\_auto\_scaling\_max\_number\_of\_tasks)
 
@@ -259,6 +251,14 @@ Description: A map of secrets to configure in the ECS container definition. Thes
 Type: `map(string)`
 
 Default: `{}`
+
+### <a name="input_ecs_task_role_policy_arns"></a> [ecs\_task\_role\_policy\_arns](#input\_ecs\_task\_role\_policy\_arns)
+
+Description: A list of ARNs of IAM policies to attach to the ECS task role.
+
+Type: `list(string)`
+
+Default: `[]`
 
 ### <a name="input_enable_container_logs"></a> [enable\_container\_logs](#input\_enable\_container\_logs)
 
@@ -355,5 +355,67 @@ Description: A list of subnet IDs to associate with the ECS task. This value is 
 Type: `list(string)`
 
 Default: `[]`
+## Outputs
 
+The following outputs are exported:
+
+### <a name="output_ecs_task_definition_arn"></a> [ecs\_task\_definition\_arn](#output\_ecs\_task\_definition\_arn)
+
+Description: The full ARN of the task definition that is deployed.
+
+### <a name="output_ecs_task_essential_image"></a> [ecs\_task\_essential\_image](#output\_ecs\_task\_essential\_image)
+
+Description: The image that is deployed.
+
+### <a name="output_ecs_task_event_rule_arn"></a> [ecs\_task\_event\_rule\_arn](#output\_ecs\_task\_event\_rule\_arn)
+
+Description: The ARN of the EventBridge event rule that is used for the scheduled ECS task.
+
+### <a name="output_ecs_task_event_rule_name"></a> [ecs\_task\_event\_rule\_name](#output\_ecs\_task\_event\_rule\_name)
+
+Description: The name of the EventBridge event rule that is used for the scheduled ECS task.
+
+### <a name="output_ecs_task_execution_iam_role_arn"></a> [ecs\_task\_execution\_iam\_role\_arn](#output\_ecs\_task\_execution\_iam\_role\_arn)
+
+Description: The ARN of the IAM role that is used for the ECS task execution.
+
+### <a name="output_ecs_task_execution_iam_role_name"></a> [ecs\_task\_execution\_iam\_role\_name](#output\_ecs\_task\_execution\_iam\_role\_name)
+
+Description: The name of the IAM role that is used for the ECS task execution.
+
+### <a name="output_ecs_task_log_group_arn"></a> [ecs\_task\_log\_group\_arn](#output\_ecs\_task\_log\_group\_arn)
+
+Description: The ARN of the CloudWatch log group that is used for the ECS task.
+
+### <a name="output_ecs_task_log_group_name"></a> [ecs\_task\_log\_group\_name](#output\_ecs\_task\_log\_group\_name)
+
+Description: The name of the CloudWatch log group that is used for the ECS task.
+
+### <a name="output_service_arn"></a> [service\_arn](#output\_service\_arn)
+
+Description: The ARN of the ECS service.
+
+### <a name="output_service_auto_scaling_alarm_arns"></a> [service\_auto\_scaling\_alarm\_arns](#output\_service\_auto\_scaling\_alarm\_arns)
+
+Description: The ARNs of the CloudWatch alarms that are used for the ECS service's Auto Scaling.
+
+### <a name="output_service_elb_iam_role_arn"></a> [service\_elb\_iam\_role\_arn](#output\_service\_elb\_iam\_role\_arn)
+
+Description: The ARN of the IAM role that is used for the ECS service's ELB.
+
+### <a name="output_service_name"></a> [service\_name](#output\_service\_name)
+
+Description: The name of the ECS service.
+
+### <a name="output_service_target_group_arn"></a> [service\_target\_group\_arn](#output\_service\_target\_group\_arn)
+
+Description: The ARN of the load balancing target group.
+
+### <a name="output_service_target_group_arn_suffix"></a> [service\_target\_group\_arn\_suffix](#output\_service\_target\_group\_arn\_suffix)
+
+Description: The load balancing target group's ARN suffix to use with CloudWatch Metrics.
+
+### <a name="output_service_target_group_name"></a> [service\_target\_group\_name](#output\_service\_target\_group\_name)
+
+Description: The name of the load balancing target group.
 <!-- END_TF_DOCS -->
