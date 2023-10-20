@@ -28,6 +28,7 @@ terraform {
 # CREATE THE SECRETS MANAGER SECRETS
 # -------------------------------------------
 
+# tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "secret" {
   count = length(var.secrets)
 
