@@ -122,7 +122,8 @@ locals {
     local.lookup_deployed_image ?
     (
       var.create_scheduled_task ?
-      data.aws_ecs_container_definition.scheduled[0].image :
+      # data.aws_ecs_container_definition.scheduled[0].image :
+      var.ecs_container_image : # TODO FIX THIS
       data.aws_ecs_container_definition.service[0].image
     )
     : var.ecs_container_image
@@ -155,18 +156,20 @@ data "aws_ecs_container_definition" "service" {
 # LOOKUP IMAGE FOR SCHEDULED TASK
 # -------------------------------------------
 
+# TODO: This causes a circular dependency, new solution is needed
+
 # Gets the latest container definition from the max
 # revision of the task definition.
-data "aws_ecs_container_definition" "scheduled" {
-  count = var.create_scheduled_task && local.lookup_deployed_image ? 1 : 0
+# data "aws_ecs_container_definition" "scheduled" {
+#   count = var.create_scheduled_task && local.lookup_deployed_image ? 1 : 0
 
-  task_definition = local.task_definition
-  container_name  = var.ecs_service_name
+#   task_definition = local.task_definition
+#   container_name  = var.ecs_service_name
 
-  depends_on = [
-    data.aws_ecs_task_definition.task
-  ]
-}
+#   depends_on = [
+#     data.aws_ecs_task_definition.task
+#   ]
+# }
 
 
 # -------------------------------------------
@@ -174,12 +177,13 @@ data "aws_ecs_container_definition" "scheduled" {
 # -------------------------------------------
 
 locals {
-  cloudwatch_log_group_name = "/ecs/${var.ecs_service_name}"
+  log_group_name = "/ecs/service/${var.ecs_service_name}"
   log_configuration = {
     logDriver = "awslogs"
     options = {
-      awslogs-group  = local.cloudwatch_log_group_name
-      awslogs-region = data.aws_region.current.name
+      awslogs-group         = local.log_group_name
+      awslogs-region        = data.aws_region.current.name
+      awslogs-stream-prefix = "stream"
     }
   }
 
@@ -196,7 +200,7 @@ resource "aws_ecs_task_definition" "task" {
   network_mode = var.create_scheduled_task ? "awsvpc" : "bridge"
 
   execution_role_arn = aws_iam_role.task_execution.arn
-  task_role_arn      = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task.arn : null
+  task_role_arn      = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task[0].arn : null
 
   container_definitions = jsonencode([
     {
@@ -248,7 +252,7 @@ resource "aws_ecs_task_definition" "task" {
 resource "aws_cloudwatch_log_group" "task" {
   count = var.enable_container_logs ? 1 : 0
 
-  name              = local.cloudwatch_log_group_name
+  name              = var.ecs_service_name
   retention_in_days = 30
 
   lifecycle {
@@ -264,7 +268,7 @@ resource "aws_cloudwatch_log_group" "task" {
 resource "aws_iam_role" "task" {
   count = length(var.ecs_task_role_policy_arns) > 0 ? 1 : 0
 
-  name = "${var.ecs_service_name}-task-role"
+  name_prefix = "${var.ecs_service_name}-task"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -295,7 +299,7 @@ resource "aws_iam_role" "task" {
 resource "aws_iam_role_policy_attachment" "task" {
   count = length(var.ecs_task_role_policy_arns) > 0 ? length(var.ecs_task_role_policy_arns) : 0
 
-  role       = aws_iam_role.task.name
+  role       = aws_iam_role.task[0].name
   policy_arn = var.ecs_task_role_policy_arns[count.index]
 }
 
@@ -305,7 +309,7 @@ resource "aws_iam_role_policy_attachment" "task" {
 # -------------------------------------------
 
 resource "aws_iam_role" "task_execution" {
-  name = "${var.ecs_service_name}-task-execution"
+  name_prefix = "${var.ecs_service_name}-execution"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -340,7 +344,7 @@ locals {
 }
 
 resource "aws_iam_policy" "secrets_manager" {
-  count = length(local.secrets_manager_arns) > 0 ? 1 : 0
+  count = length(var.ecs_container_secrets) > 0 || var.docker_credential_secretsmanager_arn != "" ? 1 : 0
 
   name = "${var.ecs_service_name}-secretsmanager-read"
   policy = jsonencode({
@@ -361,10 +365,10 @@ resource "aws_iam_policy" "secrets_manager" {
 # -------------------------------------------
 
 resource "aws_iam_role_policy_attachment" "secrets_manager" {
-  count = length(local.secrets_manager_arns) > 0 ? 1 : 0
+  count = length(var.ecs_container_secrets) > 0 || var.docker_credential_secretsmanager_arn != "" ? 1 : 0
 
   role       = aws_iam_role.task_execution.name
-  policy_arn = aws_iam_policy.secrets_manager
+  policy_arn = aws_iam_policy.secrets_manager[0].arn
 }
 
 resource "aws_iam_role_policy_attachment" "task_execution" {
@@ -654,7 +658,7 @@ resource "aws_cloudwatch_event_rule" "scheduled" {
 resource "aws_iam_role" "scheduled" {
   count = var.create_scheduled_task ? 1 : 0
 
-  name = "${var.ecs_service_name}-scheduled"
+  name_prefix = "${var.ecs_service_name}-scheduled"
   assume_role_policy = jsonencode({
     Statement = {
       Effect = "Allow"

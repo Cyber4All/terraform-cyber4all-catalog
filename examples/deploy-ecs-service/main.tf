@@ -50,24 +50,6 @@ locals {
 
 
 # -------------------------------------------
-# SECRET MANAGER SECRET
-# -------------------------------------------
-
-module "secrets-manager" {
-  source = "../../modules/secrets-manager"
-
-  secrets = [
-    {
-      name = "testing/example/${local.name}"
-      environment_variables = {
-        "SECRET" = "SUPER_SECRET_VALUE"
-      }
-    }
-  ]
-}
-
-
-# -------------------------------------------
 # CREATE VPC TO DEPLOY ECS CLUSTER AND SERVICES
 # -------------------------------------------
 
@@ -112,17 +94,34 @@ module "cluster" {
 
 
 # -------------------------------------------
+# SECRET MANAGER SECRET
+# -------------------------------------------
+
+module "secrets-manager" {
+  source = "../../modules/secrets-manager"
+
+  secrets = [
+    {
+      name = "testing/example/${local.name}"
+      environment_variables = {
+        "SECRET" = "SUPER_SECRET_VALUE"
+      }
+    }
+  ]
+}
+
+
+# -------------------------------------------
 # DEPLOY EXTERNAL/INTERNAL ECS SERVICES
 # -------------------------------------------
 
-module "ecs-service" {
+module "external-ecs-service" {
   source = "../../modules/ecs-service"
 
   ecs_cluster_name = module.cluster.ecs_cluster_name
   ecs_service_name = "${local.name}-external"
 
-  # ecs_container_image = var.container_image
-  ecs_container_image = "cyber4all/mock-container-image:1.0.0"
+  ecs_container_image = var.external_container_image
   ecs_container_port  = 8080
 
   ecs_container_environment_variables = {
@@ -144,7 +143,7 @@ module "internal-ecs-service" {
   ecs_cluster_name = module.cluster.ecs_cluster_name
   ecs_service_name = "${local.name}-internal"
 
-  ecs_container_image = var.container_image
+  ecs_container_image = var.internal_container_image
   ecs_container_port  = 8080
 
   ecs_container_environment_variables = {

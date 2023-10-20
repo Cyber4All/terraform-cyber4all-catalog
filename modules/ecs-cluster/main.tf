@@ -353,7 +353,7 @@ resource "aws_launch_template" "cluster" {
 # -------------------------------------------
 
 resource "aws_security_group" "default" {
-  name        = "${var.cluster_name}-ecs-agent-sg"
+  name        = "${var.cluster_name}-ecs-agent"
   description = "Terraform managed security group for ${var.cluster_name} ECS agent."
 
   vpc_id = var.vpc_id
@@ -385,7 +385,7 @@ resource "aws_vpc_security_group_egress_rule" "agent" {
 # -------------------------------------------
 
 resource "aws_security_group" "cluster" {
-  name        = "${var.cluster_name}-instance-sg"
+  name        = "${var.cluster_name}-instance"
   description = "Terraform managed security group for ${var.cluster_name} ECS container instances."
 
   vpc_id = var.vpc_id
@@ -426,7 +426,7 @@ data "aws_iam_policy_document" "cluster" {
 }
 
 resource "aws_iam_role" "cluster" {
-  name = "${var.cluster_name}-role"
+  name_prefix = "${var.cluster_name}-cluster"
 
   description = "Terraform managed IAM role for ${var.cluster_name}"
 

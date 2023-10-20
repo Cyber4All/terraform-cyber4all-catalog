@@ -21,6 +21,7 @@ import (
 func DeployAlb(t *testing.T, workingDir string) {
 	// Generate a unique ID
 	uniqueId := strings.ToLower(random.UniqueId())
+
 	// Get a random AWS region
 	awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-east-2"}, nil)
 	test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)

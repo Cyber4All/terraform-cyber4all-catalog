@@ -160,7 +160,7 @@ resource "aws_lb_listener" "https" {
 # -------------------------------------------
 
 resource "aws_security_group" "alb" {
-  name        = "${var.alb_name}-lb-sg"
+  name        = "${var.alb_name}-alb"
   description = "Terraform managed security group for ${var.alb_name} ALB."
 
   vpc_id = var.vpc_id
