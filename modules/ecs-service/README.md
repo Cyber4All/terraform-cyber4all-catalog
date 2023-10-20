@@ -383,6 +383,14 @@ Description: The ARN of the IAM role that is used for the ECS task execution.
 
 Description: The name of the IAM role that is used for the ECS task execution.
 
+### <a name="output_ecs_task_iam_role_arn"></a> [ecs\_task\_iam\_role\_arn](#output\_ecs\_task\_iam\_role\_arn)
+
+Description: The ARN of the IAM role that is used for the ECS task.
+
+### <a name="output_ecs_task_iam_role_name"></a> [ecs\_task\_iam\_role\_name](#output\_ecs\_task\_iam\_role\_name)
+
+Description: The name of the IAM role that is used for the ECS task.
+
 ### <a name="output_ecs_task_log_group_arn"></a> [ecs\_task\_log\_group\_arn](#output\_ecs\_task\_log\_group\_arn)
 
 Description: The ARN of the CloudWatch log group that is used for the ECS task.
