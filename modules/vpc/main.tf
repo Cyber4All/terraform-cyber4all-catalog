@@ -97,8 +97,6 @@ locals {
 resource "aws_vpc" "this" {
   cidr_block = "10.0.0.0/18"
 
-  #   ipv4_ipam_pool_id = "" # this should be set up
-
   enable_dns_support   = true
   enable_dns_hostnames = true
 
