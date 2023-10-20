@@ -9,67 +9,80 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
+type TestCase struct {
+	name            string
+	workingDir      string
+	genTestDataFunc func(t *testing.T, workingDir string)
+	validateFunc    func(t *testing.T, workingDir string)
+}
+
 // This test suite deploys the resource in the examples folder using Terraform, and then validates the deployed
 // The test is broken into "stages" so you can skip stages by setting environment variables (e.g.,
 // skip stage "apply" by setting the environment variable "SKIP_apply=true"), which speeds up iteration when
 // running this test over and over again locally.
 func TestExamplesForTerraformModules(t *testing.T) {
-	tests := []struct {
-		name            string
-		workingDir      string
-		genTestDataFunc func(t *testing.T, workingDir string)
-		validateFunc    func(t *testing.T, workingDir string)
-	}{
+	tests := [][]TestCase{
 		{
-			name:            "ecs-cluster",
-			workingDir:      "../examples/ecs-cluster",
-			genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
-			validateFunc:    modules.ValidateEcsCluster,
+			{
+				name:            "ecs-cluster",
+				workingDir:      "../examples/ecs-cluster",
+				genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+				validateFunc:    modules.ValidateEcsCluster,
+			},
+			{
+				name:            "secrets-manager",
+				workingDir:      "../examples/secrets-manager",
+				genTestDataFunc: modules.DeployUsingTerraform,
+				validateFunc:    modules.ValidateSecretsContainSecrets,
+			},
+			{
+				name:            "alb https",
+				workingDir:      "../examples/deploy-alb",
+				genTestDataFunc: modules.DeployAlb,
+				validateFunc:    modules.ValidateAlbHttps,
+			},
+			{
+				name:            "alb w/o https",
+				workingDir:      "../examples/deploy-alb-wo-https",
+				genTestDataFunc: modules.DeployAlb,
+				validateFunc:    modules.ValidateAlbNoHttps,
+			},
 		},
+		// VPC TESTS
 		{
-			name:            "secrets-manager",
-			workingDir:      "../examples/secrets-manager",
-			genTestDataFunc: modules.DeployUsingTerraform,
-			validateFunc:    modules.ValidateSecretsContainSecrets,
-		},
-		{
-			name:            "alb https",
-			workingDir:      "../examples/deploy-alb",
-			genTestDataFunc: modules.DeployAlb,
-			validateFunc:    modules.ValidateAlbHttps,
-		},
-		{
-			name:            "alb w/o https",
-			workingDir:      "../examples/deploy-alb-wo-https",
-			genTestDataFunc: modules.DeployAlb,
-			validateFunc:    modules.ValidateAlbNoHttps,
-		},
-		{
-			name:            "vpc",
-			workingDir:      "../examples/deploy-vpc",
-			genTestDataFunc: modules.DeployVpcUsingTerraform,
-			validateFunc:    modules.ValidateVpc,
-		},
-		{
-			name:            "vpc-partial-azs",
-			workingDir:      "../examples/deploy-vpc-partial-azs",
-			genTestDataFunc: modules.DeployVpcUsingTerraform,
-			validateFunc:    modules.ValidateVpc,
-		},
-		{
-			name:            "vpc-public-only",
-			workingDir:      "../examples/deploy-vpc-public-only",
-			genTestDataFunc: modules.DeployVpcUsingTerraform,
-			validateFunc:    modules.ValidateOnlyPublicSubnets,
-		},
-		{
-			name:            "vpc-wo-nat",
-			workingDir:      "../examples/deploy-vpc-wo-nat",
-			genTestDataFunc: modules.DeployVpcUsingTerraform,
-			validateFunc:    modules.ValidateVpcNoNat,
+			{
+				name:            "vpc",
+				workingDir:      "../examples/deploy-vpc",
+				genTestDataFunc: modules.DeployVpcUsingTerraform,
+				validateFunc:    modules.ValidateVpc,
+			},
+			{
+				name:            "vpc-partial-azs",
+				workingDir:      "../examples/deploy-vpc-partial-azs",
+				genTestDataFunc: modules.DeployVpcUsingTerraform,
+				validateFunc:    modules.ValidateVpc,
+			},
+			{
+				name:            "vpc-public-only",
+				workingDir:      "../examples/deploy-vpc-public-only",
+				genTestDataFunc: modules.DeployVpcUsingTerraform,
+				validateFunc:    modules.ValidateOnlyPublicSubnets,
+			},
+			{
+				name:            "vpc-wo-nat",
+				workingDir:      "../examples/deploy-vpc-wo-nat",
+				genTestDataFunc: modules.DeployVpcUsingTerraform,
+				validateFunc:    modules.ValidateVpcNoNat,
+			},
 		},
 	}
 
+	for _, tests := range tests {
+		runTest(t, tests)
+	}
+}
+
+func runTest(t *testing.T, tests []TestCase) {
 	// Run tests in parallel
 	for _, tt := range tests {
 		workingDir := tt.workingDir
