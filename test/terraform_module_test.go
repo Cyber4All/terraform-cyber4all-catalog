@@ -84,12 +84,15 @@ func TestExamplesForTerraformModules(t *testing.T) {
 
 func runTest(t *testing.T, tests []TestCase) {
 	// Run tests in parallel
-	for _, tt := range tests {
+	for i, tt := range tests {
 		workingDir := tt.workingDir
 		genTestDataFunc := tt.genTestDataFunc
 		validateFunc := tt.validateFunc
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// If not the last test, run in parallel
+			if i != len(tests)-1 {
+				t.Parallel()
+			}
 			// At the end of the test, undeploy the resources using Terraform
 			defer test_structure.RunTestStage(t, "destroy", func() {
 				terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
