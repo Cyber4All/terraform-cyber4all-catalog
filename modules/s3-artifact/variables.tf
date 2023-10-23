@@ -23,6 +23,12 @@ variable "bucket_name" {
 # These values are optional and have default values provided
 # --------------------------------------------------------------------
 
+variable "enable_replica" {
+  type        = bool
+  description = "Whether or not to create a replica bucket in a different region. Defaults to true."
+  default     = true
+}
+
 variable "enable_bucket_versioning" {
   type        = bool
   description = "Whether or not to enable versioning on the S3 bucket."

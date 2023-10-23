@@ -8,10 +8,10 @@
 # Object versioning is enabled with a 30 day noncurrent version expiration policy and transitions
 # are enabled with a 30 day transition to STANDARD_IA and a 90 day transition to GLACIER.
 # Partial lifecycle management enables only object versioning with a 30 day noncurrent version
-# expiration policy. The full lifecycle management variable is a boolean and is defaulted to true.
+# expiration policy. The variable enable_lifecycle_management is a boolean and is defaulted to true.
 #
 # The bucket replication configuration creates a bucket in a different region. The replica
-# bucket will be encrypted with the same "CMK" as the primary bucket. The replica bucket defines
+# bucket will be encrypted with the same "kms" as the primary bucket. The replica bucket defines
 # a bucket policy that allows the primary bucket to replicate objects to it.
 #
 # The module includes the following:
@@ -88,7 +88,7 @@ resource "aws_s3_bucket" "primary" {
 
 resource "aws_s3_bucket_acl" "primary" {
   bucket = aws_s3_bucket.primary.id
-  acl    = "private"
+  acl    = "PRIVATE"
 }
 
 # -------------------------------------------
@@ -99,7 +99,7 @@ resource "aws_s3_bucket_versioning" "primary" {
 
   bucket = aws_s3_bucket.primary.id
   versioning_configuration {
-    status = var.enable_bucket_versioning ? "ENABLED" : "DISABLED"
+    status = (!var.enable_replica ? (var.enable_bucket_versioning ? "ENABLED" : "DISABLED") : "ENABLED")
   }
 }
 
@@ -182,6 +182,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "primary" {
 # -------------------------------------------
 
 resource "aws_s3_bucket" "replica" {
+  count = var.enable_replica ? 1 : 0
+
   provider = aws.replica
   bucket   = "replica-" + var.bucket_name
 }
@@ -191,6 +193,8 @@ resource "aws_s3_bucket" "replica" {
 # -------------------------------------------
 
 resource "aws_s3_bucket_acl" "replica" {
+  count = var.enable_replica ? 1 : 0
+
   provider = aws.replica
   bucket   = aws_s3_bucket.replica.id
   acl      = "private"
@@ -201,10 +205,12 @@ resource "aws_s3_bucket_acl" "replica" {
 # -------------------------------------------
 
 resource "aws_s3_bucket_versioning" "replica" {
+  count = var.enable_replica ? 1 : 0
+
   provider = aws.replica
   bucket   = aws_s3_bucket.replica.id
   versioning_configuration {
-    status = var.enable_bucket_versioning ? "ENABLED" : "DISABLED"
+    status = "ENABLED"
   }
 }
 
@@ -213,6 +219,8 @@ resource "aws_s3_bucket_versioning" "replica" {
 # -------------------------------------------
 
 resource "aws_s3_bucket_public_access_block" "replica" {
+  count = var.enable_replica ? 1 : 0
+
   bucket                  = aws_s3_bucket.replica.id
   provider                = aws.replica
   block_public_acls       = true
@@ -226,6 +234,8 @@ resource "aws_s3_bucket_public_access_block" "replica" {
 # -------------------------------------------
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
+  count = var.enable_replica ? 1 : 0
+
   provider = aws.replica
   bucket   = aws_s3_bucket.replica.id
 
@@ -241,10 +251,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
 # -------------------------------------------
 
 resource "aws_s3_bucket_replication_configuration" "replica" {
-  provider = aws.replica
+  count = var.enable_replica ? 1 : 0
 
-  role   = aws_iam_role.replica.arn
-  bucket = aws_s3_bucket.primary.id
+  provider = aws.replica
+  role     = aws_iam_role.replica.arn
+  bucket   = aws_s3_bucket.primary.id
 
   rule {
     id = "bucket-replication-rule"
@@ -275,10 +286,10 @@ resource "aws_s3_bucket_replication_configuration" "replica" {
 
 data "aws_iam_policy_document" "primary" {
   statement {
-    effect = "Allow"
+    effect = "ALLOW"
 
     principals {
-      type        = "Service"
+      type        = "SERVICE"
       identifiers = ["s3.amazonaws.com"]
     }
 
@@ -307,8 +318,10 @@ resource "aws_iam_policy" "primary" {
 # IAM ROLE/POLICY CONFIGURATION FOR REPLICA
 # -------------------------------------------
 data "aws_iam_policy_document" "replica" {
+  count = var.enable_replica ? 1 : 0
+
   statement {
-    effect = "Allow"
+    effect = "ALLOW"
 
     actions = [
       "s3:GetReplicationConfiguration",
@@ -319,7 +332,7 @@ data "aws_iam_policy_document" "replica" {
   }
 
   statement {
-    effect = "Allow"
+    effect = "ALLOW"
 
     actions = [
       "s3:GetObjectVersionForReplication",
@@ -331,7 +344,7 @@ data "aws_iam_policy_document" "replica" {
   }
 
   statement {
-    effect = "Allow"
+    effect = "ALLOW"
 
     actions = [
       "s3:ReplicateObject",
@@ -348,6 +361,8 @@ data "aws_iam_policy_document" "replica" {
 # -------------------------------------------
 
 resource "aws_iam_role" "replica" {
+  count = var.enable_replica ? 1 : 0
+
   name               = var.priamry_region + "-iam-role-replica"
   assume_role_policy = data.aws_iam_policy_document.replica.json
 }
@@ -356,6 +371,8 @@ resource "aws_iam_role" "replica" {
 # ATTACH POLICY TO ROLE FOR REPLICA
 # -------------------------------------------
 resource "aws_iam_role_policy_attachment" "replica" {
+  count = var.enable_replica ? 1 : 0
+
   role       = aws_iam_role.replica.name
   policy_arn = aws_iam_policy.primary.arn
 }

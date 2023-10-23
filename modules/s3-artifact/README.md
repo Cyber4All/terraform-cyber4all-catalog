@@ -40,6 +40,10 @@ module "example" {
 	 enable_lifecycle_management  = bool
 
 
+	 # Whether or not to create a replica bucket in a different region. Defaults to true.
+	 enable_replica  = bool
+
+
 	 # The AWS region in which to create the S3 bucket.
 	 priamry_region  = string
 
@@ -76,6 +80,14 @@ Default: `true`
 ### <a name="input_enable_lifecycle_management"></a> [enable\_lifecycle\_management](#input\_enable\_lifecycle\_management)
 
 Description: Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_enable_replica"></a> [enable\_replica](#input\_enable\_replica)
+
+Description: Whether or not to create a replica bucket in a different region. Defaults to true.
 
 Type: `bool`
 
