@@ -88,7 +88,7 @@ resource "aws_s3_bucket" "primary" {
 
 resource "aws_s3_bucket_acl" "primary" {
   bucket = aws_s3_bucket.primary.id
-  acl    = var.pimary_bucket_acl
+  acl    = "private"
 }
 
 # -------------------------------------------
@@ -96,63 +96,44 @@ resource "aws_s3_bucket_acl" "primary" {
 # -------------------------------------------
 
 resource "aws_s3_bucket_versioning" "primary" {
+
   bucket = aws_s3_bucket.primary.id
   versioning_configuration {
-    status = "Enabled"
+    status = var.enable_bucket_versioning ? "ENABLED" : "DISABLED"
   }
 }
 
 # -------------------------------------------
-# CONFIGURE PARTIAL LIFECYCLE MANAGEMENT
-# -------------------------------------------
-
-resource "aws_s3_bucket_lifecycle_configuration" "pirmary" {
-  count = !var.enable_storage_lifecycles ? 1 : 0
-
-  bucket = aws_s3_bucket.primary.id
-
-  rule {
-    id = var.lifecycle_versioning_id
-
-    status = "Enabled"
-
-    noncurrent_version_expiration {
-      noncurrent_days           = 30
-      newer_noncurrent_versions = 1
-    }
-  }
-}
-
-# -------------------------------------------
-# CONFIGURE FULL LIFECYCLE MANAGEMENT
+# CONFIGURE LIFECYCLE MANAGEMENT
 # -------------------------------------------
 
 resource "aws_s3_bucket_lifecycle_configuration" "primary" {
-  count = var.full_lifecycle_management ? 1 : 0
-
   bucket = aws_s3_bucket.primary.id
 
-  rule {
-    id = var.lifecycle_transitioin_id
+  dynamic "downgrade_storage_class" {
+    for_each = var.enable_lifecycle_management ? [1] : []
+    rule {
+      id = "downgrade-storage-class"
 
-    status = "Enabled"
+      status = "ENABLED"
 
-    transition {
-      days          = 30
-      storage_class = var.transition_30_storage_class
+      transition {
+        days          = 30
+        storage_class = "STANDARD_IA"
+      }
+
+      transition {
+        days          = 90
+        storage_class = "GLACIER"
+      }
+
     }
-
-    transition {
-      days          = 90
-      storage_class = var.transition_90_storage_class
-    }
-
   }
 
   rule {
-    id = var.lifecycle_versioning_id
+    id = "expire-noncurrent-versions"
 
-    status = "Enabled"
+    status = "ENABLED"
 
     noncurrent_version_expiration {
       noncurrent_days           = 30
@@ -202,7 +183,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "primary" {
 
 resource "aws_s3_bucket" "replica" {
   provider = aws.replica
-  bucket   = var.replica_bucket_name
+  bucket   = "replica-" + var.primary_bucket_name
 }
 
 # -------------------------------------------
@@ -223,7 +204,7 @@ resource "aws_s3_bucket_versioning" "replica" {
   provider = aws.replica
   bucket   = aws_s3_bucket.replica.id
   versioning_configuration {
-    status = "Enabled"
+    status = var.enable_bucket_versioning ? "ENABLED" : "DISABLED"
   }
 }
 
@@ -266,13 +247,13 @@ resource "aws_s3_bucket_replication_configuration" "replica" {
   bucket = aws_s3_bucket.primary.id
 
   rule {
-    id = var.bucket_replication_configuration_rule_id
+    id = "bucket-replication-rule"
 
-    status = var.replica_configuration_status
+    status = "ENABLED"
 
     destination {
       bucket        = aws_s3_bucket.replica.arn
-      storage_class = var.replica_configuration_destination_storage_class
+      storage_class = "GLACIER"
     }
   }
 
@@ -309,7 +290,7 @@ data "aws_iam_policy_document" "primary" {
 # CREATE PRIMARY IAM POLICY
 # -------------------------------------------
 resource "aws_iam_policy" "primary" {
-  name   = "tf-iam-role-policy-replication-12345"
+  name   = var.primary_bucket_name + "-policy-replication"
   policy = data.aws_iam_policy_document.primary.json
 }
 
@@ -367,7 +348,7 @@ data "aws_iam_policy_document" "replica" {
 # -------------------------------------------
 
 resource "aws_iam_role" "replica" {
-  name               = "tf-iam-role-replication-12345"
+  name               = var.priamry_region + "-iam-role-replica"
   assume_role_policy = data.aws_iam_policy_document.replica.json
 }
 
