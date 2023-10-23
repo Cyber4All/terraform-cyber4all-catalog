@@ -1,7 +1,8 @@
 # -----------------------------------------------------------------------------
 # MODULE PARAMETERS
 #
-# These values are expected to be set by the operator when calling the module
+# These values are expected to be set by the operator when calling the
+# S3-Artifact smodule
 # -----------------------------------------------------------------------------
 
 
