@@ -79,7 +79,7 @@ provider "aws" {
 # -------------------------------------------
 
 resource "aws_s3_bucket" "primary" {
-  bucket = var.primary_bucket_name
+  bucket = var.bucket_name
 }
 
 # -------------------------------------------
@@ -183,7 +183,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "primary" {
 
 resource "aws_s3_bucket" "replica" {
   provider = aws.replica
-  bucket   = "replica-" + var.primary_bucket_name
+  bucket   = "replica-" + var.bucket_name
 }
 
 # -------------------------------------------
@@ -290,7 +290,7 @@ data "aws_iam_policy_document" "primary" {
 # CREATE PRIMARY IAM POLICY
 # -------------------------------------------
 resource "aws_iam_policy" "primary" {
-  name   = var.primary_bucket_name + "-policy-replication"
+  name   = var.bucket_name + "-policy-replication"
   policy = data.aws_iam_policy_document.primary.json
 }
 

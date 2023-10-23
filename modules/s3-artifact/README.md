@@ -24,7 +24,7 @@ module "example" {
 
 
 	 # The name of the S3 bucket.
-	 primary_bucket_name  = string
+	 bucket_name  = string
 
 
 	 # --------------------------------------------
@@ -55,7 +55,7 @@ module "example" {
 
 The following input variables are required:
 
-### <a name="input_primary_bucket_name"></a> [primary\_bucket\_name](#input\_primary\_bucket\_name)
+### <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name)
 
 Description: The name of the S3 bucket.
 
