@@ -36,7 +36,7 @@ module "example" {
 	 enable_bucket_versioning  = bool
 
 
-	 # Whether or not to enable full lifecycle management with storage transitions and object sversions on the S3 bucket. Defaults to ture.
+	 # Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled.
 	 enable_lifecycle_management  = bool
 
 
@@ -75,7 +75,7 @@ Default: `true`
 
 ### <a name="input_enable_lifecycle_management"></a> [enable\_lifecycle\_management](#input\_enable\_lifecycle\_management)
 
-Description: Whether or not to enable full lifecycle management with storage transitions and object sversions on the S3 bucket. Defaults to ture.
+Description: Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled.
 
 Type: `bool`
 

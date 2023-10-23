@@ -25,7 +25,7 @@ variable "primary_bucket_name" {
 
 variable "enable_lifecycle_management" {
   type        = bool
-  description = "Whether or not to enable full lifecycle management with storage transitions and object sversions on the S3 bucket. Defaults to ture."
+  description = "Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled."
   default     = true
 }
 
