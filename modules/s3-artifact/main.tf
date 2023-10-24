@@ -69,6 +69,8 @@ provider "aws" {
   region = var.replica_region
 }
 
+data "aws_canonical_user_id" "current" {}
+
 
 # ------------------------------------------------------------
 
@@ -88,23 +90,32 @@ resource "aws_s3_bucket" "primary" {
 }
 
 # -------------------------------------------
-# CREATE PRIMARY S3 BUCKET POLICY
-# -------------------------------------------
-
-resource "aws_s3_bucket_acl" "primary" {
-  bucket = aws_s3_bucket.primary.id
-  acl    = "private"
-
-  depends_on = [aws_s3_bucket_ownership_controls.primary]
-}
-
-# -------------------------------------------
-# ENFORCE PRIMARY S3 BUCKET OWNERSHIP CONTROLS
+# CONFIGURE PRIMARY S3 BUCKET OWNERSHIP CONTROLS
 # -------------------------------------------
 resource "aws_s3_bucket_ownership_controls" "primary" {
   bucket = aws_s3_bucket.primary.id
   rule {
     object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+# -------------------------------------------
+# CREATE PRIMARY S3 BUCKET ACL
+# -------------------------------------------
+// this and ownership controls need to be dynamic
+resource "aws_s3_bucket_acl" "primary" {
+  bucket = aws_s3_bucket.primary.id
+  access_control_policy {
+    grant {
+      grantee {
+        id   = data.aws_canonical_user_id.current.id
+        type = "CanonicalUser"
+      }
+      permission = "FULL_CONTROL"
+    }
+    owner {
+      id = data.aws_canonical_user_id.current.id
+    }
   }
 }
 
@@ -162,6 +173,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "primary" {
 # -------------------------------------------
 # CONFIGURE PRIMARY S3 BUCKET PUBLIC ACCESS
 # -------------------------------------------
+// this needs to be dynamic
 resource "aws_s3_bucket_public_access_block" "primary" {
   bucket = aws_s3_bucket.primary.id
 
@@ -214,18 +226,17 @@ resource "aws_s3_bucket_acl" "replica" {
 
   provider = aws.replica
   bucket   = aws_s3_bucket.replica[count.index].id
-  acl      = "private"
-}
-
-# -------------------------------------------
-# ENFORCE REPLICA S3 BUCKET OWNERSHIP CONTROLS
-# -------------------------------------------
-resource "aws_s3_bucket_ownership_controls" "replica" {
-  count = var.enable_replica ? 1 : 0
-
-  bucket = aws_s3_bucket.replica[count.index].id
-  rule {
-    object_ownership = "BucketOwnerPreferred"
+  access_control_policy {
+    grant {
+      grantee {
+        id   = data.aws_canonical_user_id.current.id
+        type = "CanonicalUser"
+      }
+      permission = "FULL_CONTROL"
+    }
+    owner {
+      id = data.aws_canonical_user_id.current.id
+    }
   }
 }
 
