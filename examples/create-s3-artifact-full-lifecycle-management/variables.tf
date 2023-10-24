@@ -1,11 +1,5 @@
-variable "primary_bucket_name" {
+variable "bucket_name" {
   type        = string
   description = "The name of the S3 bucket."
-  default     = "example-primary-static-bucket"
-}
-
-variable "replica_bucket_name" {
-  type        = string
-  description = "The name of the S3 bucket."
-  default     = "example-replica-static-bucket"
+  default     = "mike-full-example-primary-static-bucket"
 }

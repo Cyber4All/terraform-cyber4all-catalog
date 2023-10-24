@@ -45,7 +45,7 @@ module "example" {
 
 
 	 # The AWS region in which to create the S3 bucket.
-	 priamry_region  = string
+	 primary_region  = string
 
 
 	 # The AWS region in which to create the S3 bucket.
@@ -93,7 +93,7 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_priamry_region"></a> [priamry\_region](#input\_priamry\_region)
+### <a name="input_primary_region"></a> [primary\_region](#input\_primary\_region)
 
 Description: The AWS region in which to create the S3 bucket.
 

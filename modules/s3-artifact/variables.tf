@@ -41,7 +41,7 @@ variable "enable_lifecycle_management" {
   default     = true
 }
 
-variable "priamry_region" {
+variable "primary_region" {
   type        = string
   description = "The AWS region in which to create the S3 bucket."
   default     = "us-east-1"
