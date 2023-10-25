@@ -117,6 +117,8 @@ resource "aws_s3_bucket_acl" "primary" {
       id = data.aws_canonical_user_id.current.id
     }
   }
+
+  depends_on = [aws_s3_bucket_ownership_controls.primary]
 }
 
 # -------------------------------------------
@@ -218,29 +220,6 @@ resource "aws_s3_bucket" "replica" {
 }
 
 # -------------------------------------------
-# CONFIGURE REPLICA S3 BUCKET POLICY
-# -------------------------------------------
-
-resource "aws_s3_bucket_acl" "replica" {
-  count = var.enable_replica ? 1 : 0
-
-  provider = aws.replica
-  bucket   = aws_s3_bucket.replica[count.index].id
-  access_control_policy {
-    grant {
-      grantee {
-        id   = data.aws_canonical_user_id.current.id
-        type = "CanonicalUser"
-      }
-      permission = "FULL_CONTROL"
-    }
-    owner {
-      id = data.aws_canonical_user_id.current.id
-    }
-  }
-}
-
-# -------------------------------------------
 # ENABLE REPLICA OBJECT VERSIONING
 # -------------------------------------------
 
@@ -293,9 +272,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
 resource "aws_s3_bucket_replication_configuration" "replica" {
   count = var.enable_replica ? 1 : 0
 
-  provider = aws.replica
-  role     = aws_iam_role.replica[count.index].arn
-  bucket   = aws_s3_bucket.primary.id
+  role   = aws_iam_role.replica[count.index].arn
+  bucket = aws_s3_bucket.primary.id
 
   rule {
     id = "${var.bucket_name}-bucket-replication-rule"
@@ -308,36 +286,7 @@ resource "aws_s3_bucket_replication_configuration" "replica" {
     }
   }
 
-  depends_on = [aws_s3_bucket_versioning.primary]
-}
-
-
-# ------------------------------------------------------------
-
-# THE FOLLOWING SECTION IS USED TO CREATE IAM POLICY CONFIGURATION
-
-# FOR THE PRIMARY BUCKET (POLICY DOCUMENT, IAM ROLE).
-
-# ------------------------------------------------------------
-
-# -------------------------------------------
-# IAM ROLE/POLICY CONFIGURATION FOR PRIMARY
-# -------------------------------------------
-
-data "aws_iam_policy_document" "primary" {
-  statement {
-    effect = "Allow"
-
-    actions = ["sts:AssumeRole"]
-  }
-}
-
-# -------------------------------------------
-# CREATE PRIMARY IAM POLICY
-# -------------------------------------------
-resource "aws_iam_policy" "primary" {
-  name   = "${var.bucket_name}-policy-replication"
-  policy = data.aws_iam_policy_document.primary.json
+  depends_on = [aws_s3_bucket_versioning.primary, aws_iam_role.replica]
 }
 
 
@@ -352,6 +301,18 @@ resource "aws_iam_policy" "primary" {
 # -------------------------------------------
 # IAM ROLE/POLICY CONFIGURATION FOR REPLICA
 # -------------------------------------------
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
 data "aws_iam_policy_document" "replica" {
   count = var.enable_replica ? 1 : 0
 
@@ -391,6 +352,13 @@ data "aws_iam_policy_document" "replica" {
   }
 }
 
+resource "aws_iam_policy" "replica" {
+  count = var.enable_replica ? 1 : 0
+
+  name   = "${var.primary_region}-iam-policy-replica"
+  policy = data.aws_iam_policy_document.replica[count.index].json
+}
+
 # -------------------------------------------
 # ASSUME ROLE POLICY FOR REPLICA
 # -------------------------------------------
@@ -399,7 +367,7 @@ resource "aws_iam_role" "replica" {
   count = var.enable_replica ? 1 : 0
 
   name               = "${var.primary_region}-iam-role-replica"
-  assume_role_policy = data.aws_iam_policy_document.replica[count.index].json
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 # -------------------------------------------
@@ -409,5 +377,5 @@ resource "aws_iam_role_policy_attachment" "replica" {
   count = var.enable_replica ? 1 : 0
 
   role       = aws_iam_role.replica[count.index].name
-  policy_arn = aws_iam_policy.primary.arn
+  policy_arn = aws_iam_policy.replica[count.index].arn
 }
