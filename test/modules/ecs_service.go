@@ -1,15 +1,23 @@
 package modules
 
 import (
+	"bytes"
+	"context"
+	"crypto/tls"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/gruntwork-io/terratest/modules/aws"
+	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/retry"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -57,29 +65,39 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
 
-	cluster_name := terraform.Output(t, terraformOptions, "ecs_cluster_name")
-	internal_service_name := terraform.Output(t, terraformOptions, "internal_service_name")
-	external_service_name := terraform.Output(t, terraformOptions, "external_service_name")
+	clusterName := terraform.Output(t, terraformOptions, "ecs_cluster_name")
+	internalServiceName := terraform.Output(t, terraformOptions, "internal_service_name")
+	externalServiceName := terraform.Output(t, terraformOptions, "external_service_name")
 
 	// Check that the services exist and
 	// are in a stable state...
 	wg.Add(2)
-	go assertEcsServiceIsStable(t, awsRegion, cluster_name, internal_service_name, &wg)
-	go assertEcsServiceIsStable(t, awsRegion, cluster_name, external_service_name, &wg)
+	go assertEcsServiceIsStable(t, awsRegion, clusterName, internalServiceName, &wg)
+	go assertEcsServiceIsStable(t, awsRegion, clusterName, externalServiceName, &wg)
 	wg.Wait()
 
 	// Check that the services are producing logs
-	assertEcsServiceSendsLogs(t, awsRegion, internal_service_name)
-	assertEcsServiceSendsLogs(t, awsRegion, external_service_name)
+	assertEcsServiceSendsLogs(t, awsRegion, fmt.Sprintf("/ecs/service/%s", internalServiceName))
+	assertEcsServiceSendsLogs(t, awsRegion, fmt.Sprintf("/ecs/service/%s", externalServiceName))
 
 	// Check that the load balancer attached service
 	// recieves traffic
+	targetGroupArn := terraform.Output(t, terraformOptions, "external_service_target_group_arn")
+	loadbalancerName := terraform.Output(t, terraformOptions, "alb_name")
+	assertEcsServiceReceivesTraffic(t, awsRegion, loadbalancerName, targetGroupArn)
 
 	// Check that the a service can retrieve a secret
 	// from secrets manager
+	dnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
+	assertEcsServiceCanRetrieveSecret(t, dnsName)
 
 	// Check that the internal service can be reached
 	// from the external service via ServiceConnect
+	internalServicePort, err := strconv.Atoi(terraform.Output(t, terraformOptions, "internal_ecs_task_container_port"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertEcsServiceCanReachInternalService(t, dnsName, internalServiceName, internalServicePort)
 
 	// Check that deployments using the script are successful
 
@@ -99,7 +117,7 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 func assertEcsServiceIsStable(t *testing.T, awsRegion string, clusterName string, serviceName string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	retry.DoWithRetry(
+	message := retry.DoWithRetry(
 		t,
 		fmt.Sprintf("%s stability:", serviceName),
 		40,                            // maxRetries
@@ -129,6 +147,8 @@ func assertEcsServiceIsStable(t *testing.T, awsRegion string, clusterName string
 			return "", fmt.Errorf("service %s is not stable yet", serviceName)
 		},
 	)
+
+	fmt.Println(message)
 }
 
 // assertEcsServiceSendsLogs asserts that the ECS service is sending logs to the
@@ -172,12 +192,106 @@ func assertEcsServiceSendsLogs(t *testing.T, awsRegion string, logGroup string) 
 
 // assertEcsServiceReceivesTraffic asserts that the ECS service is receiving traffic
 // from the load balancer.
-// func assertEcsServiceReceivesTraffic(t *testing.T, awsRegion string, loadBalancerName string, targetGroupArn string) {
-// 	// Connect to aws using aws sdk
-// 	session, err := session.NewSession()
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+func assertEcsServiceReceivesTraffic(t *testing.T, awsRegion string, loadBalancerName string, targetGroupArn string) {
+	// Connect to aws using aws sdk
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	elb := elbv2.New(session, &aws_sdk.Config{Region: aws_sdk.String(awsRegion)})
-// }
+	client := elasticloadbalancingv2.NewFromConfig(cfg, func(o *elasticloadbalancingv2.Options) {
+		o.Region = awsRegion
+	})
+
+	resp, err := client.DescribeTargetHealth(context.TODO(), &elasticloadbalancingv2.DescribeTargetHealthInput{
+		TargetGroupArn: &targetGroupArn,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check that there is at least one target
+	assert.NotEmpty(t, resp.TargetHealthDescriptions, "Expected at least one target for %s", loadBalancerName)
+
+	// Check that each target is healthy. We assume
+	// since the service is stable that the target
+	// is healthy hence retries are not necessary
+	for _, target := range resp.TargetHealthDescriptions {
+		assert.Equal(t,
+			types.TargetHealthStateEnumHealthy, // expected
+			target.TargetHealth.State,          // actual
+			"Target is not in healthy state: (%s) %s - %s", target.TargetHealth.State, target.TargetHealth.Reason, target.TargetHealth.Description,
+		)
+	}
+
+	// Get loadbalancer DNS name
+	loadBalancers, err := client.DescribeLoadBalancers(context.TODO(), &elasticloadbalancingv2.DescribeLoadBalancersInput{
+		Names: []string{loadBalancerName},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check that there is one load balancer
+	assert.Equal(t, 1, len(loadBalancers.LoadBalancers), "Expected one load balancer for %s, recieved ", loadBalancerName, len(loadBalancers.LoadBalancers))
+
+	// Check that the load balancer has a DNS name
+	assert.NotEmpty(t, loadBalancers.LoadBalancers[0].DNSName, "Expected load balancer %s to have a DNS name", loadBalancerName)
+
+	// Check that the load balancer DNS name resolves
+	// to the load balancer target
+	http_helper.HttpGetWithRetryWithCustomValidation(t,
+		fmt.Sprintf("http://%s", *loadBalancers.LoadBalancers[0].DNSName),
+		&tls.Config{},
+		5,             // retries
+		5*time.Second, // sleepBetweenRetries
+		func(statusCode int, body string) bool {
+			// Check that the body.message is "Mock Container Image API"
+			return statusCode == 200 && strings.Contains(body, "Mock Container Image API")
+		},
+	)
+}
+
+// assertEcsServiceCanRetrieveSecret asserts that the ECS service can retrieve
+// a secret from secrets manager.
+//
+// This function assumes the following:
+//
+//  1. mock-container-image docker image is being used in task definition
+//     a. API has the /test/env endpoint which returns the value of the
+//     environment variable SECRET.
+//  2. The ECS service module set the SECRET environment variable using
+//     the secrets manager secret.
+func assertEcsServiceCanRetrieveSecret(t *testing.T, dnsName string) {
+	http_helper.HttpGetWithRetryWithCustomValidation(t,
+		fmt.Sprintf("http://%s/test/env", dnsName),
+		&tls.Config{},
+		5,             // retries
+		5*time.Second, // sleepBetweenRetries
+		func(statusCode int, body string) bool {
+			// Check that the body.message is "SUPER_SECRET_VALUE"
+			return statusCode == 200 && strings.Contains(body, "Secret: SUPER_SECRET_VALUE")
+		},
+	)
+}
+
+// assertEcsServiceCanReachInternalService asserts that the ECS service can
+// reach the internal service via ServiceConnect.
+//
+// This function assumes the following:
+//
+//  1. mock-container-image docker image is being used in task definition
+//     a. API has the POST /proxy endpoint which proxies the request to
+//     the internal service.
+func assertEcsServiceCanReachInternalService(t *testing.T, dnsName string, internalServiceName string, internalServicePort int) {
+	url := fmt.Sprintf("http://%s/proxy", dnsName)
+	expectedBody := "Hello from the external service!"
+	body := bytes.NewBuffer([]byte(fmt.Sprintf(`{"proxyUrl": "http://%s:%d/test?proxyPhrase=%s"}`, internalServiceName, internalServicePort, expectedBody)))
+	headers := map[string]string{"Content-Type": "application/json"}
+
+	customValidation := func(statusCode int, response string) bool {
+		return statusCode == 200 && strings.Contains(response, expectedBody)
+	}
+
+	http_helper.HTTPDoWithCustomValidation(t, "POST", url, body, headers, customValidation, nil)
+}

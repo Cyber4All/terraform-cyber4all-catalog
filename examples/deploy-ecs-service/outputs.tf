@@ -6,6 +6,11 @@ output "alb_dns_name" {
   value       = module.alb.alb_dns_name
 }
 
+output "alb_name" {
+  description = "The name of the ALB."
+  value       = module.alb.alb_name
+}
+
 output "ecs_cluster_name" {
   description = "The name of the ECS cluster."
   value       = module.cluster.ecs_cluster_name
@@ -14,6 +19,11 @@ output "ecs_cluster_name" {
 
 # Outputs from the internal instance of the
 # ecs-service module.
+
+output "internal_ecs_task_container_port" {
+  description = "The port that is exposed by the ECS task's container."
+  value       = module.internal-ecs-service.ecs_task_container_port
+}
 
 output "internal_ecs_task_definition_arn" {
   description = "The full ARN of the task definition that is deployed."
@@ -93,6 +103,11 @@ output "internal_service_target_group_arn_suffix" {
 
 # Outputs from the internal instance of the
 # ecs-service module.
+
+output "external_ecs_task_container_port" {
+  description = "The port that is exposed by the ECS task's container."
+  value       = module.external-ecs-service.ecs_task_container_port
+}
 
 output "external_ecs_task_definition_arn" {
   description = "The full ARN of the task definition that is deployed."

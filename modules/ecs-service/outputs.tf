@@ -1,3 +1,8 @@
+output "ecs_task_container_port" {
+  description = "The port that is exposed by the ECS task."
+  value       = var.ecs_container_port
+}
+
 output "ecs_task_definition_arn" {
   description = "The full ARN of the task definition that is deployed."
   value       = local.task_definition
