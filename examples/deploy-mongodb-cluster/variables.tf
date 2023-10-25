@@ -1,9 +1,4 @@
-variable "public_key" {
-  description = "The public key for the mongodb atlas provider"
+variable "mongodb_role_arn" {
   type        = string
-}
-
-variable "private_key" {
-  description = "The private key for the mongodb atlas provider"
-  type        = string
+  description = "The ARN of the IAM role to assume when interacting with MongoDB Atlas"
 }

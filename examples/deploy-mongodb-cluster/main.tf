@@ -13,8 +13,11 @@ terraform {
 }
 
 provider "mongodbatlas" {
-  public_key  = var.public_key
-  private_key = var.private_key
+  assume_role {
+    role_arn = var.mongodb_role_arn
+  }
+  secret_name = "mongodb/project/sandbox"
+  region      = "us-east-1"
 }
 
 module "vpc" {
@@ -30,7 +33,7 @@ module "vpc" {
 module "mongodb" {
   source = "../../modules/mongodb"
 
-  project_name = "CARD-Development"
+  project_name = "Sandbox"
   cluster_name = "test-cluster"
 
   cluster_authorized_iam_users = {
