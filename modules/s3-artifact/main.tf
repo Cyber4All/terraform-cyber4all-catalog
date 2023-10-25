@@ -189,6 +189,7 @@ resource "aws_s3_bucket_public_access_block" "primary" {
 # CONFIGURE PRIMARY S3 BUCKET SERVER SIDE ENCRYPTION
 # -------------------------------------------
 
+#tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "primary" {
   bucket = aws_s3_bucket.primary.id
 
@@ -252,6 +253,7 @@ resource "aws_s3_bucket_public_access_block" "replica" {
 # CONFIGURE REPLICA S3 BUCKET SERVER SIDE ENCRYPTION
 # -------------------------------------------
 
+#tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
   count = var.enable_replica ? 1 : 0
 
@@ -299,7 +301,7 @@ resource "aws_s3_bucket_replication_configuration" "replica" {
 # ------------------------------------------------------------
 
 # -------------------------------------------
-# IAM ROLE/POLICY CONFIGURATION FOR REPLICA
+# IAM POLICY CONFIGURATION FOR REPLICA TO ASSUME ROLE
 # -------------------------------------------
 data "aws_iam_policy_document" "assume_role" {
   statement {
@@ -313,6 +315,10 @@ data "aws_iam_policy_document" "assume_role" {
     actions = ["sts:AssumeRole"]
   }
 }
+
+# -------------------------------------------
+# IAM POLICY CONFIGURATION FOR PRIMARY TO REPLICATE TO REPLICA
+# -------------------------------------------
 data "aws_iam_policy_document" "replica" {
   count = var.enable_replica ? 1 : 0
 
@@ -360,17 +366,6 @@ resource "aws_iam_policy" "replica" {
 }
 
 # -------------------------------------------
-# ASSUME ROLE POLICY FOR REPLICA
-# -------------------------------------------
-
-resource "aws_iam_role" "replica" {
-  count = var.enable_replica ? 1 : 0
-
-  name               = "${var.primary_region}-iam-role-replica"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
-}
-
-# -------------------------------------------
 # ATTACH POLICY TO ROLE FOR REPLICA
 # -------------------------------------------
 resource "aws_iam_role_policy_attachment" "replica" {
@@ -378,4 +373,15 @@ resource "aws_iam_role_policy_attachment" "replica" {
 
   role       = aws_iam_role.replica[count.index].name
   policy_arn = aws_iam_policy.replica[count.index].arn
+}
+
+# -------------------------------------------
+# ASSUME IAM ROLE POLICY FOR REPLICA
+# -------------------------------------------
+
+resource "aws_iam_role" "replica" {
+  count = var.enable_replica ? 1 : 0
+
+  name               = "${var.primary_region}-iam-role-replica"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
