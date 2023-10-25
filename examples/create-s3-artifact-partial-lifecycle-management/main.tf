@@ -7,18 +7,9 @@ terraform {
   }
 }
 
-provider "aws" {
-  region = var.priamry_region
-}
-
-provider "aws" {
-  alias  = "replica"
-  region = var.replica_region
-}
-
 module "s3_artifact" {
   source = "../../modules/s3-artifact"
 
-  primary_bucket_name = var.primary_bucket_name
-  replica_bucket_name = var.replica_bucket_name
+  bucket_name                 = var.bucket_name
+  enable_lifecycle_management = var.partial_lifecycle_management
 }
