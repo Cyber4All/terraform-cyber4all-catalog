@@ -88,7 +88,7 @@ module "example" {
 	 cluster_peering_cidr_block  = string
 
 
-	 # The route table IDs of the VPC to peer with.
+	 # The route table IDs of the VPC to peer with. Each route table should belong to a unique VPC.
 	 cluster_peering_route_table_ids  = list(string)
 
 
@@ -193,7 +193,7 @@ Default: `""`
 
 ### <a name="input_cluster_peering_route_table_ids"></a> [cluster\_peering\_route\_table\_ids](#input\_cluster\_peering\_route\_table\_ids)
 
-Description: The route table IDs of the VPC to peer with.
+Description: The route table IDs of the VPC to peer with. Each route table should belong to a unique VPC.
 
 Type: `list(string)`
 

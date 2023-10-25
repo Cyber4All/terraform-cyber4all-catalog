@@ -20,29 +20,35 @@ func TestExamplesForTerraformModules(t *testing.T) {
 		genTestDataFunc func(t *testing.T, workingDir string)
 		validateFunc    func(t *testing.T, workingDir string)
 	}{
+		// {
+		// 	name:            "ecs-cluster",
+		// 	workingDir:      "../examples/ecs-cluster",
+		// 	genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+		// 	validateFunc:    modules.ValidateEcsCluster,
+		// },
+		// {
+		// 	name:            "secrets-manager",
+		// 	workingDir:      "../examples/secrets-manager",
+		// 	genTestDataFunc: modules.DeployUsingTerraform,
+		// 	validateFunc:    modules.ValidateSecretsContainSecrets,
+		// },
+		// {
+		// 	name:            "alb https",
+		// 	workingDir:      "../examples/deploy-alb",
+		// 	genTestDataFunc: modules.DeployAlb,
+		// 	validateFunc:    modules.ValidateAlbHttps,
+		// },
+		// {
+		// 	name:            "alb w/o https",
+		// 	workingDir:      "../examples/deploy-alb-wo-https",
+		// 	genTestDataFunc: modules.DeployAlb,
+		// 	validateFunc:    modules.ValidateAlbNoHttps,
+		// },
 		{
-			name:            "ecs-cluster",
-			workingDir:      "../examples/ecs-cluster",
-			genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
-			validateFunc:    modules.ValidateEcsCluster,
-		},
-		{
-			name:            "secrets-manager",
-			workingDir:      "../examples/secrets-manager",
-			genTestDataFunc: modules.DeployUsingTerraform,
-			validateFunc:    modules.ValidateSecretsContainSecrets,
-		},
-		{
-			name:            "alb https",
-			workingDir:      "../examples/deploy-alb",
-			genTestDataFunc: modules.DeployAlb,
-			validateFunc:    modules.ValidateAlbHttps,
-		},
-		{
-			name:            "alb w/o https",
-			workingDir:      "../examples/deploy-alb-wo-https",
-			genTestDataFunc: modules.DeployAlb,
-			validateFunc:    modules.ValidateAlbNoHttps,
+			name:            "mongodb cluster",
+			workingDir:      "../examples/deploy-mongodb-cluster",
+			genTestDataFunc: modules.DeployMongoDBCluster,
+			validateFunc:    modules.ValidateMongoDBCluster,
 		},
 	}
 

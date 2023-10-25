@@ -25,7 +25,7 @@ output "cluster_state" {
 
 output "cluster_authorized_users" {
   description = "The list of users/roles authorized to access the cluster."
-  value       = concat(mongodbatlas_database_user.user[*].id, mongodbatlas_database_role.role[*].id)
+  value       = concat(keys(mongodbatlas_database_user.user), keys(mongodbatlas_database_user.role))
 }
 
 output "cluster_peering_route_table_ids" {

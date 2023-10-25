@@ -89,7 +89,7 @@ variable "cluster_authorized_iam_roles" {
 }
 
 variable "cluster_peering_route_table_ids" {
-  description = "The route table IDs of the VPC to peer with."
+  description = "The route table IDs of the VPC to peer with. Each route table should belong to a unique VPC."
   type        = list(string)
   default     = []
 }

@@ -308,6 +308,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 data "aws_route_table" "peering" {
+  # Assuming that each route table belongs to a unique VPC
   count = var.enable_vpc_peering && length(var.cluster_peering_route_table_ids) > 0 ? length(var.cluster_peering_route_table_ids) : 0
 
   route_table_id = var.cluster_peering_route_table_ids[count.index]
@@ -315,14 +316,15 @@ data "aws_route_table" "peering" {
 
 locals {
   # Get a list of unique vpc ids
-  vpc_ids = distinct([
+  # Assuming that each route table belongs to a unique VPC
+  vpc_ids = [
     for rt in data.aws_route_table.peering :
     rt.vpc_id
-  ])
+  ]
 }
 
 resource "mongodbatlas_network_peering" "peering" {
-  count = var.enable_vpc_peering && length(local.vpc_ids) > 0 ? length(local.vpc_ids) : 0
+  count = var.enable_vpc_peering ? length(data.aws_route_table.peering) : 0
 
   project_id    = data.mongodbatlas_project.project.id
   container_id  = mongodbatlas_cluster.cluster.container_id
@@ -414,10 +416,16 @@ locals {
 }
 
 resource "aws_route" "peering" {
-  count = var.enable_vpc_peering && length(local.route_list) > 0 ? length(local.route_list) : 0
+  # Assuming that a route will be added to each route table
+  count = var.enable_vpc_peering && length(var.cluster_peering_route_table_ids) > 0 ? length(var.cluster_peering_route_table_ids) : 0
 
   route_table_id = local.route_list[count.index].route_table_id
 
   destination_cidr_block    = local.route_list[count.index].destination_cidr_block
   vpc_peering_connection_id = local.route_list[count.index].vpc_peering_connection_id
+
+  depends_on = [
+    aws_vpc_peering_connection_accepter.peering,
+    data.aws_route_table.peering,
+  ]
 }
