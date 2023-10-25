@@ -14,5 +14,5 @@ provider "aws" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_name = "test-vpc"
+  vpc_name = "test-vpc-${var.random_id}"
 }
