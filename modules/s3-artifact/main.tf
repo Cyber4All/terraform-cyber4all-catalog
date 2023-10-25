@@ -95,7 +95,7 @@ resource "aws_s3_bucket" "primary" {
 resource "aws_s3_bucket_ownership_controls" "primary" {
   bucket = aws_s3_bucket.primary.id
   rule {
-    object_ownership = "BucketOwnerPreferred"
+    object_ownership = "ObjectWriter"
   }
 }
 
@@ -360,8 +360,9 @@ data "aws_iam_policy_document" "replica" {
 resource "aws_iam_policy" "replica" {
   count = var.enable_replica ? 1 : 0
 
-  name   = "${var.primary_region}-iam-policy-replica"
-  policy = data.aws_iam_policy_document.replica[count.index].json
+  name        = "${var.primary_region}-iam-policy-replica"
+  description = "Policy for replica bucket"
+  policy      = data.aws_iam_policy_document.replica[count.index].json
 }
 
 # -------------------------------------------
