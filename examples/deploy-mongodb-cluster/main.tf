@@ -34,7 +34,7 @@ module "mongodb" {
   source = "../../modules/mongodb"
 
   project_name = "Sandbox"
-  cluster_name = "test-cluster"
+  cluster_name = "test-cluster-${var.random_id}"
 
   cluster_authorized_iam_users = {
     "cwagne17-cli"             = "admin"

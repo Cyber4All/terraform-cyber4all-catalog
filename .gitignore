@@ -47,3 +47,6 @@ plan.json
 plan.out
 graph.dot
 graph.png
+
+# Ignore credential files
+credentials.json
