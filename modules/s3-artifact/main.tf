@@ -199,6 +199,30 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "primary" {
   }
 }
 
+# -------------------------------------------
+# CREATE BUCKET REPLICATION CONFIGURATION
+# -------------------------------------------
+
+resource "aws_s3_bucket_replication_configuration" "primary" {
+  count = var.enable_replica ? 1 : 0
+
+  role   = aws_iam_role.replication[0].arn
+  bucket = aws_s3_bucket.primary.id
+
+  rule {
+    id = "${var.bucket_name}-bucket-replication-rule"
+
+    status = "Enabled"
+
+    destination {
+      bucket        = aws_s3_bucket.replica[0].arn
+      storage_class = "GLACIER"
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.primary]
+}
+
 
 # ------------------------------------------------------------
 
@@ -266,30 +290,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
   }
 }
 
-# -------------------------------------------
-# CREATE BUCKET REPLICATION CONFIGURATION
-# -------------------------------------------
-
-resource "aws_s3_bucket_replication_configuration" "replica" {
-  count = var.enable_replica ? 1 : 0
-
-  role   = aws_iam_role.replica[count.index].arn
-  bucket = aws_s3_bucket.primary.id
-
-  rule {
-    id = "${var.bucket_name}-bucket-replication-rule"
-
-    status = "Enabled"
-
-    destination {
-      bucket        = aws_s3_bucket.replica[count.index].arn
-      storage_class = "GLACIER"
-    }
-  }
-
-  depends_on = [aws_s3_bucket_versioning.primary, aws_iam_role.replica]
-}
-
 
 # ------------------------------------------------------------
 
@@ -318,7 +318,7 @@ data "aws_iam_policy_document" "assume_role" {
 # -------------------------------------------
 # IAM POLICY CONFIGURATION FOR PRIMARY TO REPLICATE TO REPLICA
 # -------------------------------------------
-data "aws_iam_policy_document" "replica" {
+data "aws_iam_policy_document" "replication" {
   count = var.enable_replica ? 1 : 0
 
   statement {
@@ -357,31 +357,41 @@ data "aws_iam_policy_document" "replica" {
   }
 }
 
-resource "aws_iam_policy" "replica" {
+resource "aws_iam_policy" "replication" {
   count = var.enable_replica ? 1 : 0
 
-  name        = "${var.primary_region}-iam-policy-replica"
-  description = "Policy for replica bucket"
-  policy      = data.aws_iam_policy_document.replica[count.index].json
+  name        = "${var.bucket_name}-iam-policy-primary"
+  description = "Bucket policy for replication configuration"
+  policy      = data.aws_iam_policy_document.replication[0].json
 }
 
 # -------------------------------------------
-# ATTACH POLICY TO ROLE FOR REPLICA
+# ATTACH POLICY TO ROLE FOR REPLICATION CONFIGURATION
 # -------------------------------------------
-resource "aws_iam_role_policy_attachment" "replica" {
+resource "aws_iam_role_policy_attachment" "replication" {
   count = var.enable_replica ? 1 : 0
 
-  role       = aws_iam_role.replica[count.index].name
-  policy_arn = aws_iam_policy.replica[count.index].arn
+  role       = aws_iam_role.replication[0].name
+  policy_arn = aws_iam_policy.replication[0].arn
 }
 
 # -------------------------------------------
-# ASSUME IAM ROLE POLICY FOR REPLICA
+# ASSUME IAM ROLE POLICY FOR REPLICATION CONFIGURATION
 # -------------------------------------------
 
-resource "aws_iam_role" "replica" {
+resource "aws_iam_role" "replication" {
   count = var.enable_replica ? 1 : 0
 
-  name               = "${var.primary_region}-iam-role-replica"
+  name               = "${var.bucket_name}-iam-role-primary"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
+
+# -------------------------------------------
+# ATTACH PRIMARY BUCKET POLICY
+# -------------------------------------------
+# resource "aws_s3_bucket_policy" "primary" {
+#   count = var.enable_replica ? 1 : 0
+
+#   bucket = aws_s3_bucket.primary.id
+#   policy = data.aws_iam_policy_document.primary[count.index].json
+# }
