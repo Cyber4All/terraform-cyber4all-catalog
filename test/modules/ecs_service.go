@@ -69,7 +69,7 @@ func DeployEcsServiceUsingTerraform(t *testing.T, workingDir string) {
 // 4. The ECS service can retrieve a secret from secrets manager
 // 5. The ECS service can reach the internal service via ServiceConnect
 // 6. The ECS service can be deployed using the deploy-ecs-service.py script
-// 7. The ECS service can be scaled out and in
+// 7. The ECS service can be scaled out
 func ValidateEcsService(t *testing.T, workingDir string) {
 	var wg sync.WaitGroup
 
@@ -115,10 +115,9 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	// externally do not override the image specified in the
 	// assertEcsServiceDeploymentScript(t, terraformOptions, clusterName, externalServiceName, awsRegion)
 
-	// Check that the service can be scaled out and in
+	// Check that the service can be scaled out
 	externalServiceAlarmArns := terraform.OutputList(t, terraformOptions, "external_service_auto_scaling_alarm_arns")
 	assertEcsServiceAutoScaling(t, awsRegion, clusterName, externalServiceName, externalServiceAlarmArns)
-
 }
 
 // assertEcsServiceIsStable asserts that the ECS service is in a stable state
