@@ -430,7 +430,7 @@ resource "aws_ecs_service" "service" {
   # of the unmber of running tasks that should be maintained in the service
   # during a deployment.
   deployment_maximum_percent         = 200
-  deployment_minimum_healthy_percent = 66
+  deployment_minimum_healthy_percent = 50
   desired_count                      = var.desired_number_of_tasks
 
   enable_ecs_managed_tags = true
@@ -580,12 +580,12 @@ resource "aws_lb_target_group" "alb" {
 
   health_check {
     # This is the default health check configuration for the target group.
-    # This would mean that a task could be considered healthy in 2 * 15 = 30 seconds.
-    # or the task could be considered unhealthy in 3 * 5 = 45 seconds.
+    # This would mean that a task could be considered healthy in 2 * (10 + 5) = 30 seconds.
+    # or the task could be considered unhealthy in 3 * (5 + 10) = 45 seconds.
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 5
-    interval            = 15
+    interval            = 10
     path                = "/"
     matcher             = "200"
   }
@@ -608,90 +608,89 @@ resource "aws_lb_target_group" "alb" {
 
 # ------------------------------------------------------------
 
-# TODO: Scheduled tasks will be integrated in a future story/PR
 
 # -------------------------------------------
 # CREATE THE ECS TARGET FOR THE RULE
 # -------------------------------------------
 
-# resource "aws_cloudwatch_event_target" "scheduled" {
-#   count = var.create_scheduled_task ? 1 : 0
+resource "aws_cloudwatch_event_target" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
 
-#   target_id = "${var.ecs_service_name}-scheduled"
-#   arn       = data.aws_ecs_cluster.cluster.arn
-#   rule      = aws_cloudwatch_event_rule.scheduled[0].name
-#   role_arn  = aws_iam_role.scheduled[0].arn
+  target_id = "${var.ecs_service_name}-scheduled"
+  arn       = data.aws_ecs_cluster.cluster.arn
+  rule      = aws_cloudwatch_event_rule.scheduled[0].name
+  role_arn  = aws_iam_role.scheduled[0].arn
 
-#   ecs_target {
-#     task_count          = var.desired_number_of_tasks
-#     task_definition_arn = local.task_definition
-#     launch_type         = "FARGATE"
-#     network_configuration {
-#       subnets          = var.scheduled_task_subnet_ids
-#       security_groups  = var.scheduled_task_security_group_ids
-#       assign_public_ip = var.scheduled_task_assign_public_ip
-#     }
-#   }
-# }
-
-
-# # -------------------------------------------
-# # CREATE THE RULE TO TRIGGER THE ECS TASK
-# # -------------------------------------------
-
-# resource "aws_cloudwatch_event_rule" "scheduled" {
-#   count = var.create_scheduled_task ? 1 : 0
-
-#   name        = "${var.ecs_service_name}-rule"
-#   description = "Trigger the ECS task by schedule or event."
-
-#   event_pattern       = var.scheduled_task_event_pattern != null ? jsonencode(var.scheduled_task_event_pattern) : null
-#   schedule_expression = var.scheduled_task_cron_expression != "" ? var.scheduled_task_cron_expression : null
-
-#   depends_on = [aws_ecs_task_definition.task]
-# }
+  ecs_target {
+    task_count          = var.desired_number_of_tasks
+    task_definition_arn = local.task_definition
+    launch_type         = "FARGATE"
+    network_configuration {
+      subnets          = var.scheduled_task_subnet_ids
+      security_groups  = var.scheduled_task_security_group_ids
+      assign_public_ip = var.scheduled_task_assign_public_ip
+    }
+  }
+}
 
 
-# # -------------------------------------------
-# # CREATE THE ECS IAM ROLE FOR THE EVENT
-# # -------------------------------------------
+# -------------------------------------------
+# CREATE THE RULE TO TRIGGER THE ECS TASK
+# -------------------------------------------
 
-# resource "aws_iam_role" "scheduled" {
-#   count = var.create_scheduled_task ? 1 : 0
+resource "aws_cloudwatch_event_rule" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
 
-#   name_prefix = "${var.ecs_service_name}-scheduled"
-#   assume_role_policy = jsonencode({
-#     Statement = {
-#       Effect = "Allow"
-#       Principal = {
-#         Service = "events.amazonaws.com"
-#       }
-#       Action = "sts:AssumeRole"
-#     }
-#   })
-# }
+  name        = "${var.ecs_service_name}-rule"
+  description = "Trigger the ECS task by schedule or event."
+
+  event_pattern       = var.scheduled_task_event_pattern != null ? jsonencode(var.scheduled_task_event_pattern) : null
+  schedule_expression = var.scheduled_task_cron_expression != "" ? var.scheduled_task_cron_expression : null
+
+  depends_on = [aws_ecs_task_definition.task]
+}
 
 
-# # -------------------------------------------
-# # CREATE THE ECS IAM POLICY FOR THE EVENT
-# # -------------------------------------------
+# -------------------------------------------
+# CREATE THE ECS IAM ROLE FOR THE EVENT
+# -------------------------------------------
 
-# resource "aws_iam_role_policy" "scheduled" {
-#   count = var.create_scheduled_task ? 1 : 0
+resource "aws_iam_role" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
 
-#   role = aws_iam_role.scheduled[0].id
+  name_prefix = "${var.ecs_service_name}-scheduled"
+  assume_role_policy = jsonencode({
+    Statement = {
+      Effect = "Allow"
+      Principal = {
+        Service = "events.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }
+  })
+}
 
-#   name = "${var.ecs_service_name}-run-task"
-#   policy = jsonencode({
-#     Statement = {
-#       Effect   = "Allow"
-#       Action   = ["ecs:RunTask"]
-#       Resource = ["${aws_ecs_task_definition.task.arn_without_revision}:*"]
-#     }
-#     Statement = {
-#       Effect   = "Allow"
-#       Action   = ["iam:PassRole"]
-#       Resource = ["*"]
-#     }
-#   })
-# }
+
+# -------------------------------------------
+# CREATE THE ECS IAM POLICY FOR THE EVENT
+# -------------------------------------------
+
+resource "aws_iam_role_policy" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
+
+  role = aws_iam_role.scheduled[0].id
+
+  name = "${var.ecs_service_name}-run-task"
+  policy = jsonencode({
+    Statement = {
+      Effect   = "Allow"
+      Action   = ["ecs:RunTask"]
+      Resource = ["${aws_ecs_task_definition.task.arn_without_revision}:*"]
+    }
+    Statement = {
+      Effect   = "Allow"
+      Action   = ["iam:PassRole"]
+      Resource = ["*"]
+    }
+  })
+}

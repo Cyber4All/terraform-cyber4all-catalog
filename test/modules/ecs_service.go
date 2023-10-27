@@ -71,65 +71,76 @@ func DeployEcsServiceUsingTerraform(t *testing.T, workingDir string) {
 // 6. The ECS service can be deployed using the deploy-ecs-service.py script
 // 7. The ECS service can be scaled out
 func ValidateEcsService(t *testing.T, workingDir string) {
-	var wg sync.WaitGroup
+	wg := &sync.WaitGroup{}
 
 	// Load the Terraform Options saved by the earlier deploy_terraform stage
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
-	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
+	regionName := test_structure.LoadString(t, workingDir, "awsRegion")
 
-	clusterName := terraform.Output(t, terraformOptions, "ecs_cluster_name")
-	internalServiceName := terraform.Output(t, terraformOptions, "internal_service_name")
+	// Get outputs for assertions
+	ecsClusterName := terraform.Output(t, terraformOptions, "ecs_cluster_name")
 	externalServiceName := terraform.Output(t, terraformOptions, "external_service_name")
+	externalServiceAutoScalingAlarmArns := terraform.OutputList(t, terraformOptions, "external_service_auto_scaling_alarm_arns")
+	externalTargetGroupArn := terraform.Output(t, terraformOptions, "external_service_target_group_arn")
+	internalEcsTaskContainerPort := terraform.Output(t, terraformOptions, "internal_ecs_task_container_port")
+	internalServiceName := terraform.Output(t, terraformOptions, "internal_service_name")
+	loadbalancerDnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
+	loadbalancerName := terraform.Output(t, terraformOptions, "alb_name")
 
 	// Check that the services exist and
 	// are in a stable state...
 	wg.Add(2)
-	go assertEcsServiceIsStable(t, awsRegion, clusterName, internalServiceName, &wg)
-	go assertEcsServiceIsStable(t, awsRegion, clusterName, externalServiceName, &wg)
+	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, internalServiceName)
+	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, externalServiceName)
 	wg.Wait()
 
+	// The following assertions can be run in parallel
+	// with the above assertions
+	wg.Add(6)
+
 	// Check that the services are producing logs
-	assertEcsServiceSendsLogs(t, awsRegion, fmt.Sprintf("/ecs/service/%s", internalServiceName))
-	assertEcsServiceSendsLogs(t, awsRegion, fmt.Sprintf("/ecs/service/%s", externalServiceName))
+	internalServiceLogGroup := fmt.Sprintf("/ecs/service/%s", internalServiceName)
+	externalServiceLogGroup := fmt.Sprintf("/ecs/service/%s", externalServiceName)
+	go assertEcsServiceSendsLogs(t, wg, regionName, internalServiceLogGroup)
+	go assertEcsServiceSendsLogs(t, wg, regionName, externalServiceLogGroup)
 
 	// Check that the load balancer attached service
 	// recieves traffic
-	targetGroupArn := terraform.Output(t, terraformOptions, "external_service_target_group_arn")
-	loadbalancerName := terraform.Output(t, terraformOptions, "alb_name")
-	assertEcsServiceReceivesTraffic(t, awsRegion, loadbalancerName, targetGroupArn)
+	go assertEcsServiceReceivesTraffic(t, wg, regionName, loadbalancerName, externalTargetGroupArn)
 
 	// Check that the a service can retrieve a secret
 	// from secrets manager
-	dnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
-	assertEcsServiceCanRetrieveSecret(t, dnsName)
+	go assertEcsServiceCanRetrieveSecret(t, wg, loadbalancerDnsName)
 
 	// Check that the internal service can be reached
 	// from the external service via ServiceConnect
-	internalServicePort, err := strconv.Atoi(terraform.Output(t, terraformOptions, "internal_ecs_task_container_port"))
+	internalServicePort, err := strconv.Atoi(internalEcsTaskContainerPort)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertEcsServiceCanReachInternalService(t, dnsName, internalServiceName, internalServicePort)
+	go assertEcsServiceCanReachInternalService(t, wg, loadbalancerDnsName, internalServiceName, internalServicePort)
 
 	// Check that deployments updating the container image
 	// externally do not override the image specified in the
-	// assertEcsServiceDeploymentScript(t, terraformOptions, clusterName, externalServiceName, awsRegion)
+	go assertEcsServiceExternalDeployment(t, wg, terraformOptions, regionName, ecsClusterName, externalServiceName)
+
+	// Wait for all the above assertions to complete
+	wg.Wait()
 
 	// Check that the service can be scaled out
-	externalServiceAlarmArns := terraform.OutputList(t, terraformOptions, "external_service_auto_scaling_alarm_arns")
-	assertEcsServiceAutoScaling(t, awsRegion, clusterName, externalServiceName, externalServiceAlarmArns)
+	assertEcsServiceAutoScaling(t, regionName, ecsClusterName, externalServiceName, externalServiceAutoScalingAlarmArns)
 }
 
 // assertEcsServiceIsStable asserts that the ECS service is in a stable state
 // (i.e. not updating or draining) and that the service exists. This function
 // supports running in parallel with other tests.
-func assertEcsServiceIsStable(t *testing.T, awsRegion string, clusterName string, serviceName string, wg *sync.WaitGroup) {
+func assertEcsServiceIsStable(t *testing.T, wg *sync.WaitGroup, awsRegion string, clusterName string, serviceName string) {
 	defer wg.Done()
 
 	message := retry.DoWithRetry(
 		t,
 		fmt.Sprintf("%s stability:", serviceName),
-		40,                            // maxRetries
+		28,                            // maxRetries
 		time.Duration(15*time.Second), // sleepBetweenRetries
 		func() (string, error) {
 			// Get the service
@@ -157,20 +168,20 @@ func assertEcsServiceIsStable(t *testing.T, awsRegion string, clusterName string
 		},
 	)
 
-	fmt.Println(message)
+	t.Log(message)
 }
 
 // assertEcsServiceSendsLogs asserts that the ECS service is sending logs to the
-// specified log group.
-func assertEcsServiceSendsLogs(t *testing.T, awsRegion string, logGroup string) {
-	client := aws.NewCloudWatchLogsClient(t, awsRegion)
+// specified log group. This function supports running in parallel with other tests.
+func assertEcsServiceSendsLogs(t *testing.T, wg *sync.WaitGroup, regionName string, logGroup string) {
+	defer wg.Done()
+
+	client := aws.NewCloudWatchLogsClient(t, regionName)
 
 	// Describe the log streams
 	streams, err := client.DescribeLogStreams(&cloudwatchlogs.DescribeLogStreamsInput{
 		LogGroupName: &logGroup,
 	})
-
-	// Check that there were no errors
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,8 +194,6 @@ func assertEcsServiceSendsLogs(t *testing.T, awsRegion string, logGroup string) 
 		LogGroupName:  &logGroup,
 		LogStreamName: streams.LogStreams[0].LogStreamName,
 	})
-
-	// Check that there were no errors
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,18 +209,20 @@ func assertEcsServiceSendsLogs(t *testing.T, awsRegion string, logGroup string) 
 }
 
 // assertEcsServiceReceivesTraffic asserts that the ECS service is receiving traffic
-// from the load balancer.
-func assertEcsServiceReceivesTraffic(t *testing.T, awsRegion string, loadBalancerName string, targetGroupArn string) {
+// from the load balancer. This function supports running in parallel with other tests.
+func assertEcsServiceReceivesTraffic(t *testing.T, wg *sync.WaitGroup, awsRegion string, loadBalancerName string, targetGroupArn string) {
+	defer wg.Done()
+
 	// Connect to aws using aws sdk
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	client := elasticloadbalancingv2.NewFromConfig(cfg, func(o *elasticloadbalancingv2.Options) {
 		o.Region = awsRegion
 	})
 
+	// Get the target health
 	resp, err := client.DescribeTargetHealth(context.TODO(), &elasticloadbalancingv2.DescribeTargetHealthInput{
 		TargetGroupArn: &targetGroupArn,
 	})
@@ -262,7 +273,8 @@ func assertEcsServiceReceivesTraffic(t *testing.T, awsRegion string, loadBalance
 }
 
 // assertEcsServiceCanRetrieveSecret asserts that the ECS service can retrieve
-// a secret from secrets manager.
+// a secret from secrets manager. This function supports running in parallel with
+// other tests.
 //
 // This function assumes the following:
 //
@@ -271,7 +283,9 @@ func assertEcsServiceReceivesTraffic(t *testing.T, awsRegion string, loadBalance
 //     environment variable SECRET.
 //  2. The ECS service module set the SECRET environment variable using
 //     the secrets manager secret.
-func assertEcsServiceCanRetrieveSecret(t *testing.T, dnsName string) {
+func assertEcsServiceCanRetrieveSecret(t *testing.T, wg *sync.WaitGroup, dnsName string) {
+	defer wg.Done()
+
 	http_helper.HttpGetWithRetryWithCustomValidation(t,
 		fmt.Sprintf("http://%s/test/env", dnsName),
 		&tls.Config{},
@@ -285,14 +299,17 @@ func assertEcsServiceCanRetrieveSecret(t *testing.T, dnsName string) {
 }
 
 // assertEcsServiceCanReachInternalService asserts that the ECS service can
-// reach the internal service via ServiceConnect.
+// reach the internal service via ServiceConnect. This function supports running
+// in parallel with other tests.
 //
 // This function assumes the following:
 //
 //  1. mock-container-image docker image is being used in task definition
 //     a. API has the POST /proxy endpoint which proxies the request to
 //     the internal service.
-func assertEcsServiceCanReachInternalService(t *testing.T, dnsName string, internalServiceName string, internalServicePort int) {
+func assertEcsServiceCanReachInternalService(t *testing.T, wg *sync.WaitGroup, dnsName string, internalServiceName string, internalServicePort int) {
+	defer wg.Done()
+
 	expectedBody := "Hello from the external service!"
 	body := bytes.NewBuffer([]byte(fmt.Sprintf(`{"proxyUrl": "http://%s:%d/test?proxyPhrase=%s"}`, internalServiceName, internalServicePort, expectedBody)))
 
@@ -308,65 +325,107 @@ func assertEcsServiceCanReachInternalService(t *testing.T, dnsName string, inter
 	)
 }
 
-// TODO: fix this test
 // assertEcsServiceDeploymentScript asserts that the ECS service can be deployed
-// successfully using the deploy-ecs-service.py script.
-// func assertEcsServiceDeploymentScript(t *testing.T, terraformOptions *terraform.Options, clusterName string, serviceName string, regionName string) {
-// 	// expectedContainerImage := "mock-container-image:1.0.0"
+// externally without being overriden with the container image specified in the
+// terraform configuration
+func assertEcsServiceExternalDeployment(t *testing.T, wg *sync.WaitGroup, terraformOptions *terraform.Options, regionName string, clusterName string, serviceName string) {
+	defer wg.Done()
 
-// 	executable := "bash"
-// 	if runtime.GOOS == "windows" {
-// 		executable = "powershell"
-// 	}
+	expectedContainerImage := "cyber4all/mock-container-image:1.0.0"
 
-// 	// TODO: use the deploy-ecs-service.py script
-// 	cmd := exec.Command(executable, `python3 -c "print('hello world')"`)
+	// Deploy the service externally
+	deployEcsService(t, regionName, clusterName, serviceName, expectedContainerImage)
 
-// 	// cmd := exec.Command("python3",
-// 	// 	"../../modules/ecs-service/scripts/deploy-ecs-service.py",
-// 	// 	"--cluster", clusterName,
-// 	// 	"--image", expectedContainerImage,
-// 	// 	"--service", serviceName,
-// 	// 	"--region", regionName,
-// 	// )
+	// Check that the service will use the externally deployed
+	// image on new terraform apply (rather than overriding)
 
-// 	// pipe the commands output to the test stdout
-// 	cmd.Stdout = os.Stdout
-// 	cmd.Stderr = os.Stderr
+	// Remove the external_container_image variable
+	// from the terraform options. This will cause the
+	// service to use the image specified in the latest
+	// deployment of the service.
+	terraformOptions.Vars["external_container_image"] = ""
 
-// 	// Run() runs the command and waits for it to complete
-// 	// but output is instantly piped to the stdout
-// 	if err := cmd.Run(); err != nil {
-// 		t.Fatal(err)
-// 	}
+	// Apply the terraform changes
+	terraform.Apply(t, terraformOptions)
 
-// Check that the service will use the externally deployed
-// image on new terraform apply (rather than overriding)
+	// Wait for the service to reach a stable state
+	inner_wg := &sync.WaitGroup{}
+	inner_wg.Add(1)
+	go assertEcsServiceIsStable(t, inner_wg, regionName, clusterName, serviceName)
+	inner_wg.Wait()
 
-// Remove the external_container_image variable
-// from the terraform options. This will cause the
-// service to use the image specified in the latest
-// deployment of the service.
-// terraformOptions.Vars["external_container_image"] = ""
+	// Check that the outputs reflect the expected container image
+	outputContainerImage := terraform.Output(t, terraformOptions, "external_ecs_task_essential_image")
+	assert.Equal(t, expectedContainerImage, outputContainerImage, "Expected service to use container image %s, recieved %s", expectedContainerImage, outputContainerImage)
 
-// // Apply the terraform changes
-// terraform.Apply(t, terraformOptions)
+	// Check that the latest deployment is using the expected container image
+	taskDefinition := aws.GetEcsService(t, regionName, clusterName, serviceName).Deployments[0].TaskDefinition
+	actualContainerImage := aws.GetEcsTaskDefinition(t, regionName, *taskDefinition).ContainerDefinitions[0].Image
+	assert.Equal(t, expectedContainerImage, *actualContainerImage, "Expected service to use container image %s, recieved %s", expectedContainerImage, *actualContainerImage)
+}
 
-// // Check that the service reaches a stable state
-// var wg sync.WaitGroup
-// wg.Add(1)
-// go assertEcsServiceIsStable(t, regionName, clusterName, serviceName, &sync.WaitGroup{})
-// wg.Wait()
+// deployEcsService deploys the ECS service using the specified container image.
+func deployEcsService(t *testing.T, regionName string, clusterName string, serviceName string, containerImage string) *string {
+	// Get the task definition arn
+	taskDefinitionArn := aws.GetEcsService(t, regionName, clusterName, serviceName).Deployments[0].TaskDefinition
 
-// // Check that the outputs reflect the expected container image
-// outputContainerImage := terraform.Output(t, terraformOptions, "external_service_container_image")
-// assert.Equal(t, expectedContainerImage, outputContainerImage, "Expected service to use container image %s, recieved %s", expectedContainerImage, outputContainerImage)
+	client := aws.NewEcsClient(t, regionName)
 
-// // Check that the latest deployment is using the expected container image
-// taskDefinition := aws.GetEcsService(t, regionName, clusterName, serviceName).Deployments[0].TaskDefinition
-// actualContainerImage := aws.GetEcsTaskDefinition(t, regionName, *taskDefinition).ContainerDefinitions[0].Image
-// assert.Equal(t, expectedContainerImage, actualContainerImage, "Expected service to use container image %s, recieved %s", expectedContainerImage, actualContainerImage)
-// }
+	// Get the task definition, can't use GetEcsTaskDefinition from terratest
+	// because it doesn't support the latest version of the ecs sdk which includes
+	// service connect compatibility
+	taskDefinitionOutput, err := client.DescribeTaskDefinition(&ecs.DescribeTaskDefinitionInput{
+		TaskDefinition: taskDefinitionArn,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	taskDefinition := taskDefinitionOutput.TaskDefinition
+
+	// Update the container image
+	taskDefinition.ContainerDefinitions[0].Image = &containerImage
+
+	// Register the new task definition
+	registerTaskDefinitionOutput, err := client.RegisterTaskDefinition(&ecs.RegisterTaskDefinitionInput{
+		ContainerDefinitions:    taskDefinition.ContainerDefinitions,
+		Cpu:                     taskDefinition.Cpu,
+		EphemeralStorage:        taskDefinition.EphemeralStorage,
+		ExecutionRoleArn:        taskDefinition.ExecutionRoleArn,
+		Family:                  taskDefinition.Family,
+		InferenceAccelerators:   taskDefinition.InferenceAccelerators,
+		IpcMode:                 taskDefinition.IpcMode,
+		Memory:                  taskDefinition.Memory,
+		NetworkMode:             taskDefinition.NetworkMode,
+		PidMode:                 taskDefinition.PidMode,
+		PlacementConstraints:    taskDefinition.PlacementConstraints,
+		ProxyConfiguration:      taskDefinition.ProxyConfiguration,
+		RequiresCompatibilities: taskDefinition.RequiresCompatibilities,
+		RuntimePlatform:         taskDefinition.RuntimePlatform,
+		TaskRoleArn:             taskDefinition.TaskRoleArn,
+		Volumes:                 taskDefinition.Volumes,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Update the service to use the new task definition
+	_, err = client.UpdateService(&ecs.UpdateServiceInput{
+		Cluster:        &clusterName,
+		Service:        &serviceName,
+		TaskDefinition: registerTaskDefinitionOutput.TaskDefinition.TaskDefinitionArn,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Wait for the service to reach a stable state
+	inner_wg := &sync.WaitGroup{}
+	inner_wg.Add(1)
+	go assertEcsServiceIsStable(t, inner_wg, regionName, clusterName, serviceName)
+	inner_wg.Wait()
+
+	return registerTaskDefinitionOutput.TaskDefinition.TaskDefinitionArn
+}
 
 // assertEcsServiceAutoScaling asserts that the ECS service can be scaled out
 // and in. This function assumes the following:
@@ -385,6 +444,7 @@ func assertEcsServiceAutoScaling(t *testing.T, regionName string, clusterName st
 		}
 	}
 
+	// Check that the scale out alarm name is set
 	assert.NotNil(t, scaleOutAlarmName, "Expected scale out alarm name to be set")
 
 	// Connect to aws using aws sdk
@@ -396,8 +456,9 @@ func assertEcsServiceAutoScaling(t *testing.T, regionName string, clusterName st
 		o.Region = regionName
 	})
 
+	// Get the current desired count
 	currentDesiredCount := aws.GetEcsService(t, regionName, clusterName, serviceName).DesiredCount
-	fmt.Println("Current desired count: ", *currentDesiredCount)
+	t.Logf("Current desired count: %d", *currentDesiredCount)
 
 	// Test Scale Out
 	stateReasonData := `{
@@ -422,7 +483,7 @@ func assertEcsServiceAutoScaling(t *testing.T, regionName string, clusterName st
 		StateReasonData: &stateReasonData,
 	})
 
-	fmt.Println("Waiting 15 seconds for scale out alarm to trigger...")
+	t.Log("Waiting 15 seconds for scale out alarm to trigger...")
 	time.Sleep(15 * time.Second)
 
 	// Get the latest alarm history
