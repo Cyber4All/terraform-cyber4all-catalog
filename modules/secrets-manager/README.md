@@ -21,11 +21,10 @@ When defining the secret name and value, do not hard code sensitive values in th
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-The following requirements are needed by this module:
-
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.5.5)
-
-- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.5 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0 |
 
 ## Sample Usage
 
@@ -52,36 +51,16 @@ module "example" {
 
 }
 ```
-## Required Inputs
+## Inputs
 
-The following input variables are required:
-
-### <a name="input_secrets"></a> [secrets](#input\_secrets)
-
-Description: List of secrets that can be used to maintain the secret and its environment variables managed by the secret.
-
-Type:
-
-```hcl
-list(object({
-    name                  = string
-    description           = optional(string)
-    environment_variables = map(string)
-  }))
-```
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_secrets"></a> [secrets](#input\_secrets) | List of secrets that can be used to maintain the secret and its environment variables managed by the secret. | <pre>list(object({<br>    name                  = string<br>    description           = optional(string)<br>    environment_variables = map(string)<br>  }))</pre> | n/a | yes |
 ## Outputs
 
-The following outputs are exported:
-
-### <a name="output_secret_arn_references"></a> [secret\_arn\_references](#output\_secret\_arn\_references)
-
-Description: List of ARNs with appended references that can be used in other services such as ECS.
-
-### <a name="output_secret_arns"></a> [secret\_arns](#output\_secret\_arns)
-
-Description: List of ARNs for the secrets managed by the module.
-
-### <a name="output_secret_names"></a> [secret\_names](#output\_secret\_names)
-
-Description: List of secret names for the secrets managed by the module.
+| Name | Description |
+|------|-------------|
+| <a name="output_secret_arn_references"></a> [secret\_arn\_references](#output\_secret\_arn\_references) | List of ARNs with appended references that can be used in other services such as ECS. |
+| <a name="output_secret_arns"></a> [secret\_arns](#output\_secret\_arns) | List of ARNs for the secrets managed by the module. |
+| <a name="output_secret_names"></a> [secret\_names](#output\_secret\_names) | List of secret names for the secrets managed by the module. |
 <!-- END_TF_DOCS -->
