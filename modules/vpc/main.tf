@@ -81,7 +81,7 @@ data "aws_availability_zones" "current" {
 # ------------------------------------------------------------
 
 locals {
-  num_availability_zones = var.num_availability_zones == null ? length(data.aws_availability_zones.current) : var.num_availability_zones
+  num_availability_zones = var.num_availability_zones == null ? length(data.aws_availability_zones.current.names) : var.num_availability_zones
 
   # Gets a subset of the availability zones based on the number
   # of availability zones requested.
