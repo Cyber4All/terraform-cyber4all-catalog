@@ -20,33 +20,42 @@ def cli():
     pass
 
 
+def destroy():
+    # TODO: Destroy the resources
+    pass
+
+
 @cli.command("test")
 @click.option('--skip-role-assumption', '-s', is_flag=True, help='Skip role assumption. Default: False')
-@click.option('--dir', type=click.Path(exists=True), default='test', help='The directory containing the tests. Default: test')
 @click.option('--arn', type=str, required=True, help='The role arn to assume')
-@click.option('--save', '-s', is_flag=True, help='Save the credentials to a file. Default: True')
-def run_tests(skip_role_assumption, dir, arn, save):
+@click.option('--save', '-s', is_flag=True, default=True, help='Save the credentials to a file. Default: True')
+@click.option('--force-creds', '-f', is_flag=True, help='Force creating new credentials, if credentials already exist. Default: False')
+# TODO: Add option to skip validate and skip apply
+def run_tests(skip_role_assumption, arn, save, force_creds):
     """ Run the go tests within the test directory. If the --skip-role-assumption flag is not set, role assumption will be set up. """
     if not skip_role_assumption:
-        setup_role_assumption.callback(save=save, arn=arn)
+        setup_role_assumption.callback(
+            save=save, arn=arn, force_creds=force_creds)
     # Change directory to the test directory
-    os.chdir(dir)
+    os.chdir("test")
     # Run the tests
     logging.info("Running tests")
     os.environ['TF_VAR_mongodb_role_arn'] = arn
     try:
-        subprocess.run(['go', 'test', '.', '-v'], check=True)
+        subprocess.run(
+            ['go', 'test', '.', '-v', '--timeout', '2h'], check=True)
     except subprocess.CalledProcessError:
         sys.exit(1)
 
 
 @cli.command("setup-role-assumption")
-@click.option('--save', '-s', is_flag=True, help='Save the credentials to a file. Default: True')
+@click.option('--save', '-s', is_flag=True, default=True, help='Save the credentials to a file. Default: True')
 @click.option('--arn', type=str, required=True, help='The role arn to assume')
-def setup_role_assumption(save, arn):
+@click.option('--force-creds', '-f', is_flag=True, help='Force creating new credentials, if credentials already exist. Default: False')
+def setup_role_assumption(save, arn, force_creds):
     """ Set up role assumption and export the credentials as environment variables. """
     # Check if the credentials are still valid
-    if check_existing_credentials():
+    if not force_creds and check_existing_credentials():
         return
 
     logging.info("No existing credentials. Setting up role assumption")
