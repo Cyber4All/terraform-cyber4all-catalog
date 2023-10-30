@@ -129,7 +129,7 @@ module "external-ecs-service" {
   }
 
   ecs_container_secrets = {
-    "SECRET" : module.secrets-manager.secret_arn_references[0]
+    "SECRET" : module.secrets-manager.secrets[0].arn
   }
 
   enable_load_balancer   = true

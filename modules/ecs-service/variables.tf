@@ -73,7 +73,7 @@ variable "docker_credential_secretsmanager_arn" {
 
 variable "ecs_container_environment_variables" {
   type        = map(string)
-  description = "A map of environment variables to set in the ECS container definition. These values should NOT be sensitive."
+  description = "A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive."
   default     = {}
 }
 
@@ -91,7 +91,7 @@ variable "ecs_container_port" {
 
 variable "ecs_container_secrets" {
   type        = map(string)
-  description = "A map of secrets to configure in the ECS container definition. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task."
+  description = "A map of secrets to configure in the ECS container definition. The key is the name of the environment variable and the value is the ARN of the Secrets Manager secret that contains the environment variable. It is assumed that the secret's value can be indexed using the environment variable name. These are environment variables that are sensitive and should not be stored in plain text."
   default     = {}
 }
 
@@ -115,7 +115,7 @@ variable "enable_deployment_rollback" {
 
 variable "enable_load_balancer" {
   type        = bool
-  description = "Enable a load balancer to create an ALB target for the ECS service that is attached to an existing ALB."
+  description = "Enable a load balancer for the ECS service. This will create an ALB target for the ECS service that is attached to an existing ALB."
   default     = false
 }
 
@@ -127,7 +127,7 @@ variable "enable_service_auto_scaling" {
 
 variable "enable_service_connect" {
   type        = bool
-  description = "Enable service discovery for the ECS service."
+  description = "Enable service connect for the ECS service."
   default     = true
 }
 
