@@ -92,7 +92,7 @@ resource "aws_ecs_cluster" "cluster" {
 
 # tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "cluster" {
-  name = "${var.cluster_name}-logs"
+  name = "/aws/ecs/${var.cluster_name}-logs"
 
   retention_in_days = 90
 }
@@ -261,6 +261,14 @@ resource "aws_autoscaling_group" "cluster" {
     # to an ECS cluster that does not exist.
     aws_ecs_cluster.cluster
   ]
+
+  timeouts {
+    delete = "60m"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 
@@ -334,6 +342,9 @@ resource "aws_launch_template" "cluster" {
     http_tokens = "required"
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 

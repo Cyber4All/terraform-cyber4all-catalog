@@ -83,7 +83,7 @@ variable "cluster_instance_type" {
 variable "cluster_max_size" {
   type        = number
   description = "The maximum number of instances to run in the ECS cluster."
-  default     = 10
+  default     = 3
 }
 
 variable "cluster_min_size" {
