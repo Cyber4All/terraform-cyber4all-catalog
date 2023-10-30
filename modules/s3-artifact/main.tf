@@ -385,13 +385,3 @@ resource "aws_iam_role" "replication" {
   name               = "${var.bucket_name}-iam-role-primary"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
-
-# -------------------------------------------
-# ATTACH PRIMARY BUCKET POLICY
-# -------------------------------------------
-# resource "aws_s3_bucket_policy" "primary" {
-#   count = var.enable_replica ? 1 : 0
-
-#   bucket = aws_s3_bucket.primary.id
-#   policy = data.aws_iam_policy_document.primary[count.index].json
-# }
