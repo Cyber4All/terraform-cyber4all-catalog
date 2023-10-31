@@ -87,6 +87,7 @@ workflows:
             - tfsec
 
             - integration-tests:
+                  context: [TerraformTesting]
                   requires: [pre-commit, tfsec]
 
             - cyber4all/release:

@@ -20,31 +20,60 @@ def cli():
     pass
 
 
-def destroy():
-    # TODO: Destroy the resources
-    pass
-
-
 @cli.command("test")
 @click.option('--skip-role-assumption', '-s', is_flag=True, help='Skip role assumption. Default: False')
-@click.option('--arn', type=str, required=True, help='The role arn to assume')
+@click.option('--arn', type=str, help='The role arn to assume')
 @click.option('--save', '-s', is_flag=True, default=True, help='Save the credentials to a file. Default: True')
 @click.option('--force-creds', '-f', is_flag=True, help='Force creating new credentials, if credentials already exist. Default: False')
-# TODO: Add option to skip validate and skip apply
-def run_tests(skip_role_assumption, arn, save, force_creds):
+@click.option('--skip-validate', is_flag=True, help='Skip validation of the module. Default: False')
+@click.option('--skip-destroy', is_flag=True, help='Skip destroying the resources. Default: False')
+@click.option('--skip-apply', is_flag=True, help='Skip applying the module. Default: False')
+def run_tests(skip_role_assumption, arn, save, force_creds, skip_validate, skip_destroy, skip_apply):
     """ Run the go tests within the test directory. If the --skip-role-assumption flag is not set, role assumption will be set up. """
-    if not skip_role_assumption:
+    if not skip_role_assumption and arn is not None:
         setup_role_assumption.callback(
             save=save, arn=arn, force_creds=force_creds)
+    else:
+        logging.info(
+            "Skipping role assumption... Arn is not set or skip-role-assumption flag is set")
+    # Check if arn is set
+    if arn is None:
+        logging.warning(
+            "ARN not set. This could lead to tests failing if running MongoDB tests.")
+    else:
+        os.environ['TF_VAR_mongodb_role_arn'] = arn
+
+    # Check that secret arn for mongodb is set
+    if 'MONGODB_SECRET_ARN' not in os.environ:
+        logging.warning(
+            "MONGODB_SECRET_ARN not set. This could lead to tests failing if running MongoDB tests.")
+
+    # Add flags to skip validation, destroy and apply
+    if skip_validate:
+        os.environ['SKIP_validate'] = 'true'
+    if skip_destroy:
+        os.environ['SKIP_destroy'] = 'true'
+    if skip_apply:
+        os.environ['SKIP_apply'] = 'true'
+
     # Change directory to the test directory
     os.chdir("test")
     # Run the tests
     logging.info("Running tests")
-    os.environ['TF_VAR_mongodb_role_arn'] = arn
+
+    error_thrown = False
     try:
         subprocess.run(
             ['go', 'test', '.', '-v', '--timeout', '2h'], check=True)
     except subprocess.CalledProcessError:
+        error_thrown = True
+
+    # Reset skip flags
+    os.environ['SKIP_validate'] = 'false'
+    os.environ['SKIP_destroy'] = 'false'
+    os.environ['SKIP_apply'] = 'false'
+
+    if error_thrown:
         sys.exit(1)
 
 
@@ -58,7 +87,7 @@ def setup_role_assumption(save, arn, force_creds):
     if not force_creds and check_existing_credentials():
         return
 
-    logging.info("No existing credentials. Setting up role assumption")
+    logging.info("Setting up role assumption")
     res = subprocess.run(['aws', 'sts', 'assume-role', '--role-arn', arn,
                           '--role-session-name', 'terratest-session', '--output', 'json'], capture_output=True, check=True)
     res_json = res.stdout.decode('utf-8')
