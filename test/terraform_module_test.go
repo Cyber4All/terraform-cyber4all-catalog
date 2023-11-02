@@ -81,6 +81,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				validateFunc:    modules.ValidateVpcNoNat,
 			},
 		},
+		{
+			name:            "ecs service",
+			workingDir:      "../examples/deploy-ecs-service",
+			genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
+			validateFunc:    modules.ValidateEcsService,
+		},
 	}
 
 	for _, tests := range tests {

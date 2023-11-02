@@ -13,12 +13,12 @@
 
 variable "ecs_cluster_name" {
   type        = string
-  description = "The name of the ECS cluster to deploy the ECS service onto."
+  description = "The name of the ECS cluster."
 }
 
 variable "ecs_service_name" {
   type        = string
-  description = "The name of the ECS service to create."
+  description = "The name of the ECS service."
 }
 
 # --------------------------------------------------------------------
@@ -27,22 +27,22 @@ variable "ecs_service_name" {
 # These values are optional and have default values provided
 # --------------------------------------------------------------------
 
-variable "container_image" {
-  type        = string
-  description = "The docker image to use for the ECS task. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform."
-  default     = ""
+variable "auto_scaling_max_number_of_tasks" {
+  type        = number
+  description = "The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number."
+  default     = 4
 }
 
-variable "container_port" {
+variable "auto_scaling_memory_util_threshold" {
   type        = number
-  description = "The port that the container listens on."
-  default     = null
-}
-
-variable "cpu_utilization_threshold" {
-  type        = number
-  description = "Percentage for the target tracking scaling threshold for the ECS Service average CPU utiliziation."
+  description = "The percentage for the ECS service's average Memory utilization threshold. The service uses a target tracking scaling policy."
   default     = 50
+}
+
+variable "auto_scaling_min_number_of_tasks" {
+  type        = number
+  description = "The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number."
+  default     = 1
 }
 
 variable "create_scheduled_task" {
@@ -61,14 +61,44 @@ variable "desired_number_of_tasks" {
   }
 }
 
-variable "docker_credentials_secret_arn" {
+variable "docker_credential_secretsmanager_arn" {
   type        = string
   description = "The ARN of the AWS Secrets Manager secret containing the Docker credentials."
   default     = ""
   validation {
-    condition     = var.docker_credentials_secret_arn == "" || length(split(":", var.docker_credentials_secret_arn)) == 7
+    condition     = var.docker_credential_secretsmanager_arn == "" || length(split(":", var.docker_credential_secretsmanager_arn)) == 7
     error_message = "The docker_credentials_secret_arn must be a valid ARN."
   }
+}
+
+variable "ecs_container_environment_variables" {
+  type        = map(string)
+  description = "A map of environment variables to set in the ECS container definition. These values should NOT be sensitive."
+  default     = {}
+}
+
+variable "ecs_container_image" {
+  type        = string
+  description = "The name and tag of the docker image to use for the ECS essential container definition. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform. This value is required for initial deployments and when changing the base image (image without the tag)."
+  default     = ""
+}
+
+variable "ecs_container_port" {
+  type        = number
+  description = "The container port that the application is listening on."
+  default     = null
+}
+
+variable "ecs_container_secrets" {
+  type        = map(string)
+  description = "A map of secrets to configure in the ECS container definition. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task."
+  default     = {}
+}
+
+variable "ecs_task_role_policy_arns" {
+  type        = list(string)
+  description = "A list of ARNs of IAM policies to attach to the ECS task role."
+  default     = []
 }
 
 variable "enable_container_logs" {
@@ -101,12 +131,6 @@ variable "enable_service_connect" {
   default     = true
 }
 
-variable "environment_variables" {
-  type        = map(string)
-  description = "A map of environment variables to pass to the ECS task."
-  default     = {}
-}
-
 variable "lb_listener_arn" {
   type        = string
   description = "The load balancer listener arn to attach the ECS service to. This value is required when enable_load_balancer is true."
@@ -117,24 +141,6 @@ variable "lb_target_group_vpc_id" {
   type        = string
   description = "The VPC id to deploy the ECS service's load balancer traget group into. Required when enable_load_balancer is true."
   default     = ""
-}
-
-variable "max_number_of_tasks" {
-  type        = number
-  description = "The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number."
-  default     = 4
-}
-
-variable "memory_utilization_threshold" {
-  type        = number
-  description = "Percentage for the target tracking scaling threshold for the ECS Service average memory utiliziation."
-  default     = 50
-}
-
-variable "min_number_of_tasks" {
-  type        = number
-  description = "The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number."
-  default     = 1
 }
 
 variable "scheduled_task_assign_public_ip" {
@@ -165,10 +171,4 @@ variable "scheduled_task_subnet_ids" {
   type        = list(string)
   description = "A list of subnet IDs to associate with the ECS task. This value is required when create_scheduled_task is true."
   default     = []
-}
-
-variable "secrets" {
-  type        = map(string)
-  description = "A map of secrets to pass to the ECS task. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task."
-  default     = {}
 }
