@@ -53,6 +53,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				genTestDataFunc: modules.DeployMongoDBCluster,
 				validateFunc:    modules.ValidateMongoDBCluster,
 			},
+			{
+				name:            "ecs service",
+				workingDir:      "../examples/deploy-ecs-service",
+				genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
+				validateFunc:    modules.ValidateEcsService,
+			},
 		},
 		// VPC TESTS
 		{
@@ -80,12 +86,6 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				genTestDataFunc: modules.DeployVpcUsingTerraform,
 				validateFunc:    modules.ValidateVpcNoNat,
 			},
-		},
-		{
-			name:            "ecs service",
-			workingDir:      "../examples/deploy-ecs-service",
-			genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
-			validateFunc:    modules.ValidateEcsService,
 		},
 	}
 
