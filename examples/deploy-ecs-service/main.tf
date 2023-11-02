@@ -50,27 +50,6 @@ locals {
 
 
 # -------------------------------------------
-# SECRET MANAGER SECRET
-# -------------------------------------------
-
-module "secrets-manager" {
-  source = "../../modules/secrets-manager"
-
-  secrets = [
-    {
-      name = "testing/example/${local.name}"
-      environment = [
-        {
-          name  = "SECRET",
-          value = "SUPER_SECRET_VALUE"
-        }
-      ]
-    }
-  ]
-}
-
-
-# -------------------------------------------
 # CREATE VPC TO DEPLOY ECS CLUSTER AND SERVICES
 # -------------------------------------------
 
@@ -92,7 +71,7 @@ module "alb" {
   alb_name = local.name
 
   vpc_id         = module.vpc.vpc_id
-  vpc_subnet_ids = module.vpc.public_subnets
+  vpc_subnet_ids = module.vpc.public_subnet_ids
 
   enable_https_listener = false
 }
@@ -111,8 +90,24 @@ module "cluster" {
 
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.private_subnet_ids
+}
 
-  cluster_max_size = 1
+
+# -------------------------------------------
+# SECRET MANAGER SECRET
+# -------------------------------------------
+
+module "secrets-manager" {
+  source = "../../modules/secrets-manager"
+
+  secrets = [
+    {
+      name = "testing/example/${local.name}"
+      environment_variables = {
+        "SECRET" = "SUPER_SECRET_VALUE"
+      }
+    }
+  ]
 }
 
 
@@ -120,26 +115,26 @@ module "cluster" {
 # DEPLOY EXTERNAL/INTERNAL ECS SERVICES
 # -------------------------------------------
 
-module "ecs-service" {
+module "external-ecs-service" {
   source = "../../modules/ecs-service"
 
   ecs_cluster_name = module.cluster.ecs_cluster_name
   ecs_service_name = "${local.name}-external"
 
-  container_image = var.container_image
-  container_port  = 8080
+  ecs_container_image = var.external_container_image
+  ecs_container_port  = 8080
 
-  environment_variables = {
+  ecs_container_environment_variables = {
     "MOCK_TYPE" = "rest-api"
   }
 
-  secrets = {
+  ecs_container_secrets = {
     "SECRET" : module.secrets-manager.secret_arn_references[0]
   }
 
   enable_load_balancer   = true
   lb_listener_arn        = module.alb.http_listener_arn
-  lb_target_group_vpc_id = module.vpc_id
+  lb_target_group_vpc_id = module.vpc.vpc_id
 }
 
 module "internal-ecs-service" {
@@ -148,10 +143,10 @@ module "internal-ecs-service" {
   ecs_cluster_name = module.cluster.ecs_cluster_name
   ecs_service_name = "${local.name}-internal"
 
-  container_image = var.container_image
-  container_port  = 8080
+  ecs_container_image = var.internal_container_image
+  ecs_container_port  = 8080
 
-  environment_variables = {
+  ecs_container_environment_variables = {
     "MOCK_TYPE" = "rest-api"
   }
 }

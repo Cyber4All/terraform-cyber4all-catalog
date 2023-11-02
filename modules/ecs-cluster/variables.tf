@@ -65,7 +65,7 @@ variable "capacity_provider_min_scale_step" {
 variable "capacity_provider_target" {
   type        = number
   description = "Target cluster utilization for the ASG capacity provider; a number from 1 to 100. This number influences when scale out happens, and when instances should be scaled in. For example, a setting of 90 means that new instances will be provisioned when all instances are at 90% utilization, while instances that are only 10% utilized (CPU and Memory usage from tasks = 10%) will be scaled in."
-  default     = 75
+  default     = 100
 }
 
 variable "cluster_ingress_access_ports" {

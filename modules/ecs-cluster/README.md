@@ -176,7 +176,7 @@ Description: Target cluster utilization for the ASG capacity provider; a number 
 
 Type: `number`
 
-Default: `75`
+Default: `100`
 
 ### <a name="input_cluster_ingress_access_ports"></a> [cluster\_ingress\_access\_ports](#input\_cluster\_ingress\_access\_ports)
 

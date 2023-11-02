@@ -4,10 +4,16 @@ variable "cluster_instance_ami" {
   default     = "ami-0e692fe1bae5ca24c"
 }
 
-variable "container_image" {
+variable "external_container_image" {
   type        = string
   description = "The docker image that will be used in the task. The image is bootstrapped meaning it is only used for initialization, previous applies should unset this variable to allow for external application deployments to persist."
-  default     = ""
+  default     = "cyber4all/mock-container-image:latest"
+}
+
+variable "internal_container_image" {
+  type        = string
+  description = "The docker image that will be used in the task. The image is bootstrapped meaning it is only used for initialization, previous applies should unset this variable to allow for external application deployments to persist."
+  default     = "cyber4all/mock-container-image:latest"
 }
 
 variable "random_id" {
