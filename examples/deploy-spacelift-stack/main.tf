@@ -61,7 +61,7 @@ locals {
   stack_name = "deploy-spacelift-stack${var.random_id}"
 }
 
-module "stack" {
+module "vpc-stack" {
   source = "../../modules/spacelift-stack"
 
   stack_name = local.stack_name
@@ -79,6 +79,40 @@ module "stack" {
 
   create_iam_role      = true
   iam_role_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+
+  # We want to be able to apply/delete in tests without having errors
+  # in most cases, you will want to keep the default of `true`
+  enable_protect_from_deletion = false
+}
+
+# ------------------------------------------------------------------------------
+# DEPLOY AN ECS CLUSTER STACK WITH AN AWS INTEGRATION
+# THAT IS DEPENDENT ON THE VPC STACK
+# ------------------------------------------------------------------------------
+
+module "ecs-cluster-stack" {
+  source = "../../modules/spacelift-stack"
+
+  stack_name = local.stack_name
+
+  repository   = "terraform-cyber4all-catalog"
+  branch       = "main"
+  project_root = "examples/deploy-vpc"
+
+  environment_variables = {
+    "TF_VAR_region"    = "us-east-1",
+    "TF_VAR_random_id" = var.random_id,
+  }
+
+  enable_state_management = true
+  create_iam_role         = true
+
+  stack_dependencies = {
+    module.vpc-stack.stack_id = {
+      "TF_VAR_vpc_id"         = "vpc_id",
+      "TF_VAR_vpc_subnet_ids" = "private_subnet_ids"
+    }
+  }
 
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`

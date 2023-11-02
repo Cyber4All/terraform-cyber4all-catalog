@@ -13,3 +13,19 @@ output "stack_iam_role_arn" {
 output "stack_iam_role_policy_arns" {
   value = aws_iam_role_policy_attachment.this[*].policy_arn
 }
+
+output "dependency_mappings" {
+  value = local.dependency_mappings
+}
+
+output "number_of_dependencies" {
+  value = local.number_of_dependencies
+}
+
+output "number_of_references" {
+  value = local.number_of_references
+}
+
+output "stack_dependencies" {
+  value = local.stack_dependencies
+}

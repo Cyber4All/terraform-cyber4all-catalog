@@ -27,10 +27,20 @@ terraform {
 # CONFIGURE OUR SPACELIFT CONNECTION
 # --------------------------------------------------
 
+# Retrieves the spacelift api key from AWS Secrets Manager
+# in the AWS account configured in the AWS provider
+data "aws_secretsmanager_secret" "spacelift" {
+  name = "spacelift/sandbox"
+}
+
+data "aws_secretsmanager_secret_version" "spacelift" {
+  secret_id = data.aws_secretsmanager_secret.spacelift.id
+}
+
 provider "spacelift" {
-  api_key_endpoint = var.api_key_endpoint
-  api_key_id       = var.spacelift_key_id
-  api_key_secret   = var.spacelift_key_secret
+  api_key_endpoint = jsondecode(data.aws_secretsmanager_secret_version.spacelift.secret_string)["api_key_endpoint"]
+  api_key_id       = jsondecode(data.aws_secretsmanager_secret_version.spacelift.secret_string)["api_key_id"]
+  api_key_secret   = jsondecode(data.aws_secretsmanager_secret_version.spacelift.secret_string)["api_key_secret"]
 }
 
 
@@ -47,8 +57,9 @@ module "stack" {
 
   stack_name = local.stack_name
 
-  repository = var.repository
-  branch     = var.branch
+  repository   = "terraform-cyber4all-catalog"
+  branch       = "feature/sc-26579/develop-spacelift-stack-terraform-module" # TODO update this to main before merge
+  project_root = "examples/deploy-spacelift-stack"
 
   create_iam_role = false
 

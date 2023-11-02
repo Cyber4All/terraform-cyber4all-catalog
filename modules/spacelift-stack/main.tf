@@ -47,6 +47,7 @@ resource "spacelift_stack" "this" {
 
   terraform_smart_sanitization = true
   terraform_version            = var.terraform_version
+
   # This can be transitioned to OpenToFu at a later time
   terraform_workflow_tool = "TERRAFORM_FOSS"
 }
@@ -110,6 +111,8 @@ resource "spacelift_stack_destructor" "this" {
     spacelift_policy_attachment.this,
     spacelift_context_attachment.this,
 
+    # Adding the following dependencies to ensure that the stack is destroyed first before the IAM role
+    # and its attachments are destroyed.
     aws_iam_role.this,
     aws_iam_role_policy_attachment.this,
     spacelift_aws_integration.this,
@@ -121,15 +124,51 @@ resource "spacelift_stack_destructor" "this" {
 }
 
 # ---------------------------------------------------
-# ADD ANY STACK DEPENDENCIES
+# ADD STACK DEPENDENCIES
 # ---------------------------------------------------
 
+locals {
+  stack_dependencies = [for k, v in var.stack_dependencies : {
+    stack_id = k
+    mappings = v
+  }]
+
+  # map stack depdency id from spacelift_stack_dependency to the mappings defined in the stack_dependencies variable
+  dependency_mappings = flatten([
+    # iterate over each stack dependency
+    for stack_dependency_resource in spacelift_stack_spacelift_stack_dependency.this : [
+
+      # iterate over each mapping defined in the stack_dependencies variable
+      for depends_on_stack_id, mapping in var.stack_dependencies : [
+
+        # Create a mapping of the stack_dependency_id to the variable mappings defined in the stack_dependencies variable
+        # only if the depends on stack id matches the id defined in the spacelift_stack_dependency resource
+        for input_name, output_name in mapping :
+        depends_on_stack_id == stack_dependency_resource.depends_on_stack_id ? {
+          stack_dependency_id = stack_dependency_resource.id
+          input_name          = input_name
+          output_name         = output_name
+        } : null
+      ]
+    ]
+  ])
+
+  number_of_dependencies = length(keys(local.stack_dependencies))
+  number_of_references   = length(flatten([for k, v in local.stack_dependencies : values(v)]))
+}
+
 resource "spacelift_stack_dependency" "this" {
-  count = length(var.stack_dependency_ids)
+  count = local.number_of_dependencies
 
   stack_id            = spacelift_stack.this.id
-  depends_on_stack_id = var.stack_dependency_ids[count.index]
+  depends_on_stack_id = local.stack_dependencies[count.index].stack_id
 }
+
+# resource "spacelift_stack_dependency_reference" "this" {
+#   count = local.number_of_references
+
+#   stack_dependency_id = 
+# }
 
 
 # ---------------------------------------------------------

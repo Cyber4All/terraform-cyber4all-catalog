@@ -84,7 +84,7 @@ variable "environment_variables" {
 variable "iam_role_policy_arns" {
   description = "IAM role policy ARNs to attach to the stack's IAM role. The IAM role will be created if create_iam_role is true. The policies ARNs can either be ARNs of AWS managed policies or custom policies."
   type        = list(string)
-  default     = []
+  default     = ["arn:aws:iam::aws:policy/AdministratorAccess"]
 }
 
 variable "labels" {
@@ -105,10 +105,10 @@ variable "project_root" {
   default     = null
 }
 
-variable "stack_dependency_ids" {
-  description = "List of stack IDs to depend on"
-  type        = list(string)
-  default     = []
+variable "stack_dependencies" {
+  description = "A map of stack ids that this stack depends on. The key is the stack id and the value is a map of environment variables that are defined by outputs of the stack. i.e { \"stack-id\" = { \"TF_VAR_vpc_id\" = \"vpc_id\" } }"
+  type        = map(any)
+  default     = {}
 }
 
 variable "terraform_version" {
