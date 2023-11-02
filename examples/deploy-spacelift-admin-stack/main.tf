@@ -49,7 +49,7 @@ provider "spacelift" {
 # --------------------------------------------------
 
 locals {
-  stack_name = "deploy-admin-spacelift-stack${var.random_id}"
+  stack_name = "test-admin-stack-${var.random_id}"
 }
 
 module "stack" {
