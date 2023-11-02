@@ -72,8 +72,8 @@ module "vpc-stack" {
   project_root = "examples/deploy-vpc"
 
   environment_variables = {
-    "TF_VAR_region"    = var.region,
-    "TF_VAR_random_id" = var.random_id,
+    "region"    = var.region,
+    "random_id" = var.random_id,
   }
 
   enable_state_management = true
@@ -101,8 +101,8 @@ module "ecs-cluster-stack" {
   project_root = "examples/deploy-ecs-cluster-wo-vpc"
 
   environment_variables = {
-    "TF_VAR_region"    = var.region,
-    "TF_VAR_random_id" = var.random_id,
+    "region"    = var.region,
+    "random_id" = var.random_id,
   }
 
   enable_state_management = true
