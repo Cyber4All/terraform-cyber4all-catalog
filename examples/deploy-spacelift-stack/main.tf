@@ -58,13 +58,14 @@ provider "spacelift" {
 # --------------------------------------------------
 
 locals {
-  stack_name = "deploy-spacelift-stack${var.random_id}"
+  vpc_stack_name         = "vpc-spacelift-stack${var.random_id}"
+  ecs_cluster_stack_name = "ecs-cluster-spacelift_stack${var.random_id}"
 }
 
 module "vpc-stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = local.stack_name
+  stack_name = local.vpc_stack_name
 
   repository   = "terraform-cyber4all-catalog"
   branch       = "main"
@@ -93,7 +94,7 @@ module "vpc-stack" {
 module "ecs-cluster-stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = local.stack_name
+  stack_name = local.ecs_cluster_stack_name
 
   repository   = "terraform-cyber4all-catalog"
   branch       = "main"
@@ -108,7 +109,7 @@ module "ecs-cluster-stack" {
   create_iam_role         = true
 
   stack_dependencies = {
-    module.vpc-stack.stack_id = {
+    (local.vpc_stack_name) = {
       "TF_VAR_vpc_id"         = "vpc_id",
       "TF_VAR_vpc_subnet_ids" = "private_subnet_ids"
     }

@@ -22,10 +22,6 @@ output "number_of_dependencies" {
   value = local.number_of_dependencies
 }
 
-output "number_of_references" {
+output "number_of_output_references" {
   value = local.number_of_references
-}
-
-output "stack_dependencies" {
-  value = local.stack_dependencies
 }

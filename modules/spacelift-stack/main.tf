@@ -128,15 +128,10 @@ resource "spacelift_stack_destructor" "this" {
 # ---------------------------------------------------
 
 locals {
-  stack_dependencies = [for k, v in var.stack_dependencies : {
-    stack_id = k
-    mappings = v
-  }]
-
   # map stack depdency id from spacelift_stack_dependency to the mappings defined in the stack_dependencies variable
   dependency_mappings = flatten([
     # iterate over each stack dependency
-    for stack_dependency_resource in spacelift_stack_spacelift_stack_dependency.this : [
+    for stack_dependency_resource in spacelift_stack_dependency.this : [
 
       # iterate over each mapping defined in the stack_dependencies variable
       for depends_on_stack_id, mapping in var.stack_dependencies : [
@@ -153,22 +148,28 @@ locals {
     ]
   ])
 
-  number_of_dependencies = length(keys(local.stack_dependencies))
-  number_of_references   = length(flatten([for k, v in local.stack_dependencies : values(v)]))
+  # list of stack dependency ids
+  depends_on_stack_ids = keys(var.stack_dependencies)
+
+  number_of_dependencies = length(local.depends_on_stack_ids)
+  number_of_references   = length(local.dependency_mappings)
 }
 
 resource "spacelift_stack_dependency" "this" {
   count = local.number_of_dependencies
 
   stack_id            = spacelift_stack.this.id
-  depends_on_stack_id = local.stack_dependencies[count.index].stack_id
+  depends_on_stack_id = local.depends_on_stack_ids[count.index]
 }
 
-# resource "spacelift_stack_dependency_reference" "this" {
-#   count = local.number_of_references
+resource "spacelift_stack_dependency_reference" "this" {
+  count = local.number_of_references
 
-#   stack_dependency_id = 
-# }
+  stack_dependency_id = local.dependency_mappings[count.index].stack_dependency_id
+
+  input_name  = local.dependency_mappings[count.index].input_name
+  output_name = local.dependency_mappings[count.index].output_name
+}
 
 
 # ---------------------------------------------------------
