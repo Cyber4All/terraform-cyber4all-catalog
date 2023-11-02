@@ -106,7 +106,7 @@ variable "project_root" {
 }
 
 variable "stack_dependencies" {
-  description = "A map of stack ids that this stack depends on. The key is the stack id and the value is a map of environment variables that are defined by outputs of the stack. i.e { \"stack-id\" = { \"TF_VAR_vpc_id\" = \"vpc_id\" } }"
+  description = "A map of stack ids that this stack depends on. The key is the stack id and the value is a map of environment variables that are defined by outputs of the stack. i.e { \"stack-id\" = { \"vpc_id\" = \"vpc_id\" } }"
   type        = map(any)
   default     = {}
 }

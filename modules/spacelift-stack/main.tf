@@ -69,7 +69,7 @@ resource "spacelift_environment_variable" "this" {
 
   stack_id = spacelift_stack.this.id
 
-  name       = lookup(local.environment_variables[count.index], "name", null)
+  name       = "TF_VAR_${lookup(local.environment_variables[count.index], "name", null)}"
   value      = lookup(local.environment_variables[count.index], "value", null)
   write_only = true
 }
@@ -141,7 +141,7 @@ locals {
         for input_name, output_name in mapping :
         depends_on_stack_id == stack_dependency_resource.depends_on_stack_id ? {
           stack_dependency_id = stack_dependency_resource.id
-          input_name          = input_name
+          input_name          = "TF_VAR_${input_name}"
           output_name         = output_name
         } : null
       ]

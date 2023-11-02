@@ -72,7 +72,7 @@ module "vpc-stack" {
   project_root = "examples/deploy-vpc"
 
   environment_variables = {
-    "TF_VAR_region"    = "us-east-1",
+    "TF_VAR_region"    = var.region,
     "TF_VAR_random_id" = var.random_id,
   }
 
@@ -97,11 +97,11 @@ module "ecs-cluster-stack" {
   stack_name = local.ecs_cluster_stack_name
 
   repository   = "terraform-cyber4all-catalog"
-  branch       = "main"
-  project_root = "examples/deploy-vpc"
+  branch       = "feature/sc-26579/develop-spacelift-stack-terraform-module"
+  project_root = "examples/deploy-ecs-cluster-wo-vpc"
 
   environment_variables = {
-    "TF_VAR_region"    = "us-east-1",
+    "TF_VAR_region"    = var.region,
     "TF_VAR_random_id" = var.random_id,
   }
 
@@ -110,10 +110,11 @@ module "ecs-cluster-stack" {
 
   stack_dependencies = {
     (local.vpc_stack_name) = {
-      "TF_VAR_vpc_id"         = "vpc_id",
-      "TF_VAR_vpc_subnet_ids" = "private_subnet_ids"
-    }
+      "vpc_id"         = "vpc_id",
+      "vpc_subnet_ids" = "private_subnet_ids"
+    },
   }
+
 
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
