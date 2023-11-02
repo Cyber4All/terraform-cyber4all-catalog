@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# DEPLOY AN SPACELIFT STACK WITH AN AWS INTEGRATION
+# DEPLOY SPACELIFT STACKS
 #
 # This example shows how to deploy an admin spacelift stack without an AWS
 # integration. This is useful if you want to use the stack to deploy other space-
@@ -21,11 +21,6 @@ terraform {
     }
   }
 }
-
-
-# --------------------------------------------------
-# CONFIGURE OUR AWS CONNECTION
-# --------------------------------------------------
 
 provider "aws" {
   region = var.region

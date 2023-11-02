@@ -1,3 +1,22 @@
+# --------------------------------------------------------------------
+
+# REQUIRED PARAMETERS
+
+# These values are required by the module and have no default values
+
+# --------------------------------------------------------------------
+
+# No required parameters at this time...
+
+
+# --------------------------------------------------------------------
+
+# OPTIONAL PARAMETERS
+
+# These values are optional and have default values
+
+# --------------------------------------------------------------------
+
 variable "random_id" {
   description = "Random id generated for the purpose of testing"
   type        = string
