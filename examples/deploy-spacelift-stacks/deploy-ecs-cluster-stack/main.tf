@@ -62,27 +62,27 @@ locals {
   labels = ["folder: Environment/Testing", "project: terraform-cyber4all-catalog"]
 }
 
-module "vpc-stack" {
-  source = "../../modules/spacelift-stack"
+# module "vpc-stack" {
+#   source = "../../modules/spacelift-stack"
 
-  stack_name = local.vpc_stack_name
+#   stack_name = local.vpc_stack_name
 
-  repository = local.repository
-  branch     = local.branch
-  path       = "examples/dependencies/deploy-vpc-only"
+#   repository = local.repository
+#   branch     = local.branch
+#   path       = "examples/dependencies/deploy-vpc-only"
 
-  # We want to be able to apply/delete in tests without having errors
-  # in most cases, you will want to keep the default of `true`
-  enable_protect_from_deletion = false
-  enable_state_management      = true
+#   # We want to be able to apply/delete in tests without having errors
+#   # in most cases, you will want to keep the default of `true`
+#   enable_protect_from_deletion = false
+#   enable_state_management      = true
 
-  environment_variables = {
-    "region"    = var.region,
-    "random_id" = var.random_id,
-  }
+#   environment_variables = {
+#     "region"    = var.region,
+#     "random_id" = var.random_id,
+#   }
 
-  labels = local.labels
-}
+#   labels = local.labels
+# }
 
 # ------------------------------------------------------------------------------
 # DEPLOY A STACK THAT IS DEPENDENT ON ANOTHER STACK (VPC -> ECS CLUSTER)
