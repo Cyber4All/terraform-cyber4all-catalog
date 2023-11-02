@@ -1,6 +1,25 @@
-'''
-This script sets up role assumption for the MongoDB Module
-'''
+"""
+This file is used to run tests for the Terraform examples. It provides a CLI interface to run the tests and set up role assumption.
+
+This script should be used when running tests. Specifically when you are running MongoDB Module tests, since this cli script will set up role assumption for you.
+
+Usage:
+    python run_tests.py test [OPTIONS]
+    python run_tests.py setup-role-assumption [OPTIONS]
+
+Options:
+    --skip-role-assumption, -s: Skip role assumption. Default: False
+    --arn TEXT: The role arn to assume
+    --save, -s: Save the credentials to a file. Default: True
+    --force-creds, -f: Force creating new credentials, if credentials already exist. Default: False
+    --skip-validate: Skip validation of the module. Default: False
+    --skip-destroy: Skip destroying the resources. Default: False
+    --skip-apply: Skip applying the module. Default: False
+
+Commands:
+    test: Run the go tests within the test directory. If the --skip-role-assumption flag is not set, role assumption will be set up.
+    setup-role-assumption: Set up role assumption and export the credentials as environment variables.
+"""
 
 import datetime
 import json
@@ -56,8 +75,6 @@ def run_tests(skip_role_assumption, arn, save, force_creds, skip_validate, skip_
     if skip_apply:
         os.environ['SKIP_apply'] = 'true'
 
-    # Change directory to the test directory
-    os.chdir("test")
     # Run the tests
     logging.info("Running tests")
 

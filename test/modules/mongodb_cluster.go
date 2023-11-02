@@ -3,7 +3,6 @@ package modules
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -21,15 +20,12 @@ import (
 )
 
 func DeployMongoDBCluster(t *testing.T, workingDir string) {
-	// Get the role arn from env
-	roleArn := os.Getenv("TF_VAR_mongodb_role_arn")
 	// Generate a random id
 	randomID := random.UniqueId()
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: workingDir,
 		Vars: map[string]interface{}{
-			"mongodb_role_arn": roleArn,
-			"random_id":        randomID,
+			"random_id": randomID,
 		},
 	})
 
@@ -37,28 +33,29 @@ func DeployMongoDBCluster(t *testing.T, workingDir string) {
 	test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
 }
 
+// ValidateMongoDBCluster validates the MongoDB cluster Terraform module.
+// It loads the Terraform options, gets the public and private keys from SecretsManager to connect to the MongoDB SDK,
+// creates an admin client, and validates the MongoDB cluster outputs and VPC peering configuration.
+// MONGODB_SECRET_ARN environment variable must be set to the ARN of the secret containing the MongoDB public and private keys.
 func ValidateMongoDBCluster(t *testing.T, workingDir string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
-	// Get public key and private key from secrets manager
+	// Get the public key and private key from SecretsManager to connect to the MongoDB SDK
 	secretArn := os.Getenv("MONGODB_SECRET_ARN")
 	secretString := aws.GetSecretValue(t, "us-east-1", secretArn)
 	var keys struct {
 		PrivateKey string `json:"private_key"`
 		PublicKey  string `json:"public_key"`
 	}
+	assert.NotEmpty(t, secretString, "Secret string is empty")
 
 	err := json.Unmarshal([]byte(secretString), &keys)
-	if err != nil {
-		t.Fatalf("Error when unmarshalling json: %v", err)
-	}
+	assert.NoError(t, err, "Error when unmarshalling secret string")
 
+	// Connect to MongoDB SDK
 	apiKey := keys.PublicKey
 	apiSecret := keys.PrivateKey
-	// Create admin client
 	sdk, err := admin.NewClient(admin.UseDigestAuth(apiKey, apiSecret))
-	if err != nil {
-		log.Fatalf("Error when instantiating new client: %v", err)
-	}
+	assert.NoError(t, err, "Error when creating MongoDB SDK client")
 
 	// CASE: MongoDB Cluster outputs are correct
 	// Get the mongodb base uri
