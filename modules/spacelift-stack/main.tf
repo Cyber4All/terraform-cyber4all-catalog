@@ -195,6 +195,23 @@ resource "spacelift_stack_dependency_reference" "this" {
 }
 
 
+# ---------------------------------------------------
+# RUN THE STACK IF ADMIN STACK IS ENABLED
+# ---------------------------------------------------
+
+resource "spacelift_run" "this" {
+  count = var.enable_admin_stack ? 1 : 0
+
+  stack_id = spacelift_stack.this.id
+
+  keepers = {
+    repository = spacelift_stack.this.repository
+    branch     = spacelift_stack.this.branch
+    path       = spacelift_stack.this.project_root
+  }
+}
+
+
 # ---------------------------------------------------------
 
 # THE FOLLOWING SECTION CONFIGURES THE IAM ROLE
