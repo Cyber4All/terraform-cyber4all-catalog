@@ -47,3 +47,5 @@ plan.json
 plan.out
 graph.dot
 graph.png
+
+.vscode
