@@ -262,7 +262,7 @@ module "example" {
 	 docker_credential_secretsmanager_arn  = string
 
 
-	 # A map of environment variables to set in the ECS container definition. These values should NOT be sensitive.
+	 # A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive.
 	 ecs_container_environment_variables  = map(string)
 
 
@@ -274,7 +274,7 @@ module "example" {
 	 ecs_container_port  = number
 
 
-	 # A map of secrets to configure in the ECS container definition. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
+	 # A map of secrets to configure in the ECS container definition. The key is the name of the environment variable and the value is the ARN of the Secrets Manager secret that contains the environment variable. It is assumed that the secret's value can be indexed using the environment variable name. These are environment variables that are sensitive and should not be stored in plain text.
 	 ecs_container_secrets  = map(string)
 
 
@@ -290,7 +290,7 @@ module "example" {
 	 enable_deployment_rollback  = bool
 
 
-	 # Enable a load balancer to create an ALB target for the ECS service that is attached to an existing ALB.
+	 # Enable a load balancer for the ECS service. This will create an ALB target for the ECS service that is attached to an existing ALB.
 	 enable_load_balancer  = bool
 
 
@@ -298,7 +298,7 @@ module "example" {
 	 enable_service_auto_scaling  = bool
 
 
-	 # Enable service discovery for the ECS service.
+	 # Enable service connect for the ECS service.
 	 enable_service_connect  = bool
 
 
@@ -403,7 +403,7 @@ Default: `""`
 
 ### <a name="input_ecs_container_environment_variables"></a> [ecs\_container\_environment\_variables](#input\_ecs\_container\_environment\_variables)
 
-Description: A map of environment variables to set in the ECS container definition. These values should NOT be sensitive.
+Description: A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive.
 
 Type: `map(string)`
 
@@ -427,7 +427,7 @@ Default: `null`
 
 ### <a name="input_ecs_container_secrets"></a> [ecs\_container\_secrets](#input\_ecs\_container\_secrets)
 
-Description: A map of secrets to configure in the ECS container definition. These are environment variables that are sensitive and should not be stored in plain text. Instead they are stored in AWS Secrets Manager and injected at runtime into the ECS task.
+Description: A map of secrets to configure in the ECS container definition. The key is the name of the environment variable and the value is the ARN of the Secrets Manager secret that contains the environment variable. It is assumed that the secret's value can be indexed using the environment variable name. These are environment variables that are sensitive and should not be stored in plain text.
 
 Type: `map(string)`
 
@@ -459,7 +459,7 @@ Default: `true`
 
 ### <a name="input_enable_load_balancer"></a> [enable\_load\_balancer](#input\_enable\_load\_balancer)
 
-Description: Enable a load balancer to create an ALB target for the ECS service that is attached to an existing ALB.
+Description: Enable a load balancer for the ECS service. This will create an ALB target for the ECS service that is attached to an existing ALB.
 
 Type: `bool`
 
@@ -475,7 +475,7 @@ Default: `true`
 
 ### <a name="input_enable_service_connect"></a> [enable\_service\_connect](#input\_enable\_service\_connect)
 
-Description: Enable service discovery for the ECS service.
+Description: Enable service connect for the ECS service.
 
 Type: `bool`
 
