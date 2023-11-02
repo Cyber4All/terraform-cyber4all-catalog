@@ -1,3 +1,10 @@
+# ------------------------------------------------------------------------------
+# DEPLOY AN AWS VPC
+#
+# This example shows how to deploy a single VPC in a given region. This example
+# will create public and private subnets in each availability zone in the region.
+# ------------------------------------------------------------------------------
+
 terraform {
   required_providers {
     aws = {
@@ -14,5 +21,5 @@ provider "aws" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_name = "test-vpc-${var.random_id}"
+  vpc_name = "vpc-${var.random_id}"
 }

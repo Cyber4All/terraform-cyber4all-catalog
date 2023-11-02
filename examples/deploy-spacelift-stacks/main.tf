@@ -53,8 +53,13 @@ provider "spacelift" {
 # --------------------------------------------------
 
 locals {
-  vpc_stack_name         = "vpc-spacelift-stack${var.random_id}"
-  ecs_cluster_stack_name = "ecs-cluster-spacelift_stack${var.random_id}"
+  vpc_stack_name         = "test-vpc-stack${var.random_id}"
+  ecs_cluster_stack_name = "test-ecs-cluster-stack${var.random_id}"
+
+  repository = "terraform-cyber4all-catalog"
+  branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module"
+
+  labels = ["folder: Environment/Testing", "project: terraform-cyber4all-catalog"]
 }
 
 module "vpc-stack" {
@@ -62,28 +67,25 @@ module "vpc-stack" {
 
   stack_name = local.vpc_stack_name
 
-  repository   = "terraform-cyber4all-catalog"
-  branch       = "main"
-  project_root = "examples/deploy-vpc"
+  repository = local.repository
+  branch     = local.branch
+  path       = "examples/dependencies/deploy-vpc-only"
+
+  # We want to be able to apply/delete in tests without having errors
+  # in most cases, you will want to keep the default of `true`
+  enable_protect_from_deletion = false
+  enable_state_management      = true
 
   environment_variables = {
     "region"    = var.region,
     "random_id" = var.random_id,
   }
 
-  enable_state_management = true
-
-  create_iam_role      = true
-  iam_role_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
-
-  # We want to be able to apply/delete in tests without having errors
-  # in most cases, you will want to keep the default of `true`
-  enable_protect_from_deletion = false
+  labels = local.labels
 }
 
 # ------------------------------------------------------------------------------
-# DEPLOY AN ECS CLUSTER STACK WITH AN AWS INTEGRATION
-# THAT IS DEPENDENT ON THE VPC STACK
+# DEPLOY A STACK THAT IS DEPENDENT ON ANOTHER STACK (VPC -> ECS CLUSTER)
 # ------------------------------------------------------------------------------
 
 module "ecs-cluster-stack" {
@@ -91,27 +93,26 @@ module "ecs-cluster-stack" {
 
   stack_name = local.ecs_cluster_stack_name
 
-  repository   = "terraform-cyber4all-catalog"
-  branch       = "feature/sc-26579/develop-spacelift-stack-terraform-module"
-  project_root = "examples/deploy-ecs-cluster-wo-vpc"
+  repository = local.repository
+  branch     = local.branch
+  path       = "examples/dependencies/deploy-ecs-cluster-only"
+
+  # We want to be able to apply/delete in tests without having errors
+  # in most cases, you will want to keep the default of `true`
+  enable_protect_from_deletion = false
+  enable_state_management      = true
 
   environment_variables = {
     "region"    = var.region,
     "random_id" = var.random_id,
   }
 
-  enable_state_management = true
-  create_iam_role         = true
-
   stack_dependencies = {
     (local.vpc_stack_name) = {
       "vpc_id"         = "vpc_id",
-      "vpc_subnet_ids" = "private_subnet_ids"
+      "vpc_subnet_ids" = "private_subnet_ids",
     },
   }
 
-
-  # We want to be able to apply/delete in tests without having errors
-  # in most cases, you will want to keep the default of `true`
-  enable_protect_from_deletion = false
+  labels = local.labels
 }

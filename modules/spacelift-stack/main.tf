@@ -31,6 +31,21 @@ terraform {
 # CREATE THE SPACELIFT STACK
 # -------------------------------------------
 
+locals {
+  admin_label                 = var.enable_admin_stack ? "admin" : null
+  autodeploy_label            = var.enable_autodeploy ? "autodeploy" : null
+  state_management_label      = var.enable_state_management ? "state-management" : null
+  protect_from_deletion_label = var.enable_protect_from_deletion ? "protect-from-deletion" : null
+
+  # Adds additional labels to the stack for filtering purposes
+  labels = concat(var.labels, compact([
+    local.admin_label,
+    local.autodeploy_label,
+    local.state_management_label,
+    local.protect_from_deletion_label,
+  ]))
+}
+
 resource "spacelift_stack" "this" {
   name        = var.stack_name
   description = var.description
@@ -38,7 +53,7 @@ resource "spacelift_stack" "this" {
 
   repository   = var.repository
   branch       = var.branch
-  project_root = var.project_root
+  project_root = var.path
 
   administrative        = var.enable_admin_stack
   autodeploy            = var.enable_autodeploy
@@ -106,18 +121,17 @@ resource "spacelift_policy_attachment" "this" {
 
 resource "spacelift_stack_destructor" "this" {
   depends_on = [
-    spacelift_stack.this,
-    spacelift_environment_variable.this,
-    spacelift_policy_attachment.this,
-    spacelift_context_attachment.this,
-
-    # Adding the following dependencies to ensure that the stack is destroyed first before the IAM role
-    # and its attachments are destroyed.
+    # Adding the following dependencies to ensure that the tracked resources are
+    # destroyed first before the following are destroyed.
     aws_iam_role.this,
     aws_iam_role_policy_attachment.this,
+    data.spacelift_aws_integration_attachment_external_id.this,
     spacelift_aws_integration.this,
     spacelift_aws_integration_attachment.this,
-    data.spacelift_aws_integration_attachment_external_id.this
+    spacelift_context_attachment.this,
+    spacelift_environment_variable.this,
+    spacelift_policy_attachment.this,
+    spacelift_stack.this,
   ]
 
   stack_id = spacelift_stack.this.id
@@ -160,6 +174,10 @@ resource "spacelift_stack_dependency" "this" {
 
   stack_id            = spacelift_stack.this.id
   depends_on_stack_id = local.depends_on_stack_ids[count.index]
+
+  depends_on = [
+    spacelift_stack_destructor.this,
+  ]
 }
 
 resource "spacelift_stack_dependency_reference" "this" {
@@ -169,6 +187,10 @@ resource "spacelift_stack_dependency_reference" "this" {
 
   input_name  = local.dependency_mappings[count.index].input_name
   output_name = local.dependency_mappings[count.index].output_name
+
+  depends_on = [
+    spacelift_stack_destructor.this,
+  ]
 }
 
 
@@ -205,7 +227,7 @@ locals {
 # ---------------------------------------------------
 
 resource "spacelift_aws_integration" "this" {
-  count = var.create_iam_role ? 1 : 0
+  count = var.enable_iam_integration ? 1 : 0
 
   name = local.iam_role_name
 
@@ -216,7 +238,7 @@ resource "spacelift_aws_integration" "this" {
 }
 
 data "spacelift_aws_integration_attachment_external_id" "this" {
-  count = var.create_iam_role ? 1 : 0
+  count = var.enable_iam_integration ? 1 : 0
 
   integration_id = spacelift_aws_integration.this[0].id
   stack_id       = spacelift_stack.this.id
@@ -225,7 +247,7 @@ data "spacelift_aws_integration_attachment_external_id" "this" {
 }
 
 resource "aws_iam_role" "this" {
-  count = var.create_iam_role ? 1 : 0
+  count = var.enable_iam_integration ? 1 : 0
 
   name = local.iam_role_name
   path = local.iam_role_path
@@ -243,7 +265,7 @@ resource "aws_iam_role" "this" {
 # ---------------------------------------------------
 
 resource "aws_iam_role_policy_attachment" "this" {
-  count = var.create_iam_role ? length(var.iam_role_policy_arns) : 0
+  count = var.enable_iam_integration ? length(var.iam_role_policy_arns) : 0
 
   role       = aws_iam_role.this[0].id
   policy_arn = var.iam_role_policy_arns[count.index]
@@ -254,7 +276,7 @@ resource "aws_iam_role_policy_attachment" "this" {
 # ---------------------------------------------------
 
 resource "spacelift_aws_integration_attachment" "this" {
-  count = var.create_iam_role ? 1 : 0
+  count = var.enable_iam_integration ? 1 : 0
 
   integration_id = spacelift_aws_integration.this[0].id
   stack_id       = spacelift_stack.this.id

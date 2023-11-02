@@ -25,13 +25,13 @@ func TestExamplesForTerraformModules(t *testing.T) {
 		{
 			{
 				name:            "ecs-cluster",
-				workingDir:      "../examples/ecs-cluster",
+				workingDir:      "../examples/deploy-ecs-cluster",
 				genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
 				validateFunc:    modules.ValidateEcsCluster,
 			},
 			{
 				name:            "secrets-manager",
-				workingDir:      "../examples/secrets-manager",
+				workingDir:      "../examples/deploy-secrets-manager",
 				genTestDataFunc: modules.DeployUsingTerraform,
 				validateFunc:    modules.ValidateSecretsContainSecrets,
 			},
@@ -53,12 +53,6 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			{
 				name:            "vpc",
 				workingDir:      "../examples/deploy-vpc",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateVpc,
-			},
-			{
-				name:            "vpc-partial-azs",
-				workingDir:      "../examples/deploy-vpc-partial-azs",
 				genTestDataFunc: modules.DeployVpcUsingTerraform,
 				validateFunc:    modules.ValidateVpc,
 			},

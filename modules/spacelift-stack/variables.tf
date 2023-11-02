@@ -11,7 +11,6 @@
 # These values are required by the module and have no default values
 # --------------------------------------------------------------------
 
-
 variable "branch" {
   description = "GitHub branch to apply changes to"
   type        = string
@@ -27,6 +26,7 @@ variable "repository" {
   type        = string
 }
 
+
 # --------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 #
@@ -37,12 +37,6 @@ variable "context_ids" {
   description = "List of Spacelift context IDs to attach to the stack"
   type        = list(string)
   default     = []
-}
-
-variable "create_iam_role" {
-  description = "Whether to create an IAM role for the stack"
-  type        = bool
-  default     = true
 }
 
 variable "description" {
@@ -63,6 +57,12 @@ variable "enable_autodeploy" {
   default     = false
 }
 
+variable "enable_iam_integration" {
+  description = "Whether to enable an IAM role to be created for the stack"
+  type        = bool
+  default     = true
+}
+
 variable "enable_protect_from_deletion" {
   description = "Whether to protect the stack from deletion. This value should only be changed if you understand the implications of doing so."
   type        = bool
@@ -76,7 +76,7 @@ variable "enable_state_management" {
 }
 
 variable "environment_variables" {
-  description = "Stack scoped environment variables to set for the stack"
+  description = "Stack scoped environment variables to set for the stack. These variables will be available to all Terraform runs for the stack. All variables will be prefixed automatically with TF_VAR_."
   type        = map(string)
   default     = {}
 }
@@ -93,20 +93,20 @@ variable "labels" {
   default     = []
 }
 
+variable "path" {
+  description = "Path to the root of the project"
+  type        = string
+  default     = null
+}
+
 variable "policy_ids" {
   description = "List of Spacelift policy IDs to attach to the stack"
   type        = list(string)
   default     = []
 }
 
-variable "project_root" {
-  description = "Path to the root of the project"
-  type        = string
-  default     = null
-}
-
 variable "stack_dependencies" {
-  description = "A map of stack ids that this stack depends on. The key is the stack id and the value is a map of environment variables that are defined by outputs of the stack. i.e { \"stack-id\" = { \"vpc_id\" = \"vpc_id\" } }"
+  description = "A map of stack ids that this stack depends on. The key is the stack id and the value is a map of environment variables that are defined by outputs of the stack. i.e { \"stack-id\" = { \"vpc_id\" = \"vpc_id\" } }. The input name is automatically prefixed with TF_VAR_."
   type        = map(any)
   default     = {}
 }
