@@ -49,6 +49,7 @@ locals {
 resource "spacelift_stack" "this" {
   name        = var.stack_name
   description = var.description
+  space_id    = "root"
   labels      = var.labels
 
   repository   = var.repository
