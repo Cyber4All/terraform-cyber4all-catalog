@@ -46,7 +46,7 @@ variable "description" {
 }
 
 variable "enable_admin_stack" {
-  description = "Whether to enable administrative access to the stack to manage other Spacelift stacks and resources"
+  description = "Whether to enable administrative access to the stack to manage other Spacelift stacks and resources. Automically disables IAM integration."
   type        = bool
   default     = false
 }
@@ -58,7 +58,7 @@ variable "enable_autodeploy" {
 }
 
 variable "enable_iam_integration" {
-  description = "Whether to enable an IAM role to be created for the stack"
+  description = "Whether to enable an IAM role to be created for the stack. If admin stack is enabled, then IAM integration is automatically disabled."
   type        = bool
   default     = true
 }

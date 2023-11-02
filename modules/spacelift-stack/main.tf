@@ -214,11 +214,13 @@ data "aws_caller_identity" "current" {}
 locals {
   account_id = data.aws_caller_identity.current.account_id
 
-  iam_role_name = "${var.stack_name}-stack-role"
+  iam_role_name = "${var.stack_name}-role"
 
   iam_role_path = "/spacelift/"
 
   iam_role_arn = "arn:aws:iam::${local.account_id}:role${local.iam_role_path}${local.iam_role_name}"
+
+  create_iam_role = var.enable_iam_integration && !var.enable_admin_stack
 }
 
 
@@ -227,7 +229,7 @@ locals {
 # ---------------------------------------------------
 
 resource "spacelift_aws_integration" "this" {
-  count = var.enable_iam_integration ? 1 : 0
+  count = local.create_iam_role ? 1 : 0
 
   name = local.iam_role_name
 
@@ -238,7 +240,7 @@ resource "spacelift_aws_integration" "this" {
 }
 
 data "spacelift_aws_integration_attachment_external_id" "this" {
-  count = var.enable_iam_integration ? 1 : 0
+  count = local.create_iam_role ? 1 : 0
 
   integration_id = spacelift_aws_integration.this[0].id
   stack_id       = spacelift_stack.this.id
@@ -247,7 +249,7 @@ data "spacelift_aws_integration_attachment_external_id" "this" {
 }
 
 resource "aws_iam_role" "this" {
-  count = var.enable_iam_integration ? 1 : 0
+  count = local.create_iam_role ? 1 : 0
 
   name = local.iam_role_name
   path = local.iam_role_path
@@ -265,7 +267,7 @@ resource "aws_iam_role" "this" {
 # ---------------------------------------------------
 
 resource "aws_iam_role_policy_attachment" "this" {
-  count = var.enable_iam_integration ? length(var.iam_role_policy_arns) : 0
+  count = local.create_iam_role ? length(var.iam_role_policy_arns) : 0
 
   role       = aws_iam_role.this[0].id
   policy_arn = var.iam_role_policy_arns[count.index]
@@ -276,7 +278,7 @@ resource "aws_iam_role_policy_attachment" "this" {
 # ---------------------------------------------------
 
 resource "spacelift_aws_integration_attachment" "this" {
-  count = var.enable_iam_integration ? 1 : 0
+  count = local.create_iam_role ? 1 : 0
 
   integration_id = spacelift_aws_integration.this[0].id
   stack_id       = spacelift_stack.this.id

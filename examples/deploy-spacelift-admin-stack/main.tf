@@ -48,25 +48,21 @@ provider "spacelift" {
 # DEPLOY THE STACK MODULE
 # --------------------------------------------------
 
-locals {
-  stack_name = "test-admin-stack-${var.random_id}"
-}
-
 module "stack" {
   source = "../../modules/cicd-pipelines/spacelift-stack"
 
-  stack_name = local.stack_name
+  stack_name = "test-admin-stack-${var.random_id}"
 
   repository   = "terraform-cyber4all-catalog"
   branch       = "feature/sc-26579/develop-spacelift-stack-terraform-module" # TODO update this to main before merge
   project_root = "examples/deploy-spacelift-stack"
-
-  create_iam_role = false
 
   enable_admin_stack      = true
   enable_state_management = true
 
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
-  protect_from_deletion = false
+  enable_protect_from_deletion = false
+
+  labels = ["folder: Environment/Testing", "project: terraform-cyber4all-catalog"]
 }
