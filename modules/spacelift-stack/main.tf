@@ -125,9 +125,6 @@ resource "spacelift_stack_destructor" "this" {
     # destroyed first before the following are destroyed.
     aws_iam_role.this,
     aws_iam_role_policy_attachment.this,
-    data.spacelift_aws_integration_attachment_external_id.this,
-    spacelift_aws_integration.this,
-    spacelift_aws_integration_attachment.this,
     spacelift_context_attachment.this,
     spacelift_environment_variable.this,
     spacelift_policy_attachment.this,
@@ -250,24 +247,23 @@ locals {
 # CREATE THE AWS IAM ROLE FOR SPACELIFT INTEGRATION
 # ---------------------------------------------------
 
-resource "spacelift_aws_integration" "this" {
-  count = var.enable_iam_integration ? 1 : 0
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
 
-  name = local.iam_role_name
+    actions = ["sts:AssumeRole"]
 
-  # We need to set this manually rather than referencing the role to avoid a circular dependency
-  # between the role and the integration.
-  role_arn                       = local.iam_role_arn
-  generate_credentials_in_worker = false
-}
+    principals {
+      identifiers = [local.account_id]
+      type        = "AWS"
+    }
 
-data "spacelift_aws_integration_attachment_external_id" "this" {
-  count = var.enable_iam_integration ? 1 : 0
-
-  integration_id = spacelift_aws_integration.this[0].id
-  stack_id       = spacelift_stack.this.id
-  read           = true
-  write          = true
+    condition {
+      test     = "StringLike"
+      variable = "sts:ExternalId"
+      values   = ["Cyber4All@*@${var.stack_name}@*"]
+    }
+  }
 }
 
 resource "aws_iam_role" "this" {
@@ -276,12 +272,7 @@ resource "aws_iam_role" "this" {
   name = local.iam_role_name
   path = local.iam_role_path
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      jsondecode(data.spacelift_aws_integration_attachment_external_id.this[0].assume_role_policy_statement),
-    ]
-  })
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 # ---------------------------------------------------
@@ -299,16 +290,13 @@ resource "aws_iam_role_policy_attachment" "this" {
 # ATTACH THE AWS IAM ROLE TO THE SPACELIFT STACK
 # ---------------------------------------------------
 
-resource "spacelift_aws_integration_attachment" "this" {
+resource "spacelift_aws_role" "this" {
   count = var.enable_iam_integration ? 1 : 0
 
-  integration_id = spacelift_aws_integration.this[0].id
-  stack_id       = spacelift_stack.this.id
-  read           = true
-  write          = true
+  stack_id = spacelift_stack.this.id
+  role_arn = aws_iam_role.this[0].arn
 
-  # The role needs to exist before we attach since we test role assumption during attachment.
   depends_on = [
-    aws_iam_role.this,
+    spacelift_stack.this
   ]
 }
