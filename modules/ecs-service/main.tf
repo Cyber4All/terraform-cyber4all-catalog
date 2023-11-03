@@ -10,7 +10,12 @@
 #
 # The module includes the following:
 #
-# - TODO: ADD THIS IN DEVELOPMENT
+# - ECS Task Definition
+# - ECS Service
+# - ECS Service ALB Target Group
+# - ECS Service Auto Scaling
+# - ECS Scheduled Task
+# - IAM Roles and Policies
 #
 # -------------------------------------------------------------------------------------
 
@@ -62,7 +67,7 @@ data "aws_ecs_cluster" "cluster" {
     # If the ECS service is using Service Connect, a default namespace must be
     # configured for the ECS cluster.
     postcondition {
-      condition     = var.enable_service_connect && self.service_connect_defaults[0].namespace == null
+      condition     = !(var.enable_service_connect && self.service_connect_defaults[0].namespace == null)
       error_message = "An ECS service using Service Connect must have a default namespace configured for the ECS cluster."
     }
   }
