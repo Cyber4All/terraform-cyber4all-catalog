@@ -63,5 +63,5 @@ module "stack" {
   enable_protect_from_deletion = false
   enable_state_management      = true
 
-  labels = ["folder: Environment/Testing", "project: terraform-cyber4all-catalog"]
+  labels = ["folder: Environment/Testing", "folder: Project/terraform-cyber4all-catalog"]
 }

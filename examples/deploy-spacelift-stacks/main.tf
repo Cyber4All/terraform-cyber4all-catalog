@@ -59,7 +59,7 @@ locals {
   repository = "terraform-cyber4all-catalog"
   branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module"
 
-  labels = ["folder: Environment/Testing", "project: terraform-cyber4all-catalog", "region: ${var.region}"]
+  labels = ["folder: Environment/Testing", "folder: Project/terraform-cyber4all-catalog", "folder: Region/${var.region}"]
 }
 
 module "vpc-stack" {
