@@ -58,7 +58,7 @@ variable "enable_autodeploy" {
 }
 
 variable "enable_iam_integration" {
-  description = "Whether to enable an IAM role to be created for the stack. If admin stack is enabled, then IAM integration is automatically disabled."
+  description = "Whether to enable an IAM role to be created for the stack."
   type        = bool
   default     = true
 }

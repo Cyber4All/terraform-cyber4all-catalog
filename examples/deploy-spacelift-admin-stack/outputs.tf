@@ -23,5 +23,5 @@ output "stack_iam_role_arn" {
 }
 
 output "stack_iam_role_policy_arns" {
-  value = module.stack_iam_role_policy_arns
+  value = module.stack.stack_iam_role_policy_arns
 }

@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# DEPLOY AN ADMIN SPACELIFT STACK WITHOUT AN AWS INTEGRATION
+# DEPLOY AN ADMIN SPACELIFT STACK
 #
 # This example shows how to deploy an admin spacelift stack without an AWS
 # integration. This is useful if you want to use the stack to deploy other space-
@@ -17,7 +17,7 @@ terraform {
     }
     spacelift = {
       source  = "spacelift-io/spacelift"
-      version = "~> 1.1.9"
+      version = "~> 1.6.0"
     }
   }
 }
@@ -49,20 +49,19 @@ provider "spacelift" {
 # --------------------------------------------------
 
 module "stack" {
-  source = "../../modules/cicd-pipelines/spacelift-stack"
+  source = "../../modules/spacelift-stack"
 
   stack_name = "test-admin-stack-${var.random_id}"
 
-  repository   = "terraform-cyber4all-catalog"
-  branch       = "feature/sc-26579/develop-spacelift-stack-terraform-module" # TODO update this to main before merge
-  project_root = "examples/deploy-spacelift-stack"
+  repository = "terraform-cyber4all-catalog"
+  branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module" # TODO update this to main before merge
+  path       = "examples/deploy-spacelift-stacks"
 
-  enable_admin_stack      = true
-  enable_state_management = true
-
+  enable_admin_stack = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false
+  enable_state_management      = true
 
   labels = ["folder: Environment/Testing", "project: terraform-cyber4all-catalog"]
 }
