@@ -14,14 +14,14 @@ provider "aws" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_name               = "ecs-cluster-test-${var.random_id}"
+  vpc_name               = "ecs-cluster-test${var.random_id}"
   num_availability_zones = 3
 }
 
 module "cluster" {
   source = "../../modules/ecs-cluster"
 
-  cluster_name = "cluster-test-${var.random_id}"
+  cluster_name = "cluster-test${var.random_id}"
 
   cluster_instance_ami = var.cluster_instance_ami
 

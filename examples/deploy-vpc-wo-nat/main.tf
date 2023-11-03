@@ -22,7 +22,7 @@ provider "aws" {
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_name = "vpc-wo-nat-${var.random_id}"
+  vpc_name = "vpc-wo-nat${var.random_id}"
 
   create_nat_gateway = false
 }

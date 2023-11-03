@@ -51,7 +51,7 @@ provider "spacelift" {
 module "stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = "test-admin-stack-${var.random_id}"
+  stack_name = "test-admin-stack${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
   branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module" # TODO update this to main before merge
