@@ -57,7 +57,6 @@ resource "spacelift_stack" "this" {
 
   administrative        = var.enable_admin_stack
   autodeploy            = var.enable_autodeploy
-  autoretry             = var.enable_autoretry
   manage_state          = var.enable_state_management
   protect_from_deletion = var.enable_protect_from_deletion
 

@@ -57,12 +57,6 @@ variable "enable_autodeploy" {
   default     = false
 }
 
-variable "enable_autoretry" {
-  description = "Whether to enable automatic retry of failed applies to the stack."
-  type        = bool
-  default     = false
-}
-
 variable "enable_iam_integration" {
   description = "Whether to enable an IAM role to be created for the stack."
   type        = bool
