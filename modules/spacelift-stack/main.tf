@@ -125,7 +125,8 @@ resource "spacelift_stack_destructor" "this" {
     # destroyed first before the following are destroyed.
     aws_iam_role.this,
     aws_iam_role_policy_attachment.this,
-    spacelift_aws_role.this,
+    spacelift_aws_integration.this,
+    spacelift_aws_integration_attachment.this,
     spacelift_context_attachment.this,
     spacelift_environment_variable.this,
     spacelift_policy_attachment.this,
@@ -250,6 +251,15 @@ locals {
 # CREATE THE AWS IAM ROLE FOR SPACELIFT INTEGRATION
 # ---------------------------------------------------
 
+resource "spacelift_aws_integration" "this" {
+  count = var.enable_iam_integration ? 1 : 0
+
+  name     = local.iam_role_name
+  role_arn = local.iam_role_arn
+
+  labels = local.labels
+}
+
 data "aws_iam_policy_document" "assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -292,13 +302,9 @@ resource "aws_iam_role_policy_attachment" "this" {
 # ATTACH THE AWS IAM ROLE TO THE SPACELIFT STACK
 # ---------------------------------------------------
 
-resource "spacelift_aws_role" "this" {
+resource "spacelift_aws_integration_attachment" "this" {
   count = var.enable_iam_integration ? 1 : 0
 
-  stack_id = spacelift_stack.this.id
-  role_arn = aws_iam_role.this[0].arn
-
-  depends_on = [
-    spacelift_stack.this
-  ]
+  integration_id = spacelift_aws_integration.this[0].id
+  stack_id       = spacelift_stack.this.id
 }
