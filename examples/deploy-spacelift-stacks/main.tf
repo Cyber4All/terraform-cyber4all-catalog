@@ -115,4 +115,8 @@ module "ecs-cluster-stack" {
   }
 
   labels = local.labels
+
+  depends_on = [
+    module.vpc-stack,
+  ]
 }
