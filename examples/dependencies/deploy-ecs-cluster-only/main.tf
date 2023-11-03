@@ -20,7 +20,7 @@ provider "aws" {
 }
 
 module "cluster" {
-  source = "modules/ecs-cluster"
+  source = "../../../modules/ecs-cluster"
 
   cluster_name = "cluster${var.random_id}"
 
