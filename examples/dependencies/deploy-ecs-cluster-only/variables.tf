@@ -34,3 +34,15 @@ variable "region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "vpc_id" {
+  description = "The ID of the VPC to deploy the ECS cluster into."
+  type        = string
+  default     = ""
+}
+
+variable "vpc_subnet_ids" {
+  description = "The IDs of the subnets to deploy the ECS cluster into."
+  type        = list(string)
+  default     = []
+}
