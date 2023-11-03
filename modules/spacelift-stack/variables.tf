@@ -17,7 +17,7 @@ variable "branch" {
 }
 
 variable "stack_name" {
-  description = "Name of the stack - should be unique in one account"
+  description = "Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended."
   type        = string
 }
 
@@ -88,7 +88,7 @@ variable "iam_role_policy_arns" {
 }
 
 variable "labels" {
-  description = "Labels to assign to the stack"
+  description = "Labels to assign to the stack."
   type        = list(string)
   default     = []
 }

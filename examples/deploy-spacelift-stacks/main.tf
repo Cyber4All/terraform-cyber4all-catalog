@@ -53,13 +53,13 @@ provider "spacelift" {
 # --------------------------------------------------
 
 locals {
-  vpc_stack_name         = "test-vpc-stack-${var.random_id}"
-  ecs_cluster_stack_name = "test-ecs-cluster-stack-${var.random_id}"
+  vpc_stack_name         = "test-vpc-stack-${var.region}-${var.random_id}"
+  ecs_cluster_stack_name = "test-ecs-cluster-stack-${var.region}-${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
   branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module"
 
-  labels = ["folder: Environment/Testing", "project: terraform-cyber4all-catalog"]
+  labels = ["folder: Environment/Testing", "project: terraform-cyber4all-catalog", "region: ${var.region}"]
 }
 
 module "vpc-stack" {
