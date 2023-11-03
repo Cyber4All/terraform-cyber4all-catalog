@@ -170,6 +170,16 @@ locals {
   number_of_references   = length(local.dependency_mappings)
 }
 
+data "spacelift_stack" "dependency" {
+  count = local.number_of_dependencies
+
+  stack_id = local.depends_on_stack_ids[count.index]
+
+  depends_on = [
+    spacelift_stack_destructor.this,
+  ]
+}
+
 resource "spacelift_stack_dependency" "this" {
   count = local.number_of_dependencies
 
@@ -178,6 +188,7 @@ resource "spacelift_stack_dependency" "this" {
 
   depends_on = [
     spacelift_stack_destructor.this,
+    data.spacelift_stack.dependency
   ]
 }
 
@@ -191,6 +202,7 @@ resource "spacelift_stack_dependency_reference" "this" {
 
   depends_on = [
     spacelift_stack_destructor.this,
+    spacelift_stack_dependency.this
   ]
 }
 
