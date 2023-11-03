@@ -58,6 +58,7 @@ module "stack" {
   path       = "examples/deploy-spacelift-stacks"
 
   enable_admin_stack = true
+  enable_autoretry   = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false

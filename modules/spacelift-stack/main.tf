@@ -32,10 +32,10 @@ terraform {
 # -------------------------------------------
 
 locals {
-  admin_label                 = var.enable_admin_stack ? "admin" : null
-  autodeploy_label            = var.enable_autodeploy ? "autodeploy" : null
-  state_management_label      = var.enable_state_management ? "state-management" : null
-  protect_from_deletion_label = var.enable_protect_from_deletion ? "protect-from-deletion" : null
+  admin_label                 = var.enable_admin_stack ? "Admin" : null
+  autodeploy_label            = var.enable_autodeploy ? "Autodeploy" : null
+  state_management_label      = var.enable_state_management ? "State Managed" : null
+  protect_from_deletion_label = var.enable_protect_from_deletion ? "Protected from Deletion" : null
 
   # Adds additional labels to the stack for filtering purposes
   labels = concat(var.labels, compact([
@@ -49,7 +49,7 @@ locals {
 resource "spacelift_stack" "this" {
   name        = var.stack_name
   description = var.description
-  labels      = var.labels
+  labels      = local.labels
 
   repository   = var.repository
   branch       = var.branch
@@ -57,6 +57,7 @@ resource "spacelift_stack" "this" {
 
   administrative        = var.enable_admin_stack
   autodeploy            = var.enable_autodeploy
+  autoretry             = var.enable_autoretry
   manage_state          = var.enable_state_management
   protect_from_deletion = var.enable_protect_from_deletion
 
@@ -208,6 +209,12 @@ resource "spacelift_run" "this" {
     branch     = spacelift_stack.this.branch
     path       = spacelift_stack.this.project_root
   }
+
+  depends_on = [
+    # Enforce that the stack and its reosurces are created before
+    # running the stack
+    spacelift_stack_destructor.this,
+  ]
 }
 
 
