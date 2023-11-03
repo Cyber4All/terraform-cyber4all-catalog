@@ -237,8 +237,6 @@ data "aws_caller_identity" "current" {}
 locals {
   account_id = data.aws_caller_identity.current.account_id
 
-  spacelift_aws_account_id = "324880187172"
-
   iam_role_name = "${var.stack_name}-role"
 
   iam_role_path = "/spacelift/"
@@ -260,21 +258,13 @@ resource "spacelift_aws_integration" "this" {
   labels = local.labels
 }
 
-data "aws_iam_policy_document" "assume_role" {
-  statement {
-    actions = ["sts:AssumeRole"]
+data "spacelift_aws_integration_attachment_external_id" "this" {
+  count = var.enable_iam_integration ? 1 : 0
 
-    principals {
-      identifiers = [local.spacelift_aws_account_id]
-      type        = "AWS"
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "sts:ExternalId"
-      values   = ["Cyber4All@${spacelift_stack.this.slug}"]
-    }
-  }
+  integration_id = spacelift_aws_integration.this[0].id
+  stack_id       = spacelift_stack.this.id
+  read           = true
+  write          = true
 }
 
 resource "aws_iam_role" "this" {
@@ -283,7 +273,12 @@ resource "aws_iam_role" "this" {
   name = local.iam_role_name
   path = local.iam_role_path
 
-  assume_role_policy    = data.aws_iam_policy_document.assume_role.json
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      jsondecode(data.spacelift_aws_integration_attachment_external_id.this.assume_role_policy_statement),
+    ]
+  })
   force_detach_policies = true
 }
 
