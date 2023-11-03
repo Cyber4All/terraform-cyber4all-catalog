@@ -125,6 +125,7 @@ resource "spacelift_stack_destructor" "this" {
     # destroyed first before the following are destroyed.
     aws_iam_role.this,
     aws_iam_role_policy_attachment.this,
+    spacelift_aws_role.this,
     spacelift_context_attachment.this,
     spacelift_environment_variable.this,
     spacelift_policy_attachment.this,
@@ -235,6 +236,8 @@ data "aws_caller_identity" "current" {}
 locals {
   account_id = data.aws_caller_identity.current.account_id
 
+  spacelift_aws_account_id = "324880187172"
+
   iam_role_name = "${var.stack_name}-role"
 
   iam_role_path = "/spacelift/"
@@ -249,19 +252,17 @@ locals {
 
 data "aws_iam_policy_document" "assume_role" {
   statement {
-    effect = "Allow"
-
     actions = ["sts:AssumeRole"]
 
     principals {
-      identifiers = [local.account_id]
+      identifiers = [local.spacelift_aws_account_id]
       type        = "AWS"
     }
 
     condition {
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = "sts:ExternalId"
-      values   = ["Cyber4All@*@${var.stack_name}@*"]
+      values   = ["Cyber4All@${spacelift_stack.this.slug}"]
     }
   }
 }
@@ -272,7 +273,8 @@ resource "aws_iam_role" "this" {
   name = local.iam_role_name
   path = local.iam_role_path
 
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  assume_role_policy    = data.aws_iam_policy_document.assume_role.json
+  force_detach_policies = true
 }
 
 # ---------------------------------------------------
