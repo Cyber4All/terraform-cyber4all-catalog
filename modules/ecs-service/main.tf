@@ -255,6 +255,7 @@ resource "aws_ecs_task_definition" "task" {
 # CREATE THE CLOUDWATCH LOG GROUP FOR THE TASK
 # -------------------------------------------
 
+
 # tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "task" {
   count = var.enable_container_logs ? 1 : 0
