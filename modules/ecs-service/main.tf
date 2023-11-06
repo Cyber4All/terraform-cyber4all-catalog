@@ -228,7 +228,7 @@ resource "aws_ecs_task_definition" "task" {
       # the same key/value structure. They are mapped to the appropriate
       # structure for the container definition
       environment = [for k, v in var.ecs_container_environment_variables : { name = k, value = v }]
-      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = "{v}:{k}::" }]
+      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = "${v}:${k}::" }]
 
       logConfiguration = var.enable_container_logs ? local.log_configuration : null
     }
