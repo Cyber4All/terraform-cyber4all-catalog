@@ -37,7 +37,7 @@
 
 This module contains Terraform code to deploy an ECS service on [AWS](https://aws.amazon.com/) using [Elastic Container Service (ECS)](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html).
 
-This service deploys an ECS service or scheduled task on an existing ECS cluster. An ECS service is a long-running task typically deployed with auto-scaling enabled, often used for applications like REST APIs. A scheduled task is a batch task expected to exit gracefully after execution, ideal for tasks such as daily reporting scripts. This module can deploy either task type.
+This service deploys an [ECS service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) or [scheduled task](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduled_tasks.html) on an existing [ECS cluster]([../ecs-cluster/README.md](https://github.com/Cyber4All/terraform-cyber4all-catalog/blob/main/modules/ecs-cluster/README.md)). An ECS service is a long-running task typically deployed with [auto-scaling](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html) enabled, often used for applications like REST APIs. A scheduled task is a batch task expected to exit gracefully after execution, ideal for tasks such as daily reporting scripts. This module can deploy either task type.
 
 <!-- Image or Arch diagram -->
 
@@ -47,13 +47,13 @@ This service deploys an ECS service or scheduled task on an existing ECS cluster
 
 ### ECS Task Definition
 
-The ECS task definition is a fundamental component of ECS, containing configurations for resource requirements, container definitions, and other deployment settings. It serves as the blueprint for both ECS services and scheduled tasks.
+The ECS [task definition](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) is a fundamental component of ECS, containing configurations for resource requirements, container definitions, and other deployment settings. It serves as the blueprint for both ECS services and scheduled tasks.
 
 An ECS task definition is organized into families which consist of multiple revisions of a given task definition. Using the blueprint analogy, these are like different versions of the blueprint.
 
 #### Container Definitions
 
-The heart of the task definition is the container definitions. These configurations define the container deployed as part of the ECS task, including the image, environment variables, secrets, and other container settings. Many of these options are similar to docker run flags. You can find detailed information in the [ECS container definition documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definitions) for more information.
+The heart of the task definition are the [container definitions](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html). These configurations define the container deployed as part of the ECS task, including the image, environment variables, secrets, and other container settings. Many of these options are similar to docker run flags. You can find detailed information in the [ECS container definition documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definitions) for more information.
 
 ##### Essential Container Definition
 
@@ -61,15 +61,15 @@ The essential container definition is the primary container deployed as part of 
 
 #### Task Execution Role
 
-The ECS task execution role is an IAM role granting permissions to the ECS task during provisioning. It is assigned the `AmazonECSTaskExecutionRolePolicy` policy by default, and additional policies, such as access to Secrets Manager secrets, can be attached using the `ecs_container_secrets` and `docker_credential_secretsmanager_arn` variables.
+The [ECS task execution](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html) role is an IAM role granting permissions to the ECS task during provisioning. This module assigns the `AmazonECSTaskExecutionRolePolicy` policy by default, and additional policies, such as access to Secrets Manager secrets, can be attached using the `ecs_container_secrets` and `docker_credential_secretsmanager_arn` variables.
 
 #### Task Role
 
-The ECS task role is an IAM role granting permissions to the ECS task at runtime. By default, no policies are attached, but you can add policies using the `ecs_task_role_policy_arns` variable. This may be necessary if the ECS task needs to access other AWS services like S3 or SNS.
+The [ECS task role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html) is an IAM role granting permissions to the ECS task at runtime. By default, no policies are attached, but you can add policies using the `ecs_task_role_policy_arns` variable. This may be necessary if the ECS task needs to access other AWS services like S3 or SNS.
 
 #### Container Logging
 
-Container logging can be enabled to send container logs to CloudWatch Logs, useful for debugging and monitoring. Use the `enable_container_logs` variable to enable or disable this feature.
+Container logging can be enabled to send container (application) logs to [CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html), useful for debugging and monitoring. Use the `enable_container_logs` variable to enable or disable this feature. Enabling this feature will provision the necessary resources to send logs to CloudWatch Logs automatically.
 
 #### Container Environment Variables
 
@@ -90,7 +90,7 @@ module "example" {
 
 ##### Secrets Manager
 
-Sensitive environment variables can be injected using the ecs_container_secrets variable, which maps variable names to AWS Secrets Manager secret ARNs. **The assumption is made that the name of the secret is the same as the name of the environment variable.** The module automatically handles the injection of secret values into the container at runtime. An example of setting secrets is shown below.
+Sensitive environment variables can be injected using the `ecs_container_secrets` variable, which maps variable names to AWS [Secrets Manager](https://github.com/Cyber4All/terraform-cyber4all-catalog/blob/main/modules/secrets-manager/README.md) secret ARNs. **The assumption made by this module is that the name of the secret is the same as the name of the environment variable.** Unintended behavior will occur is this assumption is broken. The module automatically handles the injection of secret values into the container at runtime. An example of setting secrets is shown below.
 
 ```hcl
 module "example" {
@@ -109,7 +109,7 @@ module "example" {
 
 #### Bootstrapping Images in Deployments
 
-When deploying an ECS service for the first time, the ECS service module bootstraps the container image specified by the ecs_container_image variable. Subsequent updates to the Terraform configuration should unset or comment out the ecs_container_image variable to allow external application deployments to manage image updates.
+When deploying an ECS service for the first time, the ECS service module bootstraps the container image specified by the `ecs_container_image` variable. Subsequent updates to the Terraform configuration should unset or comment out the `ecs_container_image` variable to allow external application deployments to manage image updates.
 
 An example of the bootstrapping workflow of an image is shown below:
 
@@ -144,7 +144,7 @@ module "example" {
 
 #### Service Autoscaling
 
-ECS service autoscaling is a feature that allows you to automatically adjust the number of tasks running in your ECS service based on the workload. It's important to note that autoscaling is only supported for ECS service types, not for scheduled tasks.
+[ECS service autoscaling](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html) is a feature that allows you to automatically adjust the number of tasks running in your ECS service based on the workload. It's important to note that autoscaling is only supported for ECS service types, not for scheduled tasks.
 
 - [ECS Service Autoscaling](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html)
 - [ECS CloudWatch Metrics Service Utilization](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-metrics.html#service_utilization)
@@ -152,13 +152,13 @@ ECS service autoscaling is a feature that allows you to automatically adjust the
 
 ##### Target Tracking Policy
 
-This module uses a **target tracking policy** to manage autoscaling. This policy is based on the average memory utilization of your ECS service. By default, the threshold for scaling is set at 50% utilization, but you can customize it by adjusting the `auto_scaling_memory_util_threshold` variable.
+This module uses a [target tracking policy](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-autoscaling-targettracking.html) to manage autoscaling. This policy is based on the average memory utilization of your ECS service. By default, the threshold for scaling is set at 50% utilization, but you can customize it by adjusting the `auto_scaling_memory_util_threshold` variable.
 
 When your service consistently exceeds the threshold for a specific period of time, it will **scale out**, adding more tasks to handle the increased workload. Conversely, when your service remains below the threshold for a specific period, it will **scale in**, removing unneeded tasks to save resources.
 
 ##### Cluster Scaling
 
-If your ECS cluster lacks the necessary resources to scale out, your service will wait until the cluster has enough resources available. Cluster scaling is managed by the ECS cluster's auto scaling group. It's essential to understand that ECS service and ECS cluster autoscaling configurations are separate.
+If your ECS cluster lacks the necessary resources to scale out, your service will wait until the cluster has enough resources available. [Cluster scaling](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-auto-scaling.html) is managed by the ECS cluster's auto scaling group. It's essential to understand that ECS service and ECS cluster autoscaling configurations are separate.
 
 ##### Minimum and Maximum Task Limits
 
@@ -172,16 +172,16 @@ Keep in mind that ECS service autoscaling is a powerful feature that automatical
 
 #### ECS Service Connect
 
-ECS service connect enables easy communication between tasks. Set the `enable_service_connect` variable to `true` to enable this feature, available for ECS service types.
+[ECS service connect](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect.html) enables easy communication between tasks. Set the `enable_service_connect` variable to `true` to enable this feature, available for ECS service types.
 
-Service connect replaces the ECS service discovery feature and creates a private DNS namespace for ECS services to share. It allows services to communicate using the `service-name:container-port` format as the hostname.
+Service connect replaces the [ECS service discovery](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html) feature and creates a private DNS namespace for ECS services to share. It allows services to communicate using the `service-name:container-port` format as the hostname.
 
 - [ECS service connect](https://aws.amazon.com/blogs/aws/new-amazon-ecs-service-connect-enabling-easy-communication-between-microservices/)
 - [Service Connect Documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-connect-concepts.html)
 
 #### ECS Service Rolling Deployment
 
-ECS service rolling deployment enables zero-downtime updates of your service. When an update is made, tasks are provisioned, and once they are registered as HEALTHY, old tasks are removed. Deployment failures can trigger rollback if `enable_deployment_rollback` is set to `true`.
+[ECS service rolling deployment](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-ecs.html) enables zero-downtime updates of your service. When an update is made, tasks are provisioned, and once they are registered as HEALTHY, old tasks are removed. Deployment failures can trigger rollback if `enable_deployment_rollback` is set to `true`.
 
 Deployment failures are marked when tasks fail to reach a steady state, defined by the minimum threshold of 10 tasks. This ensures that deployments proceed smoothly.
 
