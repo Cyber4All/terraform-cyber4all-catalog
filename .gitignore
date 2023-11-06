@@ -50,3 +50,5 @@ graph.png
 
 # Ignore credential files
 credentials.json
+
+.vscode

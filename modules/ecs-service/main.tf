@@ -10,7 +10,12 @@
 #
 # The module includes the following:
 #
-# - TODO: ADD THIS IN DEVELOPMENT
+# - ECS Task Definition
+# - ECS Service
+# - ECS Service ALB Target Group
+# - ECS Service Auto Scaling
+# - ECS Scheduled Task
+# - IAM Roles and Policies
 #
 # -------------------------------------------------------------------------------------
 
@@ -62,7 +67,7 @@ data "aws_ecs_cluster" "cluster" {
     # If the ECS service is using Service Connect, a default namespace must be
     # configured for the ECS cluster.
     postcondition {
-      condition     = !var.enable_service_connect || self.service_connect_defaults[0].namespace != null
+      condition     = !(var.enable_service_connect && self.service_connect_defaults[0].namespace == null)
       error_message = "An ECS service using Service Connect must have a default namespace configured for the ECS cluster."
     }
   }
@@ -78,14 +83,14 @@ data "aws_ecs_cluster" "cluster" {
 # -------------------------------------------
 
 locals {
-  # This allows us to query both the existing as well as Terraform's state and get
+  # This allows us to query both the existing as well as Terraform's state
   # and get the max version of either source, useful for when external resources
   # update the container definition
   max_task_def_revision = max(aws_ecs_task_definition.task.revision, data.aws_ecs_task_definition.task.revision)
   task_definition       = "${aws_ecs_task_definition.task.arn_without_revision}:${local.max_task_def_revision}"
 }
 
-# This allows us to query both the existing as well as Terraform's state and get
+# This allows us to query both the existing as well as Terraform's state
 # and get the max version of either source, useful for when external resources
 # update the container definition
 data "aws_ecs_task_definition" "task" {
@@ -123,11 +128,15 @@ locals {
     (
       var.create_scheduled_task ?
       # data.aws_ecs_container_definition.scheduled[0].image :
-      var.ecs_container_image : # TODO FIX THIS
+      var.ecs_container_image : # TODO FIX THIS IN THE ECS SCHEDULED TASK MODULE IMPLEMENTATION
       data.aws_ecs_container_definition.service[0].image
     )
     : var.ecs_container_image
   )
+
+
+  # Define the conditions for count to be used with the terraform blocks
+  lookup_deployed_ecs_service_image = !var.create_scheduled_task && local.lookup_deployed_image
 }
 
 # -------------------------------------------
@@ -136,7 +145,7 @@ locals {
 
 # This will get the ECS service that is currently deployed.
 data "aws_ecs_service" "service" {
-  count = !var.create_scheduled_task && local.lookup_deployed_image ? 1 : 0
+  count = local.lookup_deployed_ecs_service_image ? 1 : 0
 
   cluster_arn  = data.aws_ecs_cluster.cluster.arn
   service_name = var.ecs_service_name
@@ -145,7 +154,7 @@ data "aws_ecs_service" "service" {
 # This will get the latest container definition from the task definition
 # that is currently deployed to the ECS service.
 data "aws_ecs_container_definition" "service" {
-  count = !var.create_scheduled_task && local.lookup_deployed_image ? 1 : 0
+  count = local.lookup_deployed_ecs_service_image ? 1 : 0
 
   task_definition = data.aws_ecs_service.service[0].task_definition
   container_name  = var.ecs_service_name
@@ -222,8 +231,6 @@ resource "aws_ecs_task_definition" "task" {
       secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = v }]
 
       logConfiguration = var.enable_container_logs ? local.log_configuration : null
-
-      # healthCheck = !var.create_scheduled_task ? local.healthCheck : null
     }
   ])
 
@@ -266,35 +273,42 @@ resource "aws_cloudwatch_log_group" "task" {
 # CREATE THE TASK IAM ROLE
 # -------------------------------------------
 
+data "aws_iam_policy_document" "task_assume_role" {
+  count = length(var.ecs_task_role_policy_arns) > 0 ? 1 : 0
+
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values = [
+        "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+      ]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values = [
+        data.aws_caller_identity.current.account_id
+      ]
+    }
+  }
+}
+
 resource "aws_iam_role" "task" {
   count = length(var.ecs_task_role_policy_arns) > 0 ? 1 : 0
 
   name_prefix = "${var.ecs_service_name}-task"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = {
-        Service = "ecs-tasks.amazonaws.com"
-      }
-      Action = "sts:AssumeRole"
-      Condition = {
-        test     = "ArnLike"
-        variable = "aws:SourceArn"
-        values = [
-          "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
-        ]
-      }
-      Condition = {
-        test     = "StringEquals"
-        variable = "aws:SourceAccount"
-        values = [
-          data.aws_caller_identity.current.account_id
-        ]
-      }
-    }]
-  })
+  assume_role_policy = data.aws_iam_policy_document.task_assume_role[count.index].json
 }
 
 resource "aws_iam_role_policy_attachment" "task" {
@@ -309,19 +323,23 @@ resource "aws_iam_role_policy_attachment" "task" {
 # CREATE THE TASK EXECUTION IAM ROLE
 # -------------------------------------------
 
+data "aws_iam_policy_document" "task_execution_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
+
 resource "aws_iam_role" "task_execution" {
   name_prefix = "${var.ecs_service_name}-execution"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = {
-        Service = "ecs-tasks.amazonaws.com"
-      }
-      Action = "sts:AssumeRole"
-    }]
-  })
+  assume_role_policy = data.aws_iam_policy_document.task_execution_assume_role.json
 }
 
 
@@ -342,22 +360,27 @@ locals {
       [var.docker_credential_secretsmanager_arn]
     )
   )
+
+  # define the conditions for count to be used with the terraform blocks
+  create_task_execution_secrets_manager_policy = length(var.ecs_container_secrets) > 0 || var.docker_credential_secretsmanager_arn != ""
+}
+
+data "aws_iam_policy_document" "secrets_manager" {
+  count = local.create_task_execution_secrets_manager_policy ? 1 : 0
+
+  statement {
+    actions = ["secretsmanager:GetSecretValue"]
+    effect  = "Allow"
+
+    resources = local.secrets_manager_arns
+  }
 }
 
 resource "aws_iam_policy" "secrets_manager" {
-  count = length(var.ecs_container_secrets) > 0 || var.docker_credential_secretsmanager_arn != "" ? 1 : 0
+  count = local.create_task_execution_secrets_manager_policy ? 1 : 0
 
-  name = "${var.ecs_service_name}-secretsmanager-read"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "secretsmanager:GetSecretValue"
-      ]
-      Resource = local.secrets_manager_arns
-    }]
-  })
+  name   = "${var.ecs_service_name}-secretsmanager-read"
+  policy = data.aws_iam_policy_document.secrets_manager[0].json
 }
 
 
@@ -366,7 +389,7 @@ resource "aws_iam_policy" "secrets_manager" {
 # -------------------------------------------
 
 resource "aws_iam_role_policy_attachment" "secrets_manager" {
-  count = length(var.ecs_container_secrets) > 0 || var.docker_credential_secretsmanager_arn != "" ? 1 : 0
+  count = local.create_task_execution_secrets_manager_policy ? 1 : 0
 
   role       = aws_iam_role.task_execution.name
   policy_arn = aws_iam_policy.secrets_manager[0].arn
@@ -656,19 +679,25 @@ resource "aws_cloudwatch_event_rule" "scheduled" {
 # CREATE THE ECS IAM ROLE FOR THE EVENT
 # -------------------------------------------
 
+data "aws_iam_policy_document" "scheduled_assume_role" {
+  count = var.create_scheduled_task ? 1 : 0
+
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+  }
+}
+
 resource "aws_iam_role" "scheduled" {
   count = var.create_scheduled_task ? 1 : 0
 
-  name_prefix = "${var.ecs_service_name}-scheduled"
-  assume_role_policy = jsonencode({
-    Statement = {
-      Effect = "Allow"
-      Principal = {
-        Service = "events.amazonaws.com"
-      }
-      Action = "sts:AssumeRole"
-    }
-  })
+  name_prefix        = "${var.ecs_service_name}-scheduled"
+  assume_role_policy = data.aws_iam_policy_document.scheduled_assume_role[0].json
 }
 
 
@@ -676,22 +705,33 @@ resource "aws_iam_role" "scheduled" {
 # CREATE THE ECS IAM POLICY FOR THE EVENT
 # -------------------------------------------
 
+data "aws_iam_policy_document" "scheduled" {
+  count = var.create_scheduled_task ? 1 : 0
+
+  statement {
+    actions = ["ecs:RunTask"]
+    effect  = "Allow"
+
+    resources = [
+      "${local.task_definition}:*"
+    ]
+  }
+
+  statement {
+    actions = ["iam:PassRole"]
+    effect  = "Allow"
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
 resource "aws_iam_role_policy" "scheduled" {
   count = var.create_scheduled_task ? 1 : 0
 
   role = aws_iam_role.scheduled[0].id
 
-  name = "${var.ecs_service_name}-run-task"
-  policy = jsonencode({
-    Statement = {
-      Effect   = "Allow"
-      Action   = ["ecs:RunTask"]
-      Resource = ["${aws_ecs_task_definition.task.arn_without_revision}:*"]
-    }
-    Statement = {
-      Effect   = "Allow"
-      Action   = ["iam:PassRole"]
-      Resource = ["*"]
-    }
-  })
+  name   = "${var.ecs_service_name}-run-task"
+  policy = data.aws_iam_policy_document.scheduled[0].json
 }
