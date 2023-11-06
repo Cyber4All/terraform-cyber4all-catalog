@@ -69,7 +69,7 @@ def parseArguments() -> argparse.Namespace:
 
     # The cluster name can have up to 255 characters, and can only contain alphanumeric characters,
     # hyphens, and underscores.
-    if not isAlNumHyphenUnderscore(args.cluster) or len(args.cluster) > 255:
+    if not re.match("^[a-zA-Z0-9-_]+$", args.cluster) or len(args.cluster) > 255:
         raise Exception(
             "The ECS cluster name cannot be longer than 255 characters and can only contain alphanumeric characters, hyphens, and underscores."
         )
@@ -84,7 +84,7 @@ def parseArguments() -> argparse.Namespace:
     # The service name can have up to 255 characters, and can only contain alphanumeric characters,
     # hyphens, and underscores.
     if args.service and (
-        not isAlNumHyphenUnderscore(args.service) or len(args.service) > 255
+        not re.match("^[a-zA-Z0-9-_]+$", args.service) or len(args.service) > 255
     ):
         raise Exception(
             "The ECS service name cannot be longer than 255 characters and can only contain alphanumeric characters, hyphens, and underscores."
@@ -101,19 +101,6 @@ def parseArguments() -> argparse.Namespace:
         raise Exception("The timeout must be greater than 0.")
 
     return args
-
-
-def isAlNumHyphenUnderscore(string) -> bool:
-    """Return True if string is alphanumeric, hyphen, or underscore.
-
-    Args:
-        string (_type_): the string to validate
-
-    Returns:
-        bool: True if string is alphanumeric, hyphen, or underscore. False otherwise.
-    """
-    pattern = "^[a-zA-Z0-9-_]+$"
-    return re.match(pattern, string)
 
 
 def getCurrentTaskDefinition(client: any, cluster: str, service: str) -> (dict, str):
