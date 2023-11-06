@@ -70,10 +70,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			},
 		},
 		{
-			name:            "ecs service",
-			workingDir:      "../examples/deploy-ecs-service",
-			genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
-			validateFunc:    modules.ValidateEcsService,
+			{
+				name:            "ecs service",
+				workingDir:      "../examples/deploy-ecs-service",
+				genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
+				validateFunc:    modules.ValidateEcsService,
+			},
 		},
 	}
 
