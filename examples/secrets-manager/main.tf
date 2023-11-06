@@ -17,29 +17,17 @@ module "secrets-manager" {
   secrets = [
     {
       name = "testing/example/service${var.random_id}"
-      environment = [
-        {
-          name  = "${var.secret_key}1",
-          value = "${var.secret_value}1"
-        },
-        {
-          name  = "${var.secret_key}2",
-          value = "${var.secret_value}2"
-        }
-      ]
+      environment_variables = {
+        "${var.secret_key}1" = "${var.secret_value}1",
+        "${var.secret_key}2" = "${var.secret_value}2"
+      }
     },
     {
       name = "testing/example/database${var.random_id}"
-      environment = [
-        {
-          name  = "${var.secret_key}3",
-          value = "${var.secret_value}3"
-        },
-        {
-          name  = "${var.secret_key}4",
-          value = "${var.secret_value}4"
-        }
-      ]
+      environment_variables = {
+        "${var.secret_key}3" = "${var.secret_value}3",
+        "${var.secret_key}4" = "${var.secret_value}4"
+      }
     }
   ]
 }
