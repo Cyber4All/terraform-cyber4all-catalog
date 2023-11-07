@@ -228,7 +228,7 @@ resource "aws_ecs_task_definition" "task" {
       # the same key/value structure. They are mapped to the appropriate
       # structure for the container definition
       environment = [for k, v in var.ecs_container_environment_variables : { name = k, value = v }]
-      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = v }]
+      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = "${v}:${k}::" }]
 
       logConfiguration = var.enable_container_logs ? local.log_configuration : null
     }
@@ -352,11 +352,7 @@ locals {
   # iam policy for the task execution role.
   secrets_manager_arns = compact(
     concat(
-      [
-        for k, v in var.ecs_container_secrets :
-        # Removes the key references from the SecretsManager ARNs
-        replace(v, ":${k}::", "")
-      ],
+      [for k, v in var.ecs_container_secrets : v],
       [var.docker_credential_secretsmanager_arn]
     )
   )
@@ -451,7 +447,7 @@ resource "aws_ecs_service" "service" {
   }
 
   # The upper and lower limits (as a percentage of the service's desiredCount)
-  # of the unmber of running tasks that should be maintained in the service
+  # of the number of running tasks that should be maintained in the service
   # during a deployment.
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 50
