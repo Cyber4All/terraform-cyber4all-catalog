@@ -47,6 +47,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				genTestDataFunc: modules.DeployAlb,
 				validateFunc:    modules.ValidateAlbNoHttps,
 			},
+			{
+				name:            "spacelift admin stack",
+				workingDir:      "../examples/deploy-spacelift-admin-stack",
+				genTestDataFunc: modules.DeploySpaceliftAdminStack,
+				validateFunc:    modules.ValidateSpaceliftAdminStack,
+			},
 		},
 		// VPC TESTS
 		{
