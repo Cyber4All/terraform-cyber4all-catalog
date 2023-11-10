@@ -22,7 +22,7 @@ provider "aws" {
 module "cluster" {
   source = "../../../modules/ecs-cluster"
 
-  cluster_name = "cluster${var.random_id}"
+  cluster_name = "cluster-test${var.random_id}"
 
   cluster_instance_ami = var.cluster_instance_ami
 

@@ -26,7 +26,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.1.2"
 
-  name = "vpc${var.random_id}"
+  name = "vpc-test${var.random_id}"
   cidr = "10.0.0.0/16"
 
   azs            = [for letter in ["a", "b", "c"] : "${var.region}${letter}"]
@@ -41,7 +41,7 @@ module "vpc" {
 module "alb" {
   source = "../../modules/alb"
 
-  alb_name = "alb${var.random_id}"
+  alb_name = "alb-test${var.random_id}"
 
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.public_subnets
