@@ -32,7 +32,8 @@ func TestExamplesForTerraformModules(t *testing.T) {
 	 *   a. Longest running tests
 	 *   b. Shortest running tests
 	 *
-	 * A comment should be added that denotes
+	 * A comment should be added that denotes the estimated runtime of the test and any limited resources that the test
+	 * requires to run.
 	 */
 	tests := [][]TestCase{
 		{
@@ -100,6 +101,7 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				genTestDataFunc: modules.DeployVpcUsingTerraform,
 				validateFunc:    modules.ValidateVpc,
 			},
+
 			// vpc-public-only: Deploy and validate a VPC with only public subnets. (~40s)
 			// This test requires a VPC.
 			{
@@ -108,6 +110,7 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				genTestDataFunc: modules.DeployVpcUsingTerraform,
 				validateFunc:    modules.ValidateOnlyPublicSubnets,
 			},
+
 			// vpc-wo-nat: Deploy and validate a VPC without NAT Gateways. (~40s)
 			// This test requires a VPC.
 			{
@@ -149,6 +152,7 @@ func runTest(t *testing.T, tests []TestCase) {
 				if !test_structure.IsTestDataPresent(t, fmt.Sprintf("%s/.test-data/TerraformOptions.json", workingDir)) {
 					genTestDataFunc(t, workingDir)
 				}
+
 				// Get the Terraform Options saved
 				terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 
