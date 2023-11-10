@@ -40,7 +40,7 @@ output "ecs_instance_iam_role_id" {
 
 output "ecs_instance_iam_role_name" {
   description = "The name of the IAM role applied to ECS instances."
-  value       = module.ecs_instance_iam_role_name
+  value       = module.cluster.ecs_instance_iam_role_name
 }
 
 output "ecs_instance_security_group_id" {
