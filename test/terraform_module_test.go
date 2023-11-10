@@ -37,6 +37,15 @@ func TestExamplesForTerraformModules(t *testing.T) {
 	 */
 	tests := [][]TestCase{
 		{
+			// mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
+			// This test requires a VPC.
+			{
+				name:            "mongodb-cluster",
+				workingDir:      "../examples/deploy-mongodb-cluster",
+				genTestDataFunc: modules.DeployMongoDBCluster,
+				validateFunc:    modules.ValidateMongoDBCluster,
+			},
+
 			// secrets-manager: Deploy and validate Secrets Manager. (~30s)
 			// This test does not require a VPC, so it can be run first.
 			{
@@ -54,15 +63,6 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				workingDir:      "../examples/deploy-ecs-service",
 				genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
 				validateFunc:    modules.ValidateEcsService,
-			},
-
-			// mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
-			// This test requires a VPC.
-			{
-				name:            "mongodb-cluster",
-				workingDir:      "../examples/deploy-mongodb-cluster",
-				genTestDataFunc: modules.DeployMongoDBCluster,
-				validateFunc:    modules.ValidateMongoDBCluster,
 			},
 
 			// ecs-cluster: Deploy and validate an ECS cluster. (~313s)

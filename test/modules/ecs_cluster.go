@@ -43,7 +43,7 @@ func ValidateEcsCluster(t *testing.T, workingDir string) {
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
 
 	// Get the random id
-	randomId := terraform.Output(t, terraformOptions, "random_id")
+	randomId := terraformOptions.Vars["random_id"].(string)
 
 	expectedClusterName := terraform.Output(t, terraformOptions, "cluster_name")
 
