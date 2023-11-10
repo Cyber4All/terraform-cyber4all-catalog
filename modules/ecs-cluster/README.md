@@ -46,10 +46,6 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The AMI to run on each instance in the ECS cluster.
-	 cluster_instance_ami  = string
-
-
 	 # The name of the ECS cluster.
 	 cluster_name  = string
 
@@ -91,6 +87,10 @@ module "example" {
 	 cluster_ingress_access_ports  = list(number)
 
 
+	 # The AMI to run on each instance in the ECS cluster.
+	 cluster_instance_ami  = string
+
+
 	 # The size of the EC2 instance.
 	 cluster_instance_type  = string
 
@@ -109,12 +109,6 @@ module "example" {
 ## Required Inputs
 
 The following input variables are required:
-
-### <a name="input_cluster_instance_ami"></a> [cluster\_instance\_ami](#input\_cluster\_instance\_ami)
-
-Description: The AMI to run on each instance in the ECS cluster.
-
-Type: `string`
 
 ### <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name)
 
@@ -185,6 +179,14 @@ Description: Specify a list of ECS Cluster TCP ports which should be made access
 Type: `list(number)`
 
 Default: `[]`
+
+### <a name="input_cluster_instance_ami"></a> [cluster\_instance\_ami](#input\_cluster\_instance\_ami)
+
+Description: The AMI to run on each instance in the ECS cluster.
+
+Type: `string`
+
+Default: `"ami-011425496927b80c0"`
 
 ### <a name="input_cluster_instance_type"></a> [cluster\_instance\_type](#input\_cluster\_instance\_type)
 

@@ -18,7 +18,7 @@
 # --------------------------------------------------------------------
 
 variable "random_id" {
-  description = "Random id generated for the purpose of testing"
+  description = "Random ID generated for the purpose of namespacing tests."
   type        = string
   default     = ""
 }

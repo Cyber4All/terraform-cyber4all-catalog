@@ -28,3 +28,15 @@ variable "region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "secret_key" {
+  description = "The key of the secret"
+  type        = string
+  default     = "key"
+}
+
+variable "secret_value" {
+  description = "The value of the secret"
+  type        = string
+  default     = "value"
+}
