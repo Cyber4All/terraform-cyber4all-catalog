@@ -43,12 +43,12 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	// number of dependencies are correct
 	numDep, err := strconv.Atoi(terraform.Output(t, terraformOptions, "number_of_dependencies"))
 	assert.NoError(t, err, "Error converting number_of_dependencies to int")
-	assert.Equal(t, numDep, 0, "Expected 1 dependency, got %d", numDep)
+	assert.Equal(t, numDep, 0, "Expected 0 dependency, got %d", numDep)
 
 	// number of output references are correct
 	numOutRef, err := strconv.Atoi(terraform.Output(t, terraformOptions, "number_of_output_references"))
 	assert.NoError(t, err, "Error converting number_of_output_references to int")
-	assert.Equal(t, numOutRef, 0, "Expected 1 output reference, got %d", numOutRef)
+	assert.Equal(t, numOutRef, 0, "Expected 0 output reference, got %d", numOutRef)
 
 	// stack_id is correct
 	stackID := terraform.Output(t, terraformOptions, "stack_id")
