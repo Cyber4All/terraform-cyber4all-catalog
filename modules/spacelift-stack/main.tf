@@ -199,7 +199,7 @@ resource "spacelift_stack_dependency_reference" "this" {
 # ---------------------------------------------------
 
 resource "spacelift_run" "this" {
-  count = var.enable_admin_stack ? 1 : 0
+  count = var.enable_admin_stack || var.enable_init_run ? 1 : 0
 
   stack_id = spacelift_stack.this.id
 
