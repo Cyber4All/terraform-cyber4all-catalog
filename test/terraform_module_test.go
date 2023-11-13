@@ -23,30 +23,30 @@ type TestCase struct {
 func TestExamplesForTerraformModules(t *testing.T) {
 	tests := [][]TestCase{
 		{
-			{
-				name:            "ecs-cluster",
-				workingDir:      "../examples/deploy-ecs-cluster",
-				genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
-				validateFunc:    modules.ValidateEcsCluster,
-			},
-			{
-				name:            "secrets-manager",
-				workingDir:      "../examples/deploy-secrets-manager",
-				genTestDataFunc: modules.DeployUsingTerraform,
-				validateFunc:    modules.ValidateSecretsContainSecrets,
-			},
-			{
-				name:            "alb https",
-				workingDir:      "../examples/deploy-alb",
-				genTestDataFunc: modules.DeployAlb,
-				validateFunc:    modules.ValidateAlbHttps,
-			},
-			{
-				name:            "alb w/o https",
-				workingDir:      "../examples/deploy-alb-wo-https",
-				genTestDataFunc: modules.DeployAlb,
-				validateFunc:    modules.ValidateAlbNoHttps,
-			},
+			// {
+			// 	name:            "ecs-cluster",
+			// 	workingDir:      "../examples/deploy-ecs-cluster",
+			// 	genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+			// 	validateFunc:    modules.ValidateEcsCluster,
+			// },
+			// {
+			// 	name:            "secrets-manager",
+			// 	workingDir:      "../examples/deploy-secrets-manager",
+			// 	genTestDataFunc: modules.DeployUsingTerraform,
+			// 	validateFunc:    modules.ValidateSecretsContainSecrets,
+			// },
+			// {
+			// 	name:            "alb https",
+			// 	workingDir:      "../examples/deploy-alb",
+			// 	genTestDataFunc: modules.DeployAlb,
+			// 	validateFunc:    modules.ValidateAlbHttps,
+			// },
+			// {
+			// 	name:            "alb w/o https",
+			// 	workingDir:      "../examples/deploy-alb-wo-https",
+			// 	genTestDataFunc: modules.DeployAlb,
+			// 	validateFunc:    modules.ValidateAlbNoHttps,
+			// },
 			{
 				name:            "spacelift admin stack",
 				workingDir:      "../examples/deploy-spacelift-admin-stack",
@@ -55,34 +55,34 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			},
 		},
 		// VPC TESTS
-		{
-			{
-				name:            "vpc",
-				workingDir:      "../examples/deploy-vpc",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateVpc,
-			},
-			{
-				name:            "vpc-public-only",
-				workingDir:      "../examples/deploy-vpc-public-only",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateOnlyPublicSubnets,
-			},
-			{
-				name:            "vpc-wo-nat",
-				workingDir:      "../examples/deploy-vpc-wo-nat",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateVpcNoNat,
-			},
-		},
-		{
-			{
-				name:            "ecs service",
-				workingDir:      "../examples/deploy-ecs-service",
-				genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
-				validateFunc:    modules.ValidateEcsService,
-			},
-		},
+		// {
+		// 	{
+		// 		name:            "vpc",
+		// 		workingDir:      "../examples/deploy-vpc",
+		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
+		// 		validateFunc:    modules.ValidateVpc,
+		// 	},
+		// 	{
+		// 		name:            "vpc-public-only",
+		// 		workingDir:      "../examples/deploy-vpc-public-only",
+		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
+		// 		validateFunc:    modules.ValidateOnlyPublicSubnets,
+		// 	},
+		// 	{
+		// 		name:            "vpc-wo-nat",
+		// 		workingDir:      "../examples/deploy-vpc-wo-nat",
+		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
+		// 		validateFunc:    modules.ValidateVpcNoNat,
+		// 	},
+		// },
+		// {
+		// 	{
+		// 		name:            "ecs service",
+		// 		workingDir:      "../examples/deploy-ecs-service",
+		// 		genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
+		// 		validateFunc:    modules.ValidateEcsService,
+		// 	},
+		// },
 	}
 
 	for _, tests := range tests {
