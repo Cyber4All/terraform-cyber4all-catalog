@@ -37,7 +37,7 @@ func DeploySpaceliftAdminStack(t *testing.T, workingDir string) {
 func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	// Get the terraform options saved by the earlier deploy_terraform stage
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
-	randomID := terraformOptions.Vars["random_id"].(string)
+	randomID := strings.ToLower(terraformOptions.Vars["random_id"].(string))
 
 	// Dependency mappings are correct
 	// number of dependencies are correct
