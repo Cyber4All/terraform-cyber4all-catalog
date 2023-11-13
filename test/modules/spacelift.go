@@ -55,7 +55,7 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	assert.Equalf(t, stackID, fmt.Sprintf("test-admin-stack%s", randomID), "Expected stack id to be test-admin-stack%s, got %s", randomID, stackID)
 
 	// stack_iam_role_id is correct
-	roleName := terraform.Output(t, terraformOptions, "stack_iam_role_id")
+	roleName := strings.ToLower(terraform.Output(t, terraformOptions, "stack_iam_role_id"))
 	assert.Equalf(t, roleName, fmt.Sprintf("test-admin-stack%s-role", randomID), "Expected role name to be test-admin-stack%s-role, got %s", randomID, roleName)
 
 	// stack_iam_role_arn is correct
