@@ -57,7 +57,7 @@ module "stack" {
   stack_name = "test-admin-stack${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "main" 
+  branch     = "main"
   path       = "examples/deploy-spacelift-stacks"
 
   enable_admin_stack = true
