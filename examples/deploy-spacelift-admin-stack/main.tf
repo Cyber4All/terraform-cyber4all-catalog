@@ -57,7 +57,7 @@ module "stack" {
   stack_name = "test-admin-stack${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module" # TODO update this to main before merge
+  branch     = "main" 
   path       = "examples/deploy-spacelift-stacks"
 
   enable_admin_stack = true
