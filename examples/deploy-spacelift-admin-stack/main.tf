@@ -22,6 +22,9 @@ terraform {
   }
 }
 
+provider "aws" {
+  region = var.region
+}
 
 # --------------------------------------------------
 # CONFIGURE OUR SPACELIFT CONNECTION
