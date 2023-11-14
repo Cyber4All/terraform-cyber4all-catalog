@@ -16,11 +16,6 @@ variable "cluster_name" {
   description = "The name of the ECS cluster."
 }
 
-variable "cluster_instance_ami" {
-  type        = string
-  description = "The AMI to run on each instance in the ECS cluster."
-}
-
 variable "vpc_id" {
   type        = string
   description = "The ID of the VPC in which the ECS cluster should be launched."
@@ -72,6 +67,12 @@ variable "cluster_ingress_access_ports" {
   type        = list(number)
   description = "Specify a list of ECS Cluster TCP ports which should be made accessible through ingress traffic."
   default     = []
+}
+
+variable "cluster_instance_ami" {
+  type        = string
+  description = "The AMI to run on each instance in the ECS cluster."
+  default     = "ami-011425496927b80c0"
 }
 
 variable "cluster_instance_type" {

@@ -21,66 +21,107 @@ type TestCase struct {
 // skip stage "apply" by setting the environment variable "SKIP_apply=true"), which speeds up iteration when
 // running this test over and over again locally.
 func TestExamplesForTerraformModules(t *testing.T) {
+	/**
+	 * The TestCases are broken up into groups. Each group's tests will run in parallel, but the groups will run
+	 * sequentially. This is to prevent the tests exhausting the AWS quotas, notably the VPC quota (5 per region).
+	 *
+	 * To optimize the runtime of the tests, the tests should be sorted as follows:
+	 * 1. Tests that do not require a VPC (or any other resource that has a limited quota)
+	 * 2. Tests that require a VPC
+	 *   a. Longest running tests
+	 *   b. Shortest running tests
+	 *
+	 * A comment should be added that denotes the estimated runtime of the test and any limited resources that the test
+	 * requires to run.
+	 */
 	tests := [][]TestCase{
 		{
+			{
+				name:            "spacelift-admin",
+				workingDir:      "../examples/deploy-spacelift-admin",
+				genTestDataFunc: modules.DeploySpaceliftAdminStack,
+				validateFunc:    modules.ValidateSpaceliftAdminStack,
+			},
+			// // mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
+			// // This test requires a VPC.
 			// {
-			// 	name:            "ecs-cluster",
-			// 	workingDir:      "../examples/deploy-ecs-cluster",
-			// 	genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
-			// 	validateFunc:    modules.ValidateEcsCluster,
+			// 	name:            "mongodb-cluster",
+			// 	workingDir:      "../examples/deploy-mongodb-cluster",
+			// 	genTestDataFunc: modules.DeployMongoDBCluster,
+			// 	validateFunc:    modules.ValidateMongoDBCluster,
 			// },
+
+			// // secrets-manager: Deploy and validate Secrets Manager. (~30s)
+			// // This test does not require a VPC, so it can be run first.
 			// {
 			// 	name:            "secrets-manager",
 			// 	workingDir:      "../examples/deploy-secrets-manager",
 			// 	genTestDataFunc: modules.DeployUsingTerraform,
 			// 	validateFunc:    modules.ValidateSecretsContainSecrets,
 			// },
+
+			// // ecs_service: Deploy and validate an ECS service. (~912s)
+			// // This test requires a VPC.
 			// {
-			// 	name:            "alb https",
-			// 	workingDir:      "../examples/deploy-alb",
-			// 	genTestDataFunc: modules.DeployAlb,
-			// 	validateFunc:    modules.ValidateAlbHttps,
+			// 	name:            "ecs service",
+			// 	workingDir:      "../examples/deploy-ecs-service",
+			// 	genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
+			// 	validateFunc:    modules.ValidateEcsService,
 			// },
+
+			// // ecs-cluster: Deploy and validate an ECS cluster. (~313s)
+			// // This test requires a VPC.
 			// {
-			// 	name:            "alb w/o https",
+			// 	name:            "ecs-cluster",
+			// 	workingDir:      "../examples/deploy-ecs-cluster",
+			// 	genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+			// 	validateFunc:    modules.ValidateEcsCluster,
+			// },
+
+			// // alb-wo-https: Deploy an Application Load Balancer with HTTP only. (~281s)
+			// // This test requires a VPC.
+			// {
+			// 	name:            "alb-w/o-https",
 			// 	workingDir:      "../examples/deploy-alb-wo-https",
 			// 	genTestDataFunc: modules.DeployAlb,
 			// 	validateFunc:    modules.ValidateAlbNoHttps,
 			// },
-			{
-				name:            "spacelift admin stack",
-				workingDir:      "../examples/deploy-spacelift-admin-stack",
-				genTestDataFunc: modules.DeploySpaceliftAdminStack,
-				validateFunc:    modules.ValidateSpaceliftAdminStack,
-			},
+
+			// // alb-https: Deploy and validate an Application Load Balancer with HTTPS. (~268s)
+			// // This test requires a VPC.
+			// {
+			// 	name:            "alb-https",
+			// 	workingDir:      "../examples/deploy-alb",
+			// 	genTestDataFunc: modules.DeployAlb,
+			// 	validateFunc:    modules.ValidateAlbHttps,
+			// },
 		},
-		// VPC TESTS
 		// {
+		// 	// vpc: Deploy and validate a VPC. (~100s)
+		// 	// This test requires a VPC.
 		// 	{
 		// 		name:            "vpc",
 		// 		workingDir:      "../examples/deploy-vpc",
 		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
 		// 		validateFunc:    modules.ValidateVpc,
 		// 	},
+
+		// 	// vpc-public-only: Deploy and validate a VPC with only public subnets. (~40s)
+		// 	// This test requires a VPC.
 		// 	{
 		// 		name:            "vpc-public-only",
 		// 		workingDir:      "../examples/deploy-vpc-public-only",
 		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
 		// 		validateFunc:    modules.ValidateOnlyPublicSubnets,
 		// 	},
+
+		// 	// vpc-wo-nat: Deploy and validate a VPC without NAT Gateways. (~40s)
+		// 	// This test requires a VPC.
 		// 	{
 		// 		name:            "vpc-wo-nat",
 		// 		workingDir:      "../examples/deploy-vpc-wo-nat",
 		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
 		// 		validateFunc:    modules.ValidateVpcNoNat,
-		// 	},
-		// },
-		// {
-		// 	{
-		// 		name:            "ecs service",
-		// 		workingDir:      "../examples/deploy-ecs-service",
-		// 		genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
-		// 		validateFunc:    modules.ValidateEcsService,
 		// 	},
 		// },
 	}
@@ -115,6 +156,7 @@ func runTest(t *testing.T, tests []TestCase) {
 				if !test_structure.IsTestDataPresent(t, fmt.Sprintf("%s/.test-data/TerraformOptions.json", workingDir)) {
 					genTestDataFunc(t, workingDir)
 				}
+
 				// Get the Terraform Options saved
 				terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 

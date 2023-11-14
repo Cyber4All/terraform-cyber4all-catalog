@@ -4,7 +4,7 @@
 
 This module is designed to create a stack and its supporting resources, enabling an opinionated Continuous Integration/Continuous Deployment (CICD) workflow on Spacelift. It provides the capability to create a Spacelift stack and optionally set up an IAM role for integration with AWS.
 
-![Spacelift Diagram](../../_docs/tf-aws-spacelift-stack.png)
+![Spacelift Diagram](../../_docs/tf-spacelift-stack.png)
 
 ## Learn
 
@@ -300,29 +300,29 @@ The following outputs are exported:
 
 ### <a name="output_dependency_mappings"></a> [dependency\_mappings](#output\_dependency\_mappings)
 
-Description: n/a
+Description: A list of maps of stack dependency id to the variable mappings defined in the stack\_dependencies variable
 
 ### <a name="output_number_of_dependencies"></a> [number\_of\_dependencies](#output\_number\_of\_dependencies)
 
-Description: n/a
+Description: The number of stack dependencies
 
 ### <a name="output_number_of_output_references"></a> [number\_of\_output\_references](#output\_number\_of\_output\_references)
 
-Description: n/a
+Description: The number of variable mappings defined in the stack\_dependencies variable
 
 ### <a name="output_stack_iam_role_arn"></a> [stack\_iam\_role\_arn](#output\_stack\_iam\_role\_arn)
 
-Description: n/a
+Description: The ARN of the stack's IAM role
 
 ### <a name="output_stack_iam_role_id"></a> [stack\_iam\_role\_id](#output\_stack\_iam\_role\_id)
 
-Description: n/a
+Description: The id of the stack's IAM role
 
 ### <a name="output_stack_iam_role_policy_arns"></a> [stack\_iam\_role\_policy\_arns](#output\_stack\_iam\_role\_policy\_arns)
 
-Description: n/a
+Description: The ARNs of the stack's IAM role policies
 
 ### <a name="output_stack_id"></a> [stack\_id](#output\_stack\_id)
 
-Description: n/a
+Description: The id of the stack
 <!-- END_TF_DOCS -->
