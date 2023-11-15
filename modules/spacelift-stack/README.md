@@ -112,6 +112,10 @@ module "example" {
 	 enable_iam_integration  = bool
 
 
+	 # Whether to enable an initial tracked run when Spacelift stack is first created.
+	 enable_init_run  = bool
+
+
 	 # Whether to protect the stack from deletion. This value should only be changed if you understand the implications of doing so.
 	 enable_protect_from_deletion  = bool
 
@@ -216,6 +220,14 @@ Description: Whether to enable an IAM role to be created for the stack.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_enable_init_run"></a> [enable\_init\_run](#input\_enable\_init\_run)
+
+Description: Whether to enable an initial tracked run when Spacelift stack is first created.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_enable_protect_from_deletion"></a> [enable\_protect\_from\_deletion](#input\_enable\_protect\_from\_deletion)
 
