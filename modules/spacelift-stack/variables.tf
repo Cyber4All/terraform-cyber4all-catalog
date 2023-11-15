@@ -63,6 +63,12 @@ variable "enable_iam_integration" {
   default     = true
 }
 
+variable "enable_init_run" {
+  description = "Whether to enable an initial tracked run when Spacelift stack is first created."
+  type        = bool
+  default     = false
+}
+
 variable "enable_protect_from_deletion" {
   description = "Whether to protect the stack from deletion. This value should only be changed if you understand the implications of doing so."
   type        = bool
