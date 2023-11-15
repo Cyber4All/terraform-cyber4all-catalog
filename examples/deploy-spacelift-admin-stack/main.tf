@@ -56,6 +56,7 @@ module "stack" {
 
   stack_name = "test-admin-stack${var.random_id}"
 
+
   repository = "terraform-cyber4all-catalog"
   branch     = "feature/sc-26884/develop-module-tests-for-spacelift-stack"
   path       = "examples/deploy-spacelift-stacks"
