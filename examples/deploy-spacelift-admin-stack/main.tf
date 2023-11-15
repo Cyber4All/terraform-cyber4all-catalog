@@ -57,10 +57,11 @@ module "stack" {
   stack_name = "test-admin-stack${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "main"
+  branch     = "feature/sc-26884/develop-module-tests-for-spacelift-stack"
   path       = "examples/deploy-spacelift-stacks"
 
   enable_admin_stack = true
+  enable_autodeploy  = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false

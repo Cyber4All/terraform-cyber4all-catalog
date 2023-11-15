@@ -57,7 +57,7 @@ locals {
   ecs_cluster_stack_name = "test-ecs-cluster-stack-${var.region}${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module"
+  branch     = "feature/sc-26884/develop-module-tests-for-spacelift-stack"
 
   labels = ["folder: Environment/Testing", "folder: Project/terraform-cyber4all-catalog", "folder: Region/${var.region}"]
 }
@@ -71,6 +71,8 @@ module "vpc-stack" {
   branch     = local.branch
   path       = "examples/dependencies/deploy-vpc-only"
 
+  enable_autodeploy = true
+  enable_init_run   = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false
@@ -97,6 +99,8 @@ module "ecs-cluster-stack" {
   branch     = local.branch
   path       = "examples/dependencies/deploy-ecs-cluster-only"
 
+  enable_autodeploy = true
+  enable_init_run   = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false

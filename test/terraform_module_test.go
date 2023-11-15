@@ -38,7 +38,7 @@ func TestExamplesForTerraformModules(t *testing.T) {
 		{
 			{
 				name:            "spacelift-admin",
-				workingDir:      "../examples/deploy-spacelift-admin",
+				workingDir:      "../examples/deploy-spacelift-admin-stack",
 				genTestDataFunc: modules.DeploySpaceliftAdminStack,
 				validateFunc:    modules.ValidateSpaceliftAdminStack,
 			},

@@ -1,18 +1,33 @@
 package modules
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 
+	aws_sdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 )
+
+type Stack struct {
+	ID             string `json:"id"`
+	Administrative bool   `json:"administrative"`
+	Blocked        bool   `json:"blocked"`
+	Name           string `json:"name"`
+	State          string `json:"state"`
+}
+
+//{"administrative":true,"blocked":true,"id":"test-admin-stack0a3rnz","name":"test-admin-stack0a3Rnz","state":"PREPARING"}
 
 // DeploySpaceliftAdminStack deploys the spacelift admin stack using terraform
 func DeploySpaceliftAdminStack(t *testing.T, workingDir string) {
@@ -60,7 +75,7 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 
 	// stack_iam_role_arn is correct
 	// ==> Assert that the role arn is: arn:aws:iam::${local.account_id}:role${local.iam_role_path}${local.iam_role_name}
-	roleArn := terraform.Output(t, terraformOptions, "stack_iam_role_arn")
+	roleArn := strings.ToLower(terraform.Output(t, terraformOptions, "stack_iam_role_arn"))
 	assert.Truef(t, strings.HasSuffix(roleArn, fmt.Sprintf("role/spacelift/test-admin-stack%s-role", randomID)), "The role arn is not correct. Expected: %s, got: %s", fmt.Sprintf("role/spacelift/test-admin-stack%s-role", randomID), roleArn)
 
 	// stack_iam_role_policy_arns are correct
@@ -75,4 +90,122 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	})
 
 	assert.NoError(t, err, "The IAM role was not created correctly")
+
+	token := getSpaceLiftToken(t)
+	// Get the stacks from spacelift
+	stacks := getSpaceLiftStacks(t, token)
+
+	// Filter out stacks that are not part of this test
+	var filteredStacks []Stack
+	for _, stack := range stacks {
+		if strings.HasPrefix(stack.Name, "test") && strings.HasSuffix(stack.Name, randomID) {
+			filteredStacks = append(filteredStacks, stack)
+		}
+	}
+
+	// There should be 3 stacks, admin, vpc, and ecs-cluster
+	assert.Equal(t, len(filteredStacks), 3, "Expected 3 stacks, got %d", len(filteredStacks))
+
+	//
+
+	fmt.Println(stacks)
+}
+
+func getSpaceLiftToken(t *testing.T) string {
+	// Get Secret Key & Access Key
+	smClient := aws.NewSecretsManagerClient(t, "us-east-1")
+	secret, err := smClient.GetSecretValue(&secretsmanager.GetSecretValueInput{
+		SecretId: aws_sdk.String("arn:aws:secretsmanager:us-east-1:353964526231:secret:spacelift/sandbox-ifw40J"),
+	})
+	assert.NoError(t, err, "Error getting secret key from secrets manager")
+
+	var secretData map[string]string
+	err = json.Unmarshal([]byte(*secret.SecretString), &secretData)
+	assert.NoError(t, err, "Error unmarshalling secret string")
+
+	secretKey := secretData["api_key_secret"]
+	accessKey := secretData["api_key_id"]
+
+	mutation := `
+			mutation GetJWT($id: ID!, $secret: String!) {
+				apiKeyUser(id: $id, secret: $secret) {
+					jwt
+				}
+			}
+		`
+
+	data := makeGraphRequest(t, mutation, &map[string]interface{}{
+		"id":     accessKey,
+		"secret": secretKey,
+	}, nil)
+
+	if data["errors"] != nil {
+		t.Fatalf("Error getting token from spacelift api: %v", data["errors"])
+	}
+
+	dataJson, err := json.Marshal(data)
+	assert.NoError(t, err, "Error marshalling data")
+
+	var token struct {
+		ApiKeyUser struct {
+			Jwt string `json:"jwt"`
+		} `json:"apiKeyUser"`
+	}
+
+	err = json.Unmarshal(dataJson, &token)
+	assert.NoError(t, err, "Error unmarshalling data")
+
+	return token.ApiKeyUser.Jwt
+}
+
+func makeGraphRequest(t *testing.T, query string, variables *map[string]interface{}, bearer *string) map[string]interface{} {
+	graphClient := graphql.NewClient("https://cyber4all.app.spacelift.io/graphql")
+
+	req := graphql.NewRequest(query)
+
+	if variables != nil {
+		for key, value := range *variables {
+			req.Var(key, value)
+		}
+	}
+
+	if bearer != nil {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", *bearer))
+	}
+
+	ctx := context.Background()
+
+	var data map[string]interface{}
+	if err := graphClient.Run(ctx, req, &data); err != nil {
+		t.Fatalf("Error making graphql request: %v", err)
+	}
+
+	fmt.Println(data)
+
+	return data
+}
+
+func getSpaceLiftStacks(t *testing.T, token string) []Stack {
+	query := `
+		query {
+			stacks {
+				id
+				administrative
+				blocked
+				name
+				state
+			}
+		}
+		`
+
+	data := makeGraphRequest(t, query, nil, &token)
+
+	dataJson, err := json.Marshal(data["stacks"])
+	assert.NoError(t, err, "Error marshalling data")
+	fmt.Println(string(dataJson))
+	var stacks []Stack
+	err = json.Unmarshal(dataJson, &stacks)
+	assert.NoError(t, err, "Error unmarshalling data")
+
+	return stacks
 }
