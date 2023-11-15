@@ -86,7 +86,7 @@ resource "spacelift_environment_variable" "this" {
 
   name       = "TF_VAR_${lookup(local.environment_variables[count.index], "name", null)}"
   value      = lookup(local.environment_variables[count.index], "value", null)
-  write_only = true
+  write_only = false
 }
 
 
