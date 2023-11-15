@@ -68,5 +68,10 @@ module "stack" {
   enable_protect_from_deletion = false
   enable_state_management      = true
 
+  environment_variables = {
+    "region"    = var.region,
+    "random_id" = var.random_id,
+  }
+
   labels = ["folder: Environment/Testing", "folder: Project/terraform-cyber4all-catalog"]
 }
