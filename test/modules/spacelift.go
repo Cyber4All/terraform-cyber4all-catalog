@@ -7,7 +7,9 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/Cyber4All/terraform-cyber4all-catalog/test/util"
 	aws_sdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
@@ -96,19 +98,34 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	stacks := getSpaceLiftStacks(t, token)
 
 	// Filter out stacks that are not part of this test
-	var filteredStacks []Stack
-	for _, stack := range stacks {
-		if strings.HasPrefix(stack.Name, "test") && strings.HasSuffix(stack.Name, randomID) {
-			filteredStacks = append(filteredStacks, stack)
-		}
-	}
+	filteredStacks := util.Filter(&stacks, func(stack Stack) bool {
+		return strings.HasPrefix(stack.Name, "test") && strings.HasSuffix(stack.Name, randomID)
+	})
 
 	// There should be 3 stacks, admin, vpc, and ecs-cluster
-	assert.Equal(t, len(filteredStacks), 3, "Expected 3 stacks, got %d", len(filteredStacks))
+	assert.Equal(t, len(*filteredStacks), 3, "Expected 3 stacks, got %d", len(*filteredStacks))
 
-	//
+	// Assert that all stacks are FINISHED
+	// Set a timeout of 5 minutes
+	timeout := time.Now().Add(5 * time.Minute)
+	complete := false
 
-	fmt.Println(stacks)
+	for time.Now().Before(timeout) || !complete {
+		if util.Every(filteredStacks, func(stack Stack) bool {
+			return stack.State == "FINISHED"
+		}) {
+			complete = true
+			break
+		}
+		// Wait 10 seconds before checking again
+		time.Sleep(10 * time.Second)
+		stacks = getSpaceLiftStacks(t, token)
+		filteredStacks = util.Filter(&stacks, func(stack Stack) bool {
+			return strings.HasPrefix(stack.Name, "test") && strings.HasSuffix(stack.Name, randomID)
+		})
+	}
+
+	assert.True(t, complete, "Stacks did not finish within the timeout period of 5 minutes")
 }
 
 func getSpaceLiftToken(t *testing.T) string {
