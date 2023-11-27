@@ -158,7 +158,7 @@ locals {
   ])
 
   # list of stack dependency ids
-  depends_on_stack_ids = [for k in keys(var.stack_dependencies) : lower(k)]
+  depends_on_stack_ids = keys(var.stack_dependencies)
 
   number_of_dependencies = length(local.depends_on_stack_ids)
   number_of_references   = length(local.dependency_mappings)
