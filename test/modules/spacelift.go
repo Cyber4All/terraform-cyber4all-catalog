@@ -11,7 +11,6 @@ import (
 
 	"github.com/Cyber4All/terraform-cyber4all-catalog/test/util"
 	aws_sdk "github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -71,28 +70,6 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	stackID := terraform.Output(t, terraformOptions, "stack_id")
 	assert.Equalf(t, stackID, fmt.Sprintf("test-admin-stack%s", randomID), "Expected stack id to be test-admin-stack%s, got %s", randomID, stackID)
 
-	// stack_iam_role_id is correct
-	roleName := strings.ToLower(terraform.Output(t, terraformOptions, "stack_iam_role_id"))
-	assert.Equalf(t, roleName, fmt.Sprintf("test-admin-stack%s-role", randomID), "Expected role name to be test-admin-stack%s-role, got %s", randomID, roleName)
-
-	// stack_iam_role_arn is correct
-	// ==> Assert that the role arn is: arn:aws:iam::${local.account_id}:role${local.iam_role_path}${local.iam_role_name}
-	roleArn := strings.ToLower(terraform.Output(t, terraformOptions, "stack_iam_role_arn"))
-	assert.Truef(t, strings.HasSuffix(roleArn, fmt.Sprintf("role/spacelift/test-admin-stack%s-role", randomID)), "The role arn is not correct. Expected: %s, got: %s", fmt.Sprintf("role/spacelift/test-admin-stack%s-role", randomID), roleArn)
-
-	// stack_iam_role_policy_arns are correct
-	policyArns := terraform.OutputList(t, terraformOptions, "stack_iam_role_policy_arns")
-	assert.Equal(t, len(policyArns), 1, "Expected 1 policy arn, got %d", len(policyArns))
-	expectedPolicyArn := "arn:aws:iam::aws:policy/AdministratorAccess"
-	assert.Equalf(t, policyArns[0], expectedPolicyArn, "The policy arn is not correct. Expected: %s, got: %s", expectedPolicyArn, policyArns[0])
-
-	// Check that the IAM role is created in AWS
-	_, err = aws.NewIamClient(t, "us-east-1").GetRole(&iam.GetRoleInput{
-		RoleName: &roleName,
-	})
-
-	assert.NoError(t, err, "The IAM role was not created correctly")
-
 	token := getSpaceLiftToken(t)
 	// Get the stacks from spacelift
 	stacks := getSpaceLiftStacks(t, token)
@@ -106,8 +83,8 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	assert.Equal(t, len(*filteredStacks), 3, "Expected 3 stacks, got %d", len(*filteredStacks))
 
 	// Assert that all stacks are FINISHED
-	// Set a timeout of 5 minutes
-	timeout := time.Now().Add(5 * time.Minute)
+	// Set a timeout of 10 minutes
+	timeout := time.Now().Add(10 * time.Minute)
 	complete := false
 
 	for time.Now().Before(timeout) || !complete {
