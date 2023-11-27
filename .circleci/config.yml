@@ -87,11 +87,11 @@ workflows:
       - tfsec
 
       - integration-tests:
-            requires: [pre-commit, tfsec]
+          requires: [pre-commit, tfsec]
 
       - cyber4all/release:
           context: [Github]
-            requires: [integration-tests]
+          requires: [integration-tests]
           tag: "$(./version.sh -r)"
           filters:
             branches:
