@@ -294,10 +294,6 @@ The following outputs are exported:
 
 Description: A list of maps of stack dependency id to the variable mappings defined in the stack\_dependencies variable
 
-### <a name="output_number_of_dependencies"></a> [number\_of\_dependencies](#output\_number\_of\_dependencies)
-
-Description: The number of stack dependencies
-
 ### <a name="output_number_of_output_references"></a> [number\_of\_output\_references](#output\_number\_of\_output\_references)
 
 Description: The number of variable mappings defined in the stack\_dependencies variable
