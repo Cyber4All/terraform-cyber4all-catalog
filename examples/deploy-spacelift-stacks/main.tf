@@ -94,14 +94,15 @@ module "vpc-stack" {
 module "ecs-cluster-stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = local.ecs_cluster_stack_name
-  # spacelift_integration_name = "sandbox-spacelift-stack-role"
+  stack_name                 = local.ecs_cluster_stack_name
+  spacelift_integration_name = "sandbox-spacelift-stack-role"
 
   repository = local.repository
   branch     = local.branch
   path       = "examples/dependencies/deploy-ecs-cluster-only"
 
   enable_autodeploy = true
+  enable_init_run   = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false
