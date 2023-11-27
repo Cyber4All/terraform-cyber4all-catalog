@@ -168,7 +168,7 @@ resource "spacelift_stack_dependency" "this" {
   count = local.number_of_dependencies
 
   stack_id            = spacelift_stack.this.id
-  depends_on_stack_id = local.depends_on_stack_ids[count.index]
+  depends_on_stack_id = lower(local.depends_on_stack_ids[count.index])
 
   depends_on = [
     spacelift_stack_destructor.this,
@@ -178,7 +178,7 @@ resource "spacelift_stack_dependency" "this" {
 resource "spacelift_stack_dependency_reference" "this" {
   count = local.number_of_references
 
-  stack_dependency_id = local.dependency_mappings[count.index].stack_dependency_id
+  stack_dependency_id = lower(local.dependency_mappings[count.index].stack_dependency_id)
 
   input_name  = local.dependency_mappings[count.index].input_name
   output_name = local.dependency_mappings[count.index].output_name
