@@ -79,9 +79,6 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 		return strings.HasPrefix(stack.Name, "test") && strings.HasSuffix(stack.Name, randomID)
 	})
 
-	// There should be 3 stacks, admin, vpc, and ecs-cluster
-	assert.Equal(t, len(*filteredStacks), 3, "Expected 3 stacks, got %d", len(*filteredStacks))
-
 	// Assert that all stacks are FINISHED
 	// Set a timeout of 5 minutes
 	timeout := time.Now().Add(5 * time.Minute)
@@ -103,6 +100,9 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	}
 
 	assert.True(t, complete, "Stacks did not finish within the timeout period of 5 minutes")
+
+	// There should be 3 stacks, admin, vpc, and ecs-cluster
+	assert.Equal(t, len(*filteredStacks), 3, "Expected 3 stacks, got %d", len(*filteredStacks))
 }
 
 func getSpaceLiftToken(t *testing.T) string {
