@@ -73,7 +73,6 @@ module "vpc-stack" {
   path       = "examples/dependencies/deploy-vpc-only"
 
   enable_autodeploy = true
-  enable_init_run   = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false
@@ -102,7 +101,6 @@ module "ecs-cluster-stack" {
   path       = "examples/dependencies/deploy-ecs-cluster-only"
 
   enable_autodeploy = true
-  enable_init_run   = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false
