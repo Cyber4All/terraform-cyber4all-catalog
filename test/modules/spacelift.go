@@ -33,7 +33,7 @@ type Stack struct {
 // DeploySpaceliftAdminStack deploys the spacelift admin stack using terraform
 func DeploySpaceliftAdminStack(t *testing.T, workingDir string) {
 	// Generate a unique ID
-	uniqueID := random.UniqueId()
+	uniqueID := strings.ToLower(random.UniqueId())
 
 	// Construct the terraform options with default retryable errors to handle the most common retryable errors in
 	// terraform testing.

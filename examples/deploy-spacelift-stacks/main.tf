@@ -112,7 +112,7 @@ module "ecs-cluster-stack" {
   }
 
   stack_dependencies = {
-    (module.vpc-stack.stack_id) = {
+    (local.vpc_stack_name) = {
       "vpc_id"         = "vpc_id",
       "vpc_subnet_ids" = "private_subnet_ids",
     },
