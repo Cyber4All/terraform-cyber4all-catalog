@@ -81,7 +81,7 @@ module "example" {
 	 repository  = string
 
 
-	 # Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended.
+	 # Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended. The name should be lowercase.
 	 stack_name  = string
 
 
@@ -167,7 +167,7 @@ Type: `string`
 
 ### <a name="input_stack_name"></a> [stack\_name](#input\_stack\_name)
 
-Description: Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended.
+Description: Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended. The name should be lowercase.
 
 Type: `string`
 
@@ -293,6 +293,10 @@ The following outputs are exported:
 ### <a name="output_dependency_mappings"></a> [dependency\_mappings](#output\_dependency\_mappings)
 
 Description: A list of maps of stack dependency id to the variable mappings defined in the stack\_dependencies variable
+
+### <a name="output_number_of_dependencies"></a> [number\_of\_dependencies](#output\_number\_of\_dependencies)
+
+Description: The number of stack dependencies
 
 ### <a name="output_number_of_output_references"></a> [number\_of\_output\_references](#output\_number\_of\_output\_references)
 

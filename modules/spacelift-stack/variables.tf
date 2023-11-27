@@ -17,7 +17,7 @@ variable "branch" {
 }
 
 variable "stack_name" {
-  description = "Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended."
+  description = "Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended. The name should be lowercase."
   type        = string
 }
 
