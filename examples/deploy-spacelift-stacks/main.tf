@@ -65,7 +65,8 @@ locals {
 module "vpc-stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = local.vpc_stack_name
+  stack_name                 = local.vpc_stack_name
+  spacelift_integration_name = "sandbox-spacelift-stack-role"
 
   repository = local.repository
   branch     = local.branch
@@ -94,6 +95,7 @@ module "ecs-cluster-stack" {
   source = "../../modules/spacelift-stack"
 
   stack_name = local.ecs_cluster_stack_name
+  # spacelift_integration_name = "sandbox-spacelift-stack-role"
 
   repository = local.repository
   branch     = local.branch

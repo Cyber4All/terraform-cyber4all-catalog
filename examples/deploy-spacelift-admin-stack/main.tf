@@ -54,8 +54,8 @@ provider "spacelift" {
 module "stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = "test-admin-stack${var.random_id}"
-
+  stack_name                 = "test-admin-stack${var.random_id}"
+  spacelift_integration_name = "sandbox-spacelift-stack-role"
 
   repository = "terraform-cyber4all-catalog"
   branch     = "feature/sc-26884/develop-module-tests-for-spacelift-stack"
