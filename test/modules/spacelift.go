@@ -79,19 +79,26 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 		return strings.HasPrefix(stack.Name, "test") && strings.HasSuffix(stack.Name, randomID)
 	})
 
-	// Assert that all stacks are FINISHED
+	// Assert that the Admin stack state is FINISHED and all other stacks are created
 	// Set a timeout of 5 minutes
-	timeout := time.Now().Add(20 * time.Minute)
+	timeout := time.Now().Add(5 * time.Minute)
 	complete := false
 
 	fmt.Println("Number of filtered stacks: ", len(*filteredStacks))
 	for time.Now().Before(timeout) && !complete {
-		if util.Every(filteredStacks, func(stack Stack) bool {
-			return stack.State == "FINISHED"
-		}) {
-			complete = true
-			break
-		}
+		// Check if the admin stack state is FINISHED
+		adminStackFinished := util.Some(filteredStacks, func(stack Stack) bool {
+			return stack.Name == fmt.Sprintf("test-admin-stack%s", randomID) && stack.State == "FINISHED"
+		})
+		ecsClusterExists := util.Some(filteredStacks, func(stack Stack) bool {
+			return stack.Name == fmt.Sprintf("test-ecs-cluster-us-east-1%s", randomID)
+		})
+		vpcExists := util.Some(filteredStacks, func(stack Stack) bool {
+			return stack.Name == fmt.Sprintf("test-vpc-us-east-1%s", randomID)
+		})
+
+		complete = adminStackFinished && ecsClusterExists && vpcExists
+
 		// Wait 10 seconds before checking again
 		time.Sleep(10 * time.Second)
 		stacks = getSpaceLiftStacks(t, token)

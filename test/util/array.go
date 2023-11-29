@@ -18,3 +18,12 @@ func Every[T any](arr *[]T, f func(T) bool) bool {
 	}
 	return true
 }
+
+func Some[T any](arr *[]T, f func(T) bool) bool {
+	for _, v := range *arr {
+		if f(v) {
+			return true
+		}
+	}
+	return false
+}
