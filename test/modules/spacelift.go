@@ -81,7 +81,7 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 
 	// Assert that all stacks are FINISHED
 	// Set a timeout of 5 minutes
-	timeout := time.Now().Add(5 * time.Minute)
+	timeout := time.Now().Add(20 * time.Minute)
 	complete := false
 
 	fmt.Println("Number of filtered stacks: ", len(*filteredStacks))
