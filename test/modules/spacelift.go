@@ -84,7 +84,8 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 	timeout := time.Now().Add(5 * time.Minute)
 	complete := false
 
-	for time.Now().Before(timeout) || !complete {
+	fmt.Println("Number of filtered stacks: ", len(*filteredStacks))
+	for time.Now().Before(timeout) && !complete {
 		if util.Every(filteredStacks, func(stack Stack) bool {
 			return stack.State == "FINISHED"
 		}) {
@@ -97,6 +98,7 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 		filteredStacks = util.Filter(&stacks, func(stack Stack) bool {
 			return strings.HasPrefix(stack.Name, "test") && strings.HasSuffix(stack.Name, randomID)
 		})
+		fmt.Println("Stacks: ", *filteredStacks)
 	}
 
 	assert.True(t, complete, "Stacks did not finish within the timeout period of 5 minutes")
@@ -174,8 +176,6 @@ func makeGraphRequest(t *testing.T, query string, variables *map[string]interfac
 		t.Fatalf("Error making graphql request: %v", err)
 	}
 
-	fmt.Println(data)
-
 	return data
 }
 
@@ -196,7 +196,7 @@ func getSpaceLiftStacks(t *testing.T, token string) []Stack {
 
 	dataJson, err := json.Marshal(data["stacks"])
 	assert.NoError(t, err, "Error marshalling data")
-	fmt.Println(string(dataJson))
+
 	var stacks []Stack
 	err = json.Unmarshal(dataJson, &stacks)
 	assert.NoError(t, err, "Error unmarshalling data")
