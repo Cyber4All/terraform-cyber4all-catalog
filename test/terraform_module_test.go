@@ -42,88 +42,88 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				genTestDataFunc: modules.DeploySpaceliftAdminStack,
 				validateFunc:    modules.ValidateSpaceliftAdminStack,
 			},
-			// // mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
-			// // This test requires a VPC.
-			// {
-			// 	name:            "mongodb-cluster",
-			// 	workingDir:      "../examples/deploy-mongodb-cluster",
-			// 	genTestDataFunc: modules.DeployMongoDBCluster,
-			// 	validateFunc:    modules.ValidateMongoDBCluster,
-			// },
+			// mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
+			// This test requires a VPC.
+			{
+				name:            "mongodb-cluster",
+				workingDir:      "../examples/deploy-mongodb-cluster",
+				genTestDataFunc: modules.DeployMongoDBCluster,
+				validateFunc:    modules.ValidateMongoDBCluster,
+			},
 
-			// // secrets-manager: Deploy and validate Secrets Manager. (~30s)
-			// // This test does not require a VPC, so it can be run first.
-			// {
-			// 	name:            "secrets-manager",
-			// 	workingDir:      "../examples/deploy-secrets-manager",
-			// 	genTestDataFunc: modules.DeployUsingTerraform,
-			// 	validateFunc:    modules.ValidateSecretsContainSecrets,
-			// },
+			// secrets-manager: Deploy and validate Secrets Manager. (~30s)
+			// This test does not require a VPC, so it can be run first.
+			{
+				name:            "secrets-manager",
+				workingDir:      "../examples/deploy-secrets-manager",
+				genTestDataFunc: modules.DeployUsingTerraform,
+				validateFunc:    modules.ValidateSecretsContainSecrets,
+			},
 
-			// // ecs_service: Deploy and validate an ECS service. (~912s)
-			// // This test requires a VPC.
-			// {
-			// 	name:            "ecs service",
-			// 	workingDir:      "../examples/deploy-ecs-service",
-			// 	genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
-			// 	validateFunc:    modules.ValidateEcsService,
-			// },
+			// ecs_service: Deploy and validate an ECS service. (~912s)
+			// This test requires a VPC.
+			{
+				name:            "ecs service",
+				workingDir:      "../examples/deploy-ecs-service",
+				genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
+				validateFunc:    modules.ValidateEcsService,
+			},
 
-			// // ecs-cluster: Deploy and validate an ECS cluster. (~313s)
-			// // This test requires a VPC.
-			// {
-			// 	name:            "ecs-cluster",
-			// 	workingDir:      "../examples/deploy-ecs-cluster",
-			// 	genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
-			// 	validateFunc:    modules.ValidateEcsCluster,
-			// },
+			// ecs-cluster: Deploy and validate an ECS cluster. (~313s)
+			// This test requires a VPC.
+			{
+				name:            "ecs-cluster",
+				workingDir:      "../examples/deploy-ecs-cluster",
+				genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+				validateFunc:    modules.ValidateEcsCluster,
+			},
 
-			// // alb-wo-https: Deploy an Application Load Balancer with HTTP only. (~281s)
-			// // This test requires a VPC.
-			// {
-			// 	name:            "alb-w/o-https",
-			// 	workingDir:      "../examples/deploy-alb-wo-https",
-			// 	genTestDataFunc: modules.DeployAlb,
-			// 	validateFunc:    modules.ValidateAlbNoHttps,
-			// },
+			// alb-wo-https: Deploy an Application Load Balancer with HTTP only. (~281s)
+			// This test requires a VPC.
+			{
+				name:            "alb-w/o-https",
+				workingDir:      "../examples/deploy-alb-wo-https",
+				genTestDataFunc: modules.DeployAlb,
+				validateFunc:    modules.ValidateAlbNoHttps,
+			},
 
-			// // alb-https: Deploy and validate an Application Load Balancer with HTTPS. (~268s)
-			// // This test requires a VPC.
-			// {
-			// 	name:            "alb-https",
-			// 	workingDir:      "../examples/deploy-alb",
-			// 	genTestDataFunc: modules.DeployAlb,
-			// 	validateFunc:    modules.ValidateAlbHttps,
-			// },
+			// alb-https: Deploy and validate an Application Load Balancer with HTTPS. (~268s)
+			// This test requires a VPC.
+			{
+				name:            "alb-https",
+				workingDir:      "../examples/deploy-alb",
+				genTestDataFunc: modules.DeployAlb,
+				validateFunc:    modules.ValidateAlbHttps,
+			},
 		},
-		// {
-		// 	// vpc: Deploy and validate a VPC. (~100s)
-		// 	// This test requires a VPC.
-		// 	{
-		// 		name:            "vpc",
-		// 		workingDir:      "../examples/deploy-vpc",
-		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
-		// 		validateFunc:    modules.ValidateVpc,
-		// 	},
+		{
+			// vpc: Deploy and validate a VPC. (~100s)
+			// This test requires a VPC.
+			{
+				name:            "vpc",
+				workingDir:      "../examples/deploy-vpc",
+				genTestDataFunc: modules.DeployVpcUsingTerraform,
+				validateFunc:    modules.ValidateVpc,
+			},
 
-		// 	// vpc-public-only: Deploy and validate a VPC with only public subnets. (~40s)
-		// 	// This test requires a VPC.
-		// 	{
-		// 		name:            "vpc-public-only",
-		// 		workingDir:      "../examples/deploy-vpc-public-only",
-		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
-		// 		validateFunc:    modules.ValidateOnlyPublicSubnets,
-		// 	},
+			// vpc-public-only: Deploy and validate a VPC with only public subnets. (~40s)
+			// This test requires a VPC.
+			{
+				name:            "vpc-public-only",
+				workingDir:      "../examples/deploy-vpc-public-only",
+				genTestDataFunc: modules.DeployVpcUsingTerraform,
+				validateFunc:    modules.ValidateOnlyPublicSubnets,
+			},
 
-		// 	// vpc-wo-nat: Deploy and validate a VPC without NAT Gateways. (~40s)
-		// 	// This test requires a VPC.
-		// 	{
-		// 		name:            "vpc-wo-nat",
-		// 		workingDir:      "../examples/deploy-vpc-wo-nat",
-		// 		genTestDataFunc: modules.DeployVpcUsingTerraform,
-		// 		validateFunc:    modules.ValidateVpcNoNat,
-		// 	},
-		// },
+			// vpc-wo-nat: Deploy and validate a VPC without NAT Gateways. (~40s)
+			// This test requires a VPC.
+			{
+				name:            "vpc-wo-nat",
+				workingDir:      "../examples/deploy-vpc-wo-nat",
+				genTestDataFunc: modules.DeployVpcUsingTerraform,
+				validateFunc:    modules.ValidateVpcNoNat,
+			},
+		},
 	}
 
 	for _, tests := range tests {
