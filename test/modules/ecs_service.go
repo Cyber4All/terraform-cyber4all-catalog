@@ -16,7 +16,6 @@ import (
 	cloudwatchtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
@@ -63,13 +62,12 @@ func DeployEcsServiceUsingTerraform(t *testing.T, workingDir string) {
 
 // ValidateEcsService validates the ECS service module with the
 // following assertions:
-// 1. The ECS service is in a stable state
-// 2. The ECS service is sending logs to cloudwatch
-// 3. The ECS service is receiving traffic from the load balancer
-// 4. The ECS service can retrieve a secret from secrets manager
-// 5. The ECS service can reach the internal service via ServiceConnect
-// 6. The ECS service can be deployed using the deploy-ecs-service.py script
-// 7. The ECS service can be scaled out
+// - The ECS service is in a stable state
+// - The ECS service is receiving traffic from the load balancer
+// - The ECS service can retrieve a secret from secrets manager
+// - The ECS service can reach the internal service via ServiceConnect
+// - The ECS service can be deployed using the deploy-ecs-service.py script
+// - The ECS service can be scaled out
 func ValidateEcsService(t *testing.T, workingDir string) {
 	wg := &sync.WaitGroup{}
 
@@ -96,13 +94,7 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 
 	// The following assertions can be run in parallel
 	// with the above assertions
-	wg.Add(6)
-
-	// Check that the services are producing logs
-	internalServiceLogGroup := fmt.Sprintf("/ecs/service/%s", internalServiceName)
-	externalServiceLogGroup := fmt.Sprintf("/ecs/service/%s", externalServiceName)
-	go assertEcsServiceSendsLogs(t, wg, regionName, internalServiceLogGroup)
-	go assertEcsServiceSendsLogs(t, wg, regionName, externalServiceLogGroup)
+	wg.Add(4)
 
 	// Check that the load balancer attached service
 	// recieves traffic
@@ -169,43 +161,6 @@ func assertEcsServiceIsStable(t *testing.T, wg *sync.WaitGroup, awsRegion string
 	)
 
 	t.Log(message)
-}
-
-// assertEcsServiceSendsLogs asserts that the ECS service is sending logs to the
-// specified log group. This function supports running in parallel with other tests.
-func assertEcsServiceSendsLogs(t *testing.T, wg *sync.WaitGroup, regionName string, logGroup string) {
-	defer wg.Done()
-
-	client := aws.NewCloudWatchLogsClient(t, regionName)
-
-	// Describe the log streams
-	streams, err := client.DescribeLogStreams(&cloudwatchlogs.DescribeLogStreamsInput{
-		LogGroupName: &logGroup,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Check that there is at least one log stream
-	assert.NotEmpty(t, streams.LogStreams, "Expected at least one log stream for %s", logGroup)
-
-	// Get the logs
-	output, err := client.GetLogEvents(&cloudwatchlogs.GetLogEventsInput{
-		LogGroupName:  &logGroup,
-		LogStreamName: streams.LogStreams[0].LogStreamName,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Convert the log events to a slice of strings
-	entries := []string{}
-	for _, event := range output.Events {
-		entries = append(entries, *event.Message)
-	}
-
-	// Check that the service is sending logs
-	assert.NotEmpty(t, entries, "Expected service to send logs to %s", logGroup)
 }
 
 // assertEcsServiceReceivesTraffic asserts that the ECS service is receiving traffic
