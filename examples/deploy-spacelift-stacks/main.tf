@@ -57,7 +57,7 @@ locals {
   ecs_cluster_stack_name = "test-ecs-cluster-${var.region}${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "feature/sc-26884/develop-module-tests-for-spacelift-stack"
+  branch     = "main"
 
   labels = ["folder: Environment/Testing", "folder: Project/terraform-cyber4all-catalog", "folder: Region/${var.region}"]
 }
