@@ -21,7 +21,6 @@ type TestCase struct {
 // skip stage "apply" by setting the environment variable "SKIP_apply=true"), which speeds up iteration when
 // running this test over and over again locally.
 func TestExamplesForTerraformModules(t *testing.T) {
-
 	/**
 	 * The TestCases are broken up into groups. Each group's tests will run in parallel, but the groups will run
 	 * sequentially. This is to prevent the tests exhausting the AWS quotas, notably the VPC quota (5 per region).
@@ -37,6 +36,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 	 */
 	tests := [][]TestCase{
 		{
+			{
+				name:            "spacelift-admin",
+				workingDir:      "../examples/deploy-spacelift-admin-stack",
+				genTestDataFunc: modules.DeploySpaceliftAdminStack,
+				validateFunc:    modules.ValidateSpaceliftAdminStack,
+			},
 			// mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
 			// This test requires a VPC.
 			{
@@ -49,7 +54,6 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			// secrets-manager: Deploy and validate Secrets Manager. (~30s)
 			// This test does not require a VPC, so it can be run first.
 			{
-
 				name:            "secrets-manager",
 				workingDir:      "../examples/deploy-secrets-manager",
 				genTestDataFunc: modules.DeployUsingTerraform,

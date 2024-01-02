@@ -1,98 +1,98 @@
 version: 2.1
 
 env: &env
-    environment:
-        GO111MODULE: auto
+  environment:
+    GO111MODULE: auto
 
 orbs:
-    cyber4all: cyber4all/orb@2.0.0
-    go: circleci/go@1.8.0
-    python: circleci/python@2.1.1
-    terraform: circleci/terraform@3.2.1
-    tfsec: mycodeself/tfsec@1.1.0
-    aws-cli: circleci/aws-cli@4.1.0
+  cyber4all: cyber4all/orb@2.0.0
+  go: circleci/go@1.8.0
+  python: circleci/python@2.1.1
+  terraform: circleci/terraform@3.2.1
+  tfsec: mycodeself/tfsec@1.1.0
+  aws-cli: circleci/aws-cli@4.1.0
 
 jobs:
-    integration-tests:
-        <<: *env
-        executor:
-            name: go/default
-            tag: "1.20"
-        resource_class: large
-        steps:
-            - checkout
-            - aws-cli/setup:
-                  role_arn: ${AWS_OIDC_ROLE_ARN}
-            - terraform/install:
-                  terraform_version: 1.5.5
-            - run:
-                  name: Install Terratest Log Parser
-                  command: |
-                      go install github.com/gruntwork-io/terratest/cmd/terratest_log_parser@v0.43.13
-            - run:
-                  name: Setup Log Directory
-                  command: |
-                      mkdir -p /tmp/logs
-            - run:
-                  # These tests can be slow to create/delete, so we massively increase
-                  # the test timeout to ensure cleanup jobs run correctly.
-                  # Also specify a CircleCI timeout of 5400 seconds (90m)
-                  name: run tests
-                  command: |
-                      cd test
-                      TF_VAR_mongodb_role_arn=${AWS_OIDC_ROLE_ARN} go test -v --timeout 2h | (tee /tmp/logs/all.log || true)
-                  no_output_timeout: 5400s
-            - run:
-                  name: Parse Terratest Logs
-                  command: |
-                      terratest_log_parser -testlog /tmp/logs/all.log --outputdir /tmp/logs
-                  when: always
-            # Store test result and log artifacts for browsing purposes
-            - store_artifacts:
-                  path: /tmp/logs
-            - store_test_results:
-                  path: /tmp/logs
+  integration-tests:
+    <<: *env
+    executor:
+      name: go/default
+      tag: "1.20"
+    resource_class: large
+    steps:
+      - checkout
+      - aws-cli/setup:
+          role_arn: ${AWS_OIDC_ROLE_ARN}
+      - terraform/install:
+          terraform_version: 1.5.5
+      - run:
+          name: Install Terratest Log Parser
+          command: |
+            go install github.com/gruntwork-io/terratest/cmd/terratest_log_parser@v0.43.13
+      - run:
+          name: Setup Log Directory
+          command: |
+            mkdir -p /tmp/logs
+      - run:
+          # These tests can be slow to create/delete, so we massively increase
+          # the test timeout to ensure cleanup jobs run correctly.
+          # Also specify a CircleCI timeout of 5400 seconds (90m)
+          name: run tests
+          command: |
+            cd test
+            TF_VAR_mongodb_role_arn=${AWS_OIDC_ROLE_ARN} go test -v --timeout 2h | (tee /tmp/logs/all.log || true)
+          no_output_timeout: 5400s
+      - run:
+          name: Parse Terratest Logs
+          command: |
+            terratest_log_parser -testlog /tmp/logs/all.log --outputdir /tmp/logs
+          when: always
+      # Store test result and log artifacts for browsing purposes
+      - store_artifacts:
+          path: /tmp/logs
+      - store_test_results:
+          path: /tmp/logs
 
-    pre-commit:
-        executor: python/default
-        steps:
-            - terraform/install
-            - run:
-                  name: Install TFlint
-                  command: |
-                      curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-            - checkout
-            - run:
-                  name: Install Pre-Commit
-                  command: |
-                      pip3 install --user pre-commit
-            - run:
-                  name: Run-all Pre-Commit
-                  command: |
-                      pre-commit run --all-files
+  pre-commit:
+    executor: python/default
+    steps:
+      - terraform/install
+      - run:
+          name: Install TFlint
+          command: |
+            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      - checkout
+      - run:
+          name: Install Pre-Commit
+          command: |
+            pip3 install --user pre-commit
+      - run:
+          name: Run-all Pre-Commit
+          command: |
+            pre-commit run --all-files
 
-    tfsec:
-        executor: tfsec/default
-        steps:
-            - checkout
-            - tfsec/scan:
-                  directory: modules
-                  exclude-checks: "aws-s3-enable-bucket-logging,aws-elb-alb-not-public"
+  tfsec:
+    executor: tfsec/default
+    steps:
+      - checkout
+      - tfsec/scan:
+          directory: modules
+          exclude-checks: "aws-s3-enable-bucket-logging,aws-elb-alb-not-public"
 
 workflows:
-    continuous-integration:
-        jobs:
-            - pre-commit
+  continuous-integration:
+    jobs:
+      - pre-commit
 
-            - tfsec
+      - tfsec
 
-            - integration-tests:
-                  requires: [pre-commit, tfsec]
+      - integration-tests:
+          requires: [pre-commit, tfsec]
 
-            # - cyber4all/release:
-            #       context: [Github]
-            #       requires: [integration-tests]
-            #       tag: "$(./version.sh -r)"
-            #       filters:
-            #           branches:
-            #               only: /main/
+      - cyber4all/release:
+          context: [Github]
+          requires: [integration-tests]
+          tag: "$(./version.sh -r)"
+          filters:
+            branches:
+              only: /main/

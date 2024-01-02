@@ -17,7 +17,7 @@ variable "branch" {
 }
 
 variable "stack_name" {
-  description = "Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended."
+  description = "Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended. The name should be lowercase."
   type        = string
 }
 
@@ -57,12 +57,6 @@ variable "enable_autodeploy" {
   default     = false
 }
 
-variable "enable_iam_integration" {
-  description = "Whether to enable an IAM role to be created for the stack."
-  type        = bool
-  default     = true
-}
-
 variable "enable_init_run" {
   description = "Whether to enable an initial tracked run when Spacelift stack is first created."
   type        = bool
@@ -87,12 +81,6 @@ variable "environment_variables" {
   default     = {}
 }
 
-variable "iam_role_policy_arns" {
-  description = "IAM role policy ARNs to attach to the stack's IAM role. The IAM role will be created if create_iam_role is true. The policies ARNs can either be ARNs of AWS managed policies or custom policies."
-  type        = list(string)
-  default     = ["arn:aws:iam::aws:policy/AdministratorAccess"]
-}
-
 variable "labels" {
   description = "Labels to assign to the stack."
   type        = list(string)
@@ -109,6 +97,12 @@ variable "policy_ids" {
   description = "List of Spacelift policy IDs to attach to the stack"
   type        = list(string)
   default     = []
+}
+
+variable "spacelift_integration_name" {
+  description = "Name of the Spacelift integration to use for the stack."
+  type        = string
+  default     = ""
 }
 
 variable "stack_dependencies" {

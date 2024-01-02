@@ -57,8 +57,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.5.5)
 
-- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
-
 - <a name="requirement_spacelift"></a> [spacelift](#requirement\_spacelift) (>= 1.6.0)
 
 ## Sample Usage
@@ -83,7 +81,7 @@ module "example" {
 	 repository  = string
 
 
-	 # Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended.
+	 # Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended. The name should be lowercase.
 	 stack_name  = string
 
 
@@ -108,10 +106,6 @@ module "example" {
 	 enable_autodeploy  = bool
 
 
-	 # Whether to enable an IAM role to be created for the stack.
-	 enable_iam_integration  = bool
-
-
 	 # Whether to enable an initial tracked run when Spacelift stack is first created.
 	 enable_init_run  = bool
 
@@ -128,10 +122,6 @@ module "example" {
 	 environment_variables  = map(string)
 
 
-	 # IAM role policy ARNs to attach to the stack's IAM role. The IAM role will be created if create_iam_role is true. The policies ARNs can either be ARNs of AWS managed policies or custom policies.
-	 iam_role_policy_arns  = list(string)
-
-
 	 # Labels to assign to the stack.
 	 labels  = list(string)
 
@@ -142,6 +132,10 @@ module "example" {
 
 	 # List of Spacelift policy IDs to attach to the stack
 	 policy_ids  = list(string)
+
+
+	 # Name of the Spacelift integration to use for the stack.
+	 spacelift_integration_name  = string
 
 
 	 # A map of stack ids that this stack depends on. The key is the stack id and the value is a map of environment variables that are defined by outputs of the stack. i.e { "stack-id" = { "vpc_id" = "vpc_id" } }. The input name is automatically prefixed with TF_VAR_.
@@ -173,7 +167,7 @@ Type: `string`
 
 ### <a name="input_stack_name"></a> [stack\_name](#input\_stack\_name)
 
-Description: Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended.
+Description: Name of the stack - should be unique in one account. A naming convention of <environment>-<project>-<module>-<region> is recommended. The name should be lowercase.
 
 Type: `string`
 
@@ -213,14 +207,6 @@ Type: `bool`
 
 Default: `false`
 
-### <a name="input_enable_iam_integration"></a> [enable\_iam\_integration](#input\_enable\_iam\_integration)
-
-Description: Whether to enable an IAM role to be created for the stack.
-
-Type: `bool`
-
-Default: `true`
-
 ### <a name="input_enable_init_run"></a> [enable\_init\_run](#input\_enable\_init\_run)
 
 Description: Whether to enable an initial tracked run when Spacelift stack is first created.
@@ -253,20 +239,6 @@ Type: `map(string)`
 
 Default: `{}`
 
-### <a name="input_iam_role_policy_arns"></a> [iam\_role\_policy\_arns](#input\_iam\_role\_policy\_arns)
-
-Description: IAM role policy ARNs to attach to the stack's IAM role. The IAM role will be created if create\_iam\_role is true. The policies ARNs can either be ARNs of AWS managed policies or custom policies.
-
-Type: `list(string)`
-
-Default:
-
-```json
-[
-  "arn:aws:iam::aws:policy/AdministratorAccess"
-]
-```
-
 ### <a name="input_labels"></a> [labels](#input\_labels)
 
 Description: Labels to assign to the stack.
@@ -290,6 +262,14 @@ Description: List of Spacelift policy IDs to attach to the stack
 Type: `list(string)`
 
 Default: `[]`
+
+### <a name="input_spacelift_integration_name"></a> [spacelift\_integration\_name](#input\_spacelift\_integration\_name)
+
+Description: Name of the Spacelift integration to use for the stack.
+
+Type: `string`
+
+Default: `""`
 
 ### <a name="input_stack_dependencies"></a> [stack\_dependencies](#input\_stack\_dependencies)
 
@@ -321,18 +301,6 @@ Description: The number of stack dependencies
 ### <a name="output_number_of_output_references"></a> [number\_of\_output\_references](#output\_number\_of\_output\_references)
 
 Description: The number of variable mappings defined in the stack\_dependencies variable
-
-### <a name="output_stack_iam_role_arn"></a> [stack\_iam\_role\_arn](#output\_stack\_iam\_role\_arn)
-
-Description: The ARN of the stack's IAM role
-
-### <a name="output_stack_iam_role_id"></a> [stack\_iam\_role\_id](#output\_stack\_iam\_role\_id)
-
-Description: The id of the stack's IAM role
-
-### <a name="output_stack_iam_role_policy_arns"></a> [stack\_iam\_role\_policy\_arns](#output\_stack\_iam\_role\_policy\_arns)
-
-Description: The ARNs of the stack's IAM role policies
 
 ### <a name="output_stack_id"></a> [stack\_id](#output\_stack\_id)
 

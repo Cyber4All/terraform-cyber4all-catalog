@@ -53,11 +53,11 @@ provider "spacelift" {
 # --------------------------------------------------
 
 locals {
-  vpc_stack_name         = "test-vpc-stack-${var.region}${var.random_id}"
-  ecs_cluster_stack_name = "test-ecs-cluster-stack-${var.region}${var.random_id}"
+  vpc_stack_name         = "test-vpc-${var.region}${var.random_id}"
+  ecs_cluster_stack_name = "test-ecs-cluster-${var.region}${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module"
+  branch     = "feature/sc-26884/develop-module-tests-for-spacelift-stack"
 
   labels = ["folder: Environment/Testing", "folder: Project/terraform-cyber4all-catalog", "folder: Region/${var.region}"]
 }
@@ -65,12 +65,14 @@ locals {
 module "vpc-stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = local.vpc_stack_name
+  stack_name                 = local.vpc_stack_name
+  spacelift_integration_name = "sandbox-spacelift-stack-role"
 
   repository = local.repository
   branch     = local.branch
   path       = "examples/dependencies/deploy-vpc-only"
 
+  enable_autodeploy = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false
@@ -91,12 +93,14 @@ module "vpc-stack" {
 module "ecs-cluster-stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = local.ecs_cluster_stack_name
+  stack_name                 = local.ecs_cluster_stack_name
+  spacelift_integration_name = "sandbox-spacelift-stack-role"
 
   repository = local.repository
   branch     = local.branch
   path       = "examples/dependencies/deploy-ecs-cluster-only"
 
+  enable_autodeploy = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false

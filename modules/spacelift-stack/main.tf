@@ -4,7 +4,6 @@
 # These templates deploys a Spacelift stack that can be used to manage your terraform
 # infrastructure using terraform or terragrunt. The module includes the following:
 # - Spacelift stack
-# - AWS IAM role for Spacelift
 # -------------------------------------------------------------------------------------
 
 # -------------------------------------------
@@ -15,10 +14,6 @@ terraform {
   required_version = ">= 1.5.5"
 
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
     spacelift = {
       source  = "spacelift-io/spacelift"
       version = ">= 1.6.0"
@@ -65,6 +60,10 @@ resource "spacelift_stack" "this" {
 
   # This can be transitioned to OpenToFu at a later time
   terraform_workflow_tool = "TERRAFORM_FOSS"
+
+  depends_on = [
+    data.spacelift_aws_integration.this
+  ]
 }
 
 
@@ -86,7 +85,7 @@ resource "spacelift_environment_variable" "this" {
 
   name       = "TF_VAR_${lookup(local.environment_variables[count.index], "name", null)}"
   value      = lookup(local.environment_variables[count.index], "value", null)
-  write_only = true
+  write_only = false
 }
 
 
@@ -123,9 +122,6 @@ resource "spacelift_stack_destructor" "this" {
   depends_on = [
     # Adding the following dependencies to ensure that the tracked resources are
     # destroyed first before the following are destroyed.
-    aws_iam_role.this,
-    aws_iam_role_policy_attachment.this,
-    spacelift_aws_integration.this,
     spacelift_aws_integration_attachment.this,
     spacelift_context_attachment.this,
     spacelift_environment_variable.this,
@@ -218,7 +214,7 @@ resource "spacelift_run" "this" {
 
 # ---------------------------------------------------------
 
-# THE FOLLOWING SECTION CONFIGURES THE IAM ROLE
+# THE FOLLOWING SECTION CONFIGURES THE INTEGRATION
 
 # THAT THE SPACELIFT STACK WILL USE TO MANAGE
 
@@ -226,70 +222,14 @@ resource "spacelift_run" "this" {
 
 # ---------------------------------------------------------
 
-
-# -------------------------------------------
-# CONVIENIENCE VARIABLES
-# -------------------------------------------
-
-data "aws_caller_identity" "current" {}
-
-locals {
-  account_id = data.aws_caller_identity.current.account_id
-
-  iam_role_name = "${var.stack_name}-role"
-
-  iam_role_path = "/spacelift/"
-
-  iam_role_arn = "arn:aws:iam::${local.account_id}:role${local.iam_role_path}${local.iam_role_name}"
-}
-
-
 # ---------------------------------------------------
 # CREATE THE AWS IAM ROLE FOR SPACELIFT INTEGRATION
 # ---------------------------------------------------
 
-resource "spacelift_aws_integration" "this" {
-  count = var.enable_iam_integration ? 1 : 0
+data "spacelift_aws_integration" "this" {
+  count = var.spacelift_integration_name != "" ? 1 : 0
 
-  name     = local.iam_role_name
-  role_arn = local.iam_role_arn
-
-  labels = local.labels
-}
-
-data "spacelift_aws_integration_attachment_external_id" "this" {
-  count = var.enable_iam_integration ? 1 : 0
-
-  integration_id = spacelift_aws_integration.this[0].id
-  stack_id       = spacelift_stack.this.id
-  read           = true
-  write          = true
-}
-
-resource "aws_iam_role" "this" {
-  count = var.enable_iam_integration ? 1 : 0
-
-  name = local.iam_role_name
-  path = local.iam_role_path
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      jsondecode(data.spacelift_aws_integration_attachment_external_id.this[0].assume_role_policy_statement),
-    ]
-  })
-  force_detach_policies = true
-}
-
-# ---------------------------------------------------
-# ATTACH THE IAM POLICIES TO THE SPACELIFT IAM ROLE
-# ---------------------------------------------------
-
-resource "aws_iam_role_policy_attachment" "this" {
-  count = var.enable_iam_integration ? length(var.iam_role_policy_arns) : 0
-
-  role       = aws_iam_role.this[0].id
-  policy_arn = var.iam_role_policy_arns[count.index]
+  name = var.spacelift_integration_name
 }
 
 # ---------------------------------------------------
@@ -297,8 +237,8 @@ resource "aws_iam_role_policy_attachment" "this" {
 # ---------------------------------------------------
 
 resource "spacelift_aws_integration_attachment" "this" {
-  count = var.enable_iam_integration ? 1 : 0
+  count = var.spacelift_integration_name != "" ? 1 : 0
 
-  integration_id = spacelift_aws_integration.this[0].id
+  integration_id = data.spacelift_aws_integration.this[0].id
   stack_id       = spacelift_stack.this.id
 }

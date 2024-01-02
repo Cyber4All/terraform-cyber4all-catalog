@@ -22,6 +22,9 @@ terraform {
   }
 }
 
+provider "aws" {
+  region = var.region
+}
 
 # --------------------------------------------------
 # CONFIGURE OUR SPACELIFT CONNECTION
@@ -51,17 +54,24 @@ provider "spacelift" {
 module "stack" {
   source = "../../modules/spacelift-stack"
 
-  stack_name = "test-admin-stack${var.random_id}"
+  stack_name                 = "test-admin-stack${var.random_id}"
+  spacelift_integration_name = "sandbox-spacelift-stack-role"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "feature/sc-26579/develop-spacelift-stack-terraform-module" # TODO update this to main before merge
+  branch     = "feature/sc-26884/develop-module-tests-for-spacelift-stack"
   path       = "examples/deploy-spacelift-stacks"
 
   enable_admin_stack = true
+  enable_autodeploy  = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false
   enable_state_management      = true
+
+  environment_variables = {
+    "region"    = var.region,
+    "random_id" = var.random_id,
+  }
 
   labels = ["folder: Environment/Testing", "folder: Project/terraform-cyber4all-catalog"]
 }
