@@ -171,7 +171,7 @@ resource "spacelift_stack_dependency" "this" {
   depends_on_stack_id = local.depends_on_stack_ids[count.index]
 
   depends_on = [
-    spacelift_stack_destructor.this,  
+    spacelift_stack_destructor.this,
   ]
 }
 
@@ -184,7 +184,7 @@ resource "spacelift_stack_dependency_reference" "this" {
   output_name = local.dependency_mappings[count.index].output_name
 
   depends_on = [
-    spacelift_stack_destructor.this,  
+    spacelift_stack_destructor.this,
   ]
 }
 
