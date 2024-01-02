@@ -73,14 +73,14 @@ module "cluster" {
 
 
 # -------------------------------------------
-# DEPLOY ECS SCHEDULED TASK
+# DEPLOY ECS SCHEDULED TASKS
 # -------------------------------------------
 
-module "ecs-scheduled-task" {
+module "ecs-scheduled-task-expression" {
   source = "../../modules/ecs-service"
 
   ecs_cluster_name = module.cluster.ecs_cluster_name
-  ecs_service_name = local.name
+  ecs_service_name = "${local.name}-expression"
 
   ecs_container_image = var.container_image
   ecs_container_environment_variables = {
@@ -89,5 +89,21 @@ module "ecs-scheduled-task" {
 
   create_scheduled_task          = true
   scheduled_task_cron_expression = "rate(2 minutes)"
+  scheduled_task_subnet_ids      = module.vpc.public_subnet_ids
+}
+
+module "ecs-scheduled-task-cron" {
+  source = "../../modules/ecs-service"
+
+  ecs_cluster_name = module.cluster.ecs_cluster_name
+  ecs_service_name = "${local.name}-cron"
+
+  ecs_container_image = var.container_image
+  ecs_container_environment_variables = {
+    "MOCK_TYPE" = "single-process"
+  }
+
+  create_scheduled_task          = true
+  scheduled_task_cron_expression = "cron(0/2 * * * ? *)"
   scheduled_task_subnet_ids      = module.vpc.public_subnet_ids
 }
