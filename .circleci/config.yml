@@ -86,8 +86,14 @@ workflows:
 
       - tfsec
 
+      - hold:
+          type: approval
+          filters:
+            branches:
+              ignore: /main/
+
       - integration-tests:
-          requires: [pre-commit, tfsec]
+          requires: [pre-commit, tfsec, hold]
 
       - cyber4all/release:
           context: [Github]
