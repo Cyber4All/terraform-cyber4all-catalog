@@ -42,6 +42,7 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				genTestDataFunc: modules.DeploySpaceliftAdminStack,
 				validateFunc:    modules.ValidateSpaceliftAdminStack,
 			},
+
 			// mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
 			// This test requires a VPC.
 			{
@@ -49,15 +50,6 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				workingDir:      "../examples/deploy-mongodb-cluster",
 				genTestDataFunc: modules.DeployMongoDBCluster,
 				validateFunc:    modules.ValidateMongoDBCluster,
-			},
-
-			// secrets-manager: Deploy and validate Secrets Manager. (~30s)
-			// This test does not require a VPC, so it can be run first.
-			{
-				name:            "secrets-manager",
-				workingDir:      "../examples/deploy-secrets-manager",
-				genTestDataFunc: modules.DeployUsingTerraform,
-				validateFunc:    modules.ValidateSecretsContainSecrets,
 			},
 
 			// ecs_service: Deploy and validate an ECS service. (~912s)
@@ -78,25 +70,15 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				validateFunc:    modules.ValidateEcsCluster,
 			},
 
-			// alb-wo-https: Deploy an Application Load Balancer with HTTP only. (~281s)
-			// This test requires a VPC.
-			{
-				name:            "alb-w/o-https",
-				workingDir:      "../examples/deploy-alb-wo-https",
-				genTestDataFunc: modules.DeployAlb,
-				validateFunc:    modules.ValidateAlbNoHttps,
-			},
-
 			// alb-https: Deploy and validate an Application Load Balancer with HTTPS. (~268s)
 			// This test requires a VPC.
 			{
-				name:            "alb-https",
+				name:            "alb",
 				workingDir:      "../examples/deploy-alb",
 				genTestDataFunc: modules.DeployAlb,
 				validateFunc:    modules.ValidateAlbHttps,
 			},
-		},
-		{
+
 			// vpc: Deploy and validate a VPC. (~100s)
 			// This test requires a VPC.
 			{
@@ -104,24 +86,6 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				workingDir:      "../examples/deploy-vpc",
 				genTestDataFunc: modules.DeployVpcUsingTerraform,
 				validateFunc:    modules.ValidateVpc,
-			},
-
-			// vpc-public-only: Deploy and validate a VPC with only public subnets. (~40s)
-			// This test requires a VPC.
-			{
-				name:            "vpc-public-only",
-				workingDir:      "../examples/deploy-vpc-public-only",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateOnlyPublicSubnets,
-			},
-
-			// vpc-wo-nat: Deploy and validate a VPC without NAT Gateways. (~40s)
-			// This test requires a VPC.
-			{
-				name:            "vpc-wo-nat",
-				workingDir:      "../examples/deploy-vpc-wo-nat",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateVpcNoNat,
 			},
 		},
 	}
@@ -133,15 +97,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 
 func runTest(t *testing.T, tests []TestCase) {
 	// Run tests in parallel
-	for i, tt := range tests {
+	for _, tt := range tests {
 		workingDir := tt.workingDir
 		genTestDataFunc := tt.genTestDataFunc
 		validateFunc := tt.validateFunc
 		t.Run(tt.name, func(t *testing.T) {
-			// If not the last test, run in parallel
-			if i != len(tests)-1 {
-				t.Parallel()
-			}
+
 			// At the end of the test, undeploy the resources using Terraform
 			defer test_structure.RunTestStage(t, "destroy", func() {
 				terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)

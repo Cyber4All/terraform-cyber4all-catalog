@@ -105,6 +105,11 @@ func ValidateSpaceliftAdminStack(t *testing.T, workingDir string) {
 		filteredStacks = util.Filter(&stacks, func(stack Stack) bool {
 			return strings.HasPrefix(stack.Name, "test") && strings.HasSuffix(stack.Name, randomID)
 		})
+		for _, stack := range *filteredStacks {
+			if stack.State == "FAILED" {
+				t.Fatalf("Stack %s failed", stack.Name)
+			}
+		}
 		fmt.Println("Stacks: ", *filteredStacks)
 	}
 
