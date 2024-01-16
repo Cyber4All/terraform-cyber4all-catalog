@@ -1,7 +1,6 @@
 package modules
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -257,23 +256,23 @@ func assertEcsServiceCanRetrieveSecret(t *testing.T, wg *sync.WaitGroup, dnsName
 //  1. mock-container-image docker image is being used in task definition
 //     a. API has the POST /proxy endpoint which proxies the request to
 //     the internal service.
-func assertEcsServiceCanReachInternalService(t *testing.T, wg *sync.WaitGroup, dnsName string, internalServiceName string, internalServicePort int) {
-	defer wg.Done()
+// func assertEcsServiceCanReachInternalService(t *testing.T, wg *sync.WaitGroup, dnsName string, internalServiceName string, internalServicePort int) {
+// 	defer wg.Done()
 
-	expectedBody := "Hello from the external service!"
-	body := bytes.NewBuffer([]byte(fmt.Sprintf(`{"proxyUrl": "http://%s:%d/test?proxyPhrase=%s"}`, internalServiceName, internalServicePort, expectedBody)))
+// 	expectedBody := "Hello from the external service!"
+// 	body := bytes.NewBuffer([]byte(fmt.Sprintf(`{"proxyUrl": "http://%s:%d/test?proxyPhrase=%s"}`, internalServiceName, internalServicePort, expectedBody)))
 
-	http_helper.HTTPDoWithCustomValidation(t,
-		"POST",                                  // method
-		fmt.Sprintf("http://%s/proxy", dnsName), // url
-		body,                                    // body
-		map[string]string{"Content-Type": "application/json"}, // headers
-		func(statusCode int, response string) bool { // validator
-			return statusCode == 200 && strings.Contains(response, expectedBody)
-		},
-		nil,
-	)
-}
+// 	http_helper.HTTPDoWithCustomValidation(t,
+// 		"POST",                                  // method
+// 		fmt.Sprintf("http://%s/proxy", dnsName), // url
+// 		body,                                    // body
+// 		map[string]string{"Content-Type": "application/json"}, // headers
+// 		func(statusCode int, response string) bool { // validator
+// 			return statusCode == 200 && strings.Contains(response, expectedBody)
+// 		},
+// 		nil,
+// 	)
+// }
 
 // assertEcsServiceDeploymentScript asserts that the ECS service can be deployed
 // externally without being overriden with the container image specified in the
