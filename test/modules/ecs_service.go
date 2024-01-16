@@ -63,7 +63,6 @@ func DeployEcsServiceUsingTerraform(t *testing.T, workingDir string) {
 // - The ECS service is in a stable state
 // - The ECS service is receiving traffic from the load balancer
 // - The ECS service can retrieve a secret from secrets manager
-// - The ECS service can reach the internal service via ServiceConnect
 // - The ECS service can be deployed using the deploy-ecs-service.py script
 // - The ECS service can be scaled out
 func ValidateEcsService(t *testing.T, workingDir string) {
@@ -83,7 +82,7 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 
 	// Check that the services exist and
 	// are in a stable state...
-	wg.Add(2)
+	wg.Add(1)
 	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, externalServiceName)
 	wg.Wait()
 
