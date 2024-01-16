@@ -601,9 +601,9 @@ resource "aws_lb_target_group" "alb" {
   health_check {
     # This is the default health check configuration for the target group.
     # This would mean that a task could be considered healthy in 2 * (10 + 5) = 30 seconds.
-    # or the task could be considered unhealthy in 3 * (5 + 10) = 45 seconds.
+    # or the task could be considered unhealthy in 5 * (5 + 10) = 1 min 30 seconds.
     healthy_threshold   = 2
-    unhealthy_threshold = 3
+    unhealthy_threshold = 6
     timeout             = 5
     interval            = 10
     path                = "/"

@@ -58,7 +58,7 @@ module "stack" {
   spacelift_integration_name = "sandbox-spacelift-stack-role"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "feature/sc-26884/develop-module-tests-for-spacelift-stack"
+  branch     = "feature/sc-27461/setup-on-spacelift-the-module-registry"
   path       = "examples/deploy-spacelift-stacks"
 
   enable_admin_stack = true

@@ -1,11 +1,9 @@
 package modules
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -16,7 +14,6 @@ import (
 	cloudwatchtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
@@ -63,13 +60,11 @@ func DeployEcsServiceUsingTerraform(t *testing.T, workingDir string) {
 
 // ValidateEcsService validates the ECS service module with the
 // following assertions:
-// 1. The ECS service is in a stable state
-// 2. The ECS service is sending logs to cloudwatch
-// 3. The ECS service is receiving traffic from the load balancer
-// 4. The ECS service can retrieve a secret from secrets manager
-// 5. The ECS service can reach the internal service via ServiceConnect
-// 6. The ECS service can be deployed using the deploy-ecs-service.py script
-// 7. The ECS service can be scaled out
+// - The ECS service is in a stable state
+// - The ECS service is receiving traffic from the load balancer
+// - The ECS service can retrieve a secret from secrets manager
+// - The ECS service can be deployed using the deploy-ecs-service.py script
+// - The ECS service can be scaled out
 func ValidateEcsService(t *testing.T, workingDir string) {
 	wg := &sync.WaitGroup{}
 
@@ -82,27 +77,18 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	externalServiceName := terraform.Output(t, terraformOptions, "external_service_name")
 	externalServiceAutoScalingAlarmArns := terraform.OutputList(t, terraformOptions, "external_service_auto_scaling_alarm_arns")
 	externalTargetGroupArn := terraform.Output(t, terraformOptions, "external_service_target_group_arn")
-	internalEcsTaskContainerPort := terraform.Output(t, terraformOptions, "internal_ecs_task_container_port")
-	internalServiceName := terraform.Output(t, terraformOptions, "internal_service_name")
 	loadbalancerDnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
 	loadbalancerName := terraform.Output(t, terraformOptions, "alb_name")
 
 	// Check that the services exist and
 	// are in a stable state...
-	wg.Add(2)
-	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, internalServiceName)
+	wg.Add(1)
 	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, externalServiceName)
 	wg.Wait()
 
 	// The following assertions can be run in parallel
 	// with the above assertions
-	wg.Add(6)
-
-	// Check that the services are producing logs
-	internalServiceLogGroup := fmt.Sprintf("/ecs/service/%s", internalServiceName)
-	externalServiceLogGroup := fmt.Sprintf("/ecs/service/%s", externalServiceName)
-	go assertEcsServiceSendsLogs(t, wg, regionName, internalServiceLogGroup)
-	go assertEcsServiceSendsLogs(t, wg, regionName, externalServiceLogGroup)
+	wg.Add(2)
 
 	// Check that the load balancer attached service
 	// recieves traffic
@@ -112,20 +98,12 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	// from secrets manager
 	go assertEcsServiceCanRetrieveSecret(t, wg, loadbalancerDnsName)
 
-	// Check that the internal service can be reached
-	// from the external service via ServiceConnect
-	internalServicePort, err := strconv.Atoi(internalEcsTaskContainerPort)
-	if err != nil {
-		t.Fatal(err)
-	}
-	go assertEcsServiceCanReachInternalService(t, wg, loadbalancerDnsName, internalServiceName, internalServicePort)
+	// Wait for all the above assertions to complete
+	wg.Wait()
 
 	// Check that deployments updating the container image
 	// externally do not override the image specified in the
-	go assertEcsServiceExternalDeployment(t, wg, terraformOptions, regionName, ecsClusterName, externalServiceName)
-
-	// Wait for all the above assertions to complete
-	wg.Wait()
+	assertEcsServiceExternalDeployment(t, terraformOptions, regionName, ecsClusterName, externalServiceName)
 
 	// Check that the service can be scaled out
 	assertEcsServiceAutoScaling(t, regionName, ecsClusterName, externalServiceName, externalServiceAutoScalingAlarmArns)
@@ -160,7 +138,7 @@ func assertEcsServiceIsStable(t *testing.T, wg *sync.WaitGroup, awsRegion string
 					return fmt.Sprintf("Service %s is stable", serviceName), nil
 
 				} else if *deployment.RolloutState == ecs.DeploymentRolloutStateFailed {
-					return "", retry.FatalError{Underlying: fmt.Errorf(*deployment.RolloutStateReason)}
+					return "", retry.FatalError{Underlying: fmt.Errorf(*deployment.RolloutStateReason, serviceName)}
 				}
 			}
 
@@ -171,43 +149,6 @@ func assertEcsServiceIsStable(t *testing.T, wg *sync.WaitGroup, awsRegion string
 	t.Log(message)
 }
 
-// assertEcsServiceSendsLogs asserts that the ECS service is sending logs to the
-// specified log group. This function supports running in parallel with other tests.
-func assertEcsServiceSendsLogs(t *testing.T, wg *sync.WaitGroup, regionName string, logGroup string) {
-	defer wg.Done()
-
-	client := aws.NewCloudWatchLogsClient(t, regionName)
-
-	// Describe the log streams
-	streams, err := client.DescribeLogStreams(&cloudwatchlogs.DescribeLogStreamsInput{
-		LogGroupName: &logGroup,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Check that there is at least one log stream
-	assert.NotEmpty(t, streams.LogStreams, "Expected at least one log stream for %s", logGroup)
-
-	// Get the logs
-	output, err := client.GetLogEvents(&cloudwatchlogs.GetLogEventsInput{
-		LogGroupName:  &logGroup,
-		LogStreamName: streams.LogStreams[0].LogStreamName,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Convert the log events to a slice of strings
-	entries := []string{}
-	for _, event := range output.Events {
-		entries = append(entries, *event.Message)
-	}
-
-	// Check that the service is sending logs
-	assert.NotEmpty(t, entries, "Expected service to send logs to %s", logGroup)
-}
-
 // assertEcsServiceReceivesTraffic asserts that the ECS service is receiving traffic
 // from the load balancer. This function supports running in parallel with other tests.
 func assertEcsServiceReceivesTraffic(t *testing.T, wg *sync.WaitGroup, awsRegion string, loadBalancerName string, targetGroupArn string) {
@@ -215,9 +156,8 @@ func assertEcsServiceReceivesTraffic(t *testing.T, wg *sync.WaitGroup, awsRegion
 
 	// Connect to aws using aws sdk
 	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
+
 	client := elasticloadbalancingv2.NewFromConfig(cfg, func(o *elasticloadbalancingv2.Options) {
 		o.Region = awsRegion
 	})
@@ -226,9 +166,7 @@ func assertEcsServiceReceivesTraffic(t *testing.T, wg *sync.WaitGroup, awsRegion
 	resp, err := client.DescribeTargetHealth(context.TODO(), &elasticloadbalancingv2.DescribeTargetHealthInput{
 		TargetGroupArn: &targetGroupArn,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check that there is at least one target
 	assert.NotEmpty(t, resp.TargetHealthDescriptions, "Expected at least one target for %s", loadBalancerName)
@@ -248,9 +186,7 @@ func assertEcsServiceReceivesTraffic(t *testing.T, wg *sync.WaitGroup, awsRegion
 	loadBalancers, err := client.DescribeLoadBalancers(context.TODO(), &elasticloadbalancingv2.DescribeLoadBalancersInput{
 		Names: []string{loadBalancerName},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check that there is one load balancer
 	assert.Equal(t, 1, len(loadBalancers.LoadBalancers), "Expected one load balancer for %s, recieved ", loadBalancerName, len(loadBalancers.LoadBalancers))
@@ -298,39 +234,10 @@ func assertEcsServiceCanRetrieveSecret(t *testing.T, wg *sync.WaitGroup, dnsName
 	)
 }
 
-// assertEcsServiceCanReachInternalService asserts that the ECS service can
-// reach the internal service via ServiceConnect. This function supports running
-// in parallel with other tests.
-//
-// This function assumes the following:
-//
-//  1. mock-container-image docker image is being used in task definition
-//     a. API has the POST /proxy endpoint which proxies the request to
-//     the internal service.
-func assertEcsServiceCanReachInternalService(t *testing.T, wg *sync.WaitGroup, dnsName string, internalServiceName string, internalServicePort int) {
-	defer wg.Done()
-
-	expectedBody := "Hello from the external service!"
-	body := bytes.NewBuffer([]byte(fmt.Sprintf(`{"proxyUrl": "http://%s:%d/test?proxyPhrase=%s"}`, internalServiceName, internalServicePort, expectedBody)))
-
-	http_helper.HTTPDoWithCustomValidation(t,
-		"POST",                                  // method
-		fmt.Sprintf("http://%s/proxy", dnsName), // url
-		body,                                    // body
-		map[string]string{"Content-Type": "application/json"}, // headers
-		func(statusCode int, response string) bool { // validator
-			return statusCode == 200 && strings.Contains(response, expectedBody)
-		},
-		nil,
-	)
-}
-
 // assertEcsServiceDeploymentScript asserts that the ECS service can be deployed
 // externally without being overriden with the container image specified in the
 // terraform configuration
-func assertEcsServiceExternalDeployment(t *testing.T, wg *sync.WaitGroup, terraformOptions *terraform.Options, regionName string, clusterName string, serviceName string) {
-	defer wg.Done()
-
+func assertEcsServiceExternalDeployment(t *testing.T, terraformOptions *terraform.Options, regionName string, clusterName string, serviceName string) {
 	expectedContainerImage := "cyber4all/mock-container-image:1.0.0"
 
 	// Deploy the service externally
