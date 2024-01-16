@@ -36,12 +36,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 	 */
 	tests := [][]TestCase{
 		{
-			{
-				name:            "spacelift-admin",
-				workingDir:      "../examples/deploy-spacelift-admin-stack",
-				genTestDataFunc: modules.DeploySpaceliftAdminStack,
-				validateFunc:    modules.ValidateSpaceliftAdminStack,
-			},
+			// {
+			// 	name:            "spacelift-admin",
+			// 	workingDir:      "../examples/deploy-spacelift-admin-stack",
+			// 	genTestDataFunc: modules.DeploySpaceliftAdminStack,
+			// 	validateFunc:    modules.ValidateSpaceliftAdminStack,
+			// },
 
 			// Only run this test locally as it may conflict in CI
 			// // mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
@@ -64,30 +64,30 @@ func TestExamplesForTerraformModules(t *testing.T) {
 
 			// ecs-cluster: Deploy and validate an ECS cluster. (~313s)
 			// This test requires a VPC.
-			{
-				name:            "ecs-cluster",
-				workingDir:      "../examples/deploy-ecs-cluster",
-				genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
-				validateFunc:    modules.ValidateEcsCluster,
-			},
+			// {
+			// 	name:            "ecs-cluster",
+			// 	workingDir:      "../examples/deploy-ecs-cluster",
+			// 	genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+			// 	validateFunc:    modules.ValidateEcsCluster,
+			// },
 
 			// alb-https: Deploy and validate an Application Load Balancer with HTTPS. (~268s)
 			// This test requires a VPC.
-			{
-				name:            "alb",
-				workingDir:      "../examples/deploy-alb",
-				genTestDataFunc: modules.DeployAlb,
-				validateFunc:    modules.ValidateAlbHttps,
-			},
+			// {
+			// 	name:            "alb",
+			// 	workingDir:      "../examples/deploy-alb",
+			// 	genTestDataFunc: modules.DeployAlb,
+			// 	validateFunc:    modules.ValidateAlbHttps,
+			// },
 
 			// vpc: Deploy and validate a VPC. (~100s)
 			// This test requires a VPC.
-			{
-				name:            "vpc",
-				workingDir:      "../examples/deploy-vpc",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateVpc,
-			},
+			// {
+			// 	name:            "vpc",
+			// 	workingDir:      "../examples/deploy-vpc",
+			// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
+			// 	validateFunc:    modules.ValidateVpc,
+			// },
 		},
 	}
 

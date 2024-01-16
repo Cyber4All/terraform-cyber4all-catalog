@@ -94,7 +94,7 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 
 	// The following assertions can be run in parallel
 	// with the above assertions
-	wg.Add(4)
+	wg.Add(3)
 
 	// Check that the load balancer attached service
 	// recieves traffic
@@ -112,12 +112,12 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	}
 	go assertEcsServiceCanReachInternalService(t, wg, loadbalancerDnsName, internalServiceName, internalServicePort)
 
-	// Check that deployments updating the container image
-	// externally do not override the image specified in the
-	go assertEcsServiceExternalDeployment(t, wg, terraformOptions, regionName, ecsClusterName, externalServiceName)
-
 	// Wait for all the above assertions to complete
 	wg.Wait()
+
+	// Check that deployments updating the container image
+	// externally do not override the image specified in the
+	assertEcsServiceExternalDeployment(t, terraformOptions, regionName, ecsClusterName, externalServiceName)
 
 	// Check that the service can be scaled out
 	assertEcsServiceAutoScaling(t, regionName, ecsClusterName, externalServiceName, externalServiceAutoScalingAlarmArns)
@@ -170,9 +170,8 @@ func assertEcsServiceReceivesTraffic(t *testing.T, wg *sync.WaitGroup, awsRegion
 
 	// Connect to aws using aws sdk
 	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
+
 	client := elasticloadbalancingv2.NewFromConfig(cfg, func(o *elasticloadbalancingv2.Options) {
 		o.Region = awsRegion
 	})
@@ -181,9 +180,7 @@ func assertEcsServiceReceivesTraffic(t *testing.T, wg *sync.WaitGroup, awsRegion
 	resp, err := client.DescribeTargetHealth(context.TODO(), &elasticloadbalancingv2.DescribeTargetHealthInput{
 		TargetGroupArn: &targetGroupArn,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check that there is at least one target
 	assert.NotEmpty(t, resp.TargetHealthDescriptions, "Expected at least one target for %s", loadBalancerName)
@@ -203,9 +200,7 @@ func assertEcsServiceReceivesTraffic(t *testing.T, wg *sync.WaitGroup, awsRegion
 	loadBalancers, err := client.DescribeLoadBalancers(context.TODO(), &elasticloadbalancingv2.DescribeLoadBalancersInput{
 		Names: []string{loadBalancerName},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	// Check that there is one load balancer
 	assert.Equal(t, 1, len(loadBalancers.LoadBalancers), "Expected one load balancer for %s, recieved ", loadBalancerName, len(loadBalancers.LoadBalancers))
@@ -283,9 +278,7 @@ func assertEcsServiceCanReachInternalService(t *testing.T, wg *sync.WaitGroup, d
 // assertEcsServiceDeploymentScript asserts that the ECS service can be deployed
 // externally without being overriden with the container image specified in the
 // terraform configuration
-func assertEcsServiceExternalDeployment(t *testing.T, wg *sync.WaitGroup, terraformOptions *terraform.Options, regionName string, clusterName string, serviceName string) {
-	defer wg.Done()
-
+func assertEcsServiceExternalDeployment(t *testing.T, terraformOptions *terraform.Options, regionName string, clusterName string, serviceName string) {
 	expectedContainerImage := "cyber4all/mock-container-image:1.0.0"
 
 	// Deploy the service externally
