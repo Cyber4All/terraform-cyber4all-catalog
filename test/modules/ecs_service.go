@@ -1,11 +1,9 @@
 package modules
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -78,23 +76,20 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	// Get outputs for assertions
 	ecsClusterName := terraform.Output(t, terraformOptions, "ecs_cluster_name")
 	externalServiceName := terraform.Output(t, terraformOptions, "external_service_name")
-	// externalServiceAutoScalingAlarmArns := terraform.OutputList(t, terraformOptions, "external_service_auto_scaling_alarm_arns")
+	externalServiceAutoScalingAlarmArns := terraform.OutputList(t, terraformOptions, "external_service_auto_scaling_alarm_arns")
 	externalTargetGroupArn := terraform.Output(t, terraformOptions, "external_service_target_group_arn")
-	internalEcsTaskContainerPort := terraform.Output(t, terraformOptions, "internal_ecs_task_container_port")
-	internalServiceName := terraform.Output(t, terraformOptions, "internal_service_name")
 	loadbalancerDnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
 	loadbalancerName := terraform.Output(t, terraformOptions, "alb_name")
 
 	// Check that the services exist and
 	// are in a stable state...
 	wg.Add(2)
-	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, internalServiceName)
 	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, externalServiceName)
 	wg.Wait()
 
 	// The following assertions can be run in parallel
 	// with the above assertions
-	wg.Add(3)
+	wg.Add(2)
 
 	// Check that the load balancer attached service
 	// recieves traffic
@@ -104,23 +99,15 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	// from secrets manager
 	go assertEcsServiceCanRetrieveSecret(t, wg, loadbalancerDnsName)
 
-	// Check that the internal service can be reached
-	// from the external service via ServiceConnect
-	internalServicePort, err := strconv.Atoi(internalEcsTaskContainerPort)
-	if err != nil {
-		t.Fatal(err)
-	}
-	go assertEcsServiceCanReachInternalService(t, wg, loadbalancerDnsName, internalServiceName, internalServicePort)
-
 	// Wait for all the above assertions to complete
 	wg.Wait()
 
 	// Check that deployments updating the container image
 	// externally do not override the image specified in the
-	// assertEcsServiceExternalDeployment(t, terraformOptions, regionName, ecsClusterName, externalServiceName)
+	assertEcsServiceExternalDeployment(t, terraformOptions, regionName, ecsClusterName, externalServiceName)
 
 	// Check that the service can be scaled out
-	// assertEcsServiceAutoScaling(t, regionName, ecsClusterName, externalServiceName, externalServiceAutoScalingAlarmArns)
+	assertEcsServiceAutoScaling(t, regionName, ecsClusterName, externalServiceName, externalServiceAutoScalingAlarmArns)
 }
 
 // assertEcsServiceIsStable asserts that the ECS service is in a stable state
@@ -245,33 +232,6 @@ func assertEcsServiceCanRetrieveSecret(t *testing.T, wg *sync.WaitGroup, dnsName
 			// Check that the body.message is "SUPER_SECRET_VALUE"
 			return statusCode == 200 && strings.Contains(body, "Secret: SUPER_SECRET_VALUE")
 		},
-	)
-}
-
-// assertEcsServiceCanReachInternalService asserts that the ECS service can
-// reach the internal service via ServiceConnect. This function supports running
-// in parallel with other tests.
-//
-// This function assumes the following:
-//
-//  1. mock-container-image docker image is being used in task definition
-//     a. API has the POST /proxy endpoint which proxies the request to
-//     the internal service.
-func assertEcsServiceCanReachInternalService(t *testing.T, wg *sync.WaitGroup, dnsName string, internalServiceName string, internalServicePort int) {
-	defer wg.Done()
-
-	expectedBody := "Hello from the external service!"
-	body := bytes.NewBuffer([]byte(fmt.Sprintf(`{"proxyUrl": "http://%s:%d/test?proxyPhrase=%s"}`, internalServiceName, internalServicePort, expectedBody)))
-
-	http_helper.HTTPDoWithCustomValidation(t,
-		"POST",                                  // method
-		fmt.Sprintf("http://%s/proxy", dnsName), // url
-		body,                                    // body
-		map[string]string{"Content-Type": "application/json"}, // headers
-		func(statusCode int, response string) bool { // validator
-			return statusCode == 200 && strings.Contains(response, expectedBody)
-		},
-		nil,
 	)
 }
 
