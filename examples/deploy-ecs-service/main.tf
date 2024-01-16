@@ -87,6 +87,7 @@ module "cluster" {
   cluster_name = local.name
 
   cluster_instance_ami = var.cluster_instance_ami
+  cluster_min_size     = 2
 
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.private_subnet_ids
@@ -149,4 +150,9 @@ module "internal-ecs-service" {
   ecs_container_environment_variables = {
     "MOCK_TYPE" = "rest-api"
   }
+
+  // Prevents service from starting to soon causing tests to fail
+  depends_on = [
+    module.external-ecs-service
+  ]
 }

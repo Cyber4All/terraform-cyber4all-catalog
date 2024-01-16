@@ -46,12 +46,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 			// Only run this test locally as it may conflict in CI
 			// mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
 			// This test requires a VPC.
-			{
-				name:            "mongodb-cluster",
-				workingDir:      "../examples/deploy-mongodb-cluster",
-				genTestDataFunc: modules.DeployMongoDBCluster,
-				validateFunc:    modules.ValidateMongoDBCluster,
-			},
+			// {
+			// 	name:            "mongodb-cluster",
+			// 	workingDir:      "../examples/deploy-mongodb-cluster",
+			// 	genTestDataFunc: modules.DeployMongoDBCluster,
+			// 	validateFunc:    modules.ValidateMongoDBCluster,
+			// },
 
 			// ecs_service: Deploy and validate an ECS service. (~912s)
 			// This test requires a VPC.

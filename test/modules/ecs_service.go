@@ -86,8 +86,11 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	// Check that the services exist and
 	// are in a stable state...
 	wg.Add(2)
-	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, internalServiceName)
-	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, externalServiceName)
+	_, err := go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, internalServiceName)
+	assert.NoError(t, err)
+
+	_, err := go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, externalServiceName)
+	assert.NoError(t, err)
 	wg.Wait()
 
 	// The following assertions can be run in parallel
@@ -150,7 +153,7 @@ func assertEcsServiceIsStable(t *testing.T, wg *sync.WaitGroup, awsRegion string
 					return fmt.Sprintf("Service %s is stable", serviceName), nil
 
 				} else if *deployment.RolloutState == ecs.DeploymentRolloutStateFailed {
-					return "", retry.FatalError{Underlying: fmt.Errorf(*deployment.RolloutStateReason)}
+					return "", retry.FatalError{Underlying: fmt.Errorf(*deployment.RolloutStateReason, serviceName)}
 				}
 			}
 
