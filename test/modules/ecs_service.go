@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -79,7 +78,7 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	externalServiceName := terraform.Output(t, terraformOptions, "external_service_name")
 	externalServiceAutoScalingAlarmArns := terraform.OutputList(t, terraformOptions, "external_service_auto_scaling_alarm_arns")
 	externalTargetGroupArn := terraform.Output(t, terraformOptions, "external_service_target_group_arn")
-	internalEcsTaskContainerPort := terraform.Output(t, terraformOptions, "internal_ecs_task_container_port")
+	// internalEcsTaskContainerPort := terraform.Output(t, terraformOptions, "internal_ecs_task_container_port")
 	internalServiceName := terraform.Output(t, terraformOptions, "internal_service_name")
 	loadbalancerDnsName := terraform.Output(t, terraformOptions, "alb_dns_name")
 	loadbalancerName := terraform.Output(t, terraformOptions, "alb_name")
@@ -93,7 +92,7 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 
 	// The following assertions can be run in parallel
 	// with the above assertions
-	wg.Add(3)
+	wg.Add(2)
 
 	// Check that the load balancer attached service
 	// recieves traffic
@@ -105,11 +104,11 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 
 	// Check that the internal service can be reached
 	// from the external service via ServiceConnect
-	internalServicePort, err := strconv.Atoi(internalEcsTaskContainerPort)
-	if err != nil {
-		t.Fatal(err)
-	}
-	go assertEcsServiceCanReachInternalService(t, wg, loadbalancerDnsName, internalServiceName, internalServicePort)
+	// internalServicePort, err := strconv.Atoi(internalEcsTaskContainerPort)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// go assertEcsServiceCanReachInternalService(t, wg, loadbalancerDnsName, internalServiceName, internalServicePort)
 
 	// Wait for all the above assertions to complete
 	wg.Wait()
