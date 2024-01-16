@@ -86,11 +86,8 @@ func ValidateEcsService(t *testing.T, workingDir string) {
 	// Check that the services exist and
 	// are in a stable state...
 	wg.Add(2)
-	_, err := go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, internalServiceName)
-	assert.NoError(t, err)
-
-	_, err := go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, externalServiceName)
-	assert.NoError(t, err)
+	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, internalServiceName)
+	go assertEcsServiceIsStable(t, wg, regionName, ecsClusterName, externalServiceName)
 	wg.Wait()
 
 	// The following assertions can be run in parallel
