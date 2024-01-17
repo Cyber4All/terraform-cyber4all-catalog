@@ -136,17 +136,3 @@ module "external-ecs-service" {
   lb_listener_arn        = module.alb.http_listener_arn
   lb_target_group_vpc_id = module.vpc.vpc_id
 }
-
-module "internal-ecs-service" {
-  source = "../../modules/ecs-service"
-
-  ecs_cluster_name = module.cluster.ecs_cluster_name
-  ecs_service_name = "${local.name}-internal"
-
-  ecs_container_image = var.internal_container_image
-  ecs_container_port  = 8080
-
-  ecs_container_environment_variables = {
-    "MOCK_TYPE" = "rest-api"
-  }
-}
