@@ -5,6 +5,7 @@ env: &env
     GO111MODULE: auto
 
 orbs:
+  cyber4all: cyber4all/orb@2.0.0
   go: circleci/go@1.8.0
   python: circleci/python@2.1.1
   terraform: circleci/terraform@3.2.1
@@ -87,3 +88,11 @@ workflows:
 
       - integration-tests:
           requires: [pre-commit, tfsec]
+
+      - cyber4all/release:
+          context: [Github]
+          requires: [integration-tests]
+          tag: "$(./version.sh -r)"
+          filters:
+            branches:
+              only: /main/
