@@ -131,8 +131,4 @@ module "external-ecs-service" {
   ecs_container_secrets = {
     "SECRET" : module.secrets-manager.secret_arns[0]
   }
-
-  enable_load_balancer   = true
-  lb_listener_arn        = module.alb.http_listener_arn
-  lb_target_group_vpc_id = module.vpc.vpc_id
 }
