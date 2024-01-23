@@ -148,11 +148,11 @@ locals {
         # Create a mapping of the stack_dependency_id to the variable mappings defined in the stack_dependencies variable
         # only if the depends on stack id matches the id defined in the spacelift_stack_dependency resource
         for input_name, output_name in mapping :
-        depends_on_stack_id == stack_dependency_resource.depends_on_stack_id ? {
+        {
           stack_dependency_id = stack_dependency_resource.id
           input_name          = "TF_VAR_${input_name}"
           output_name         = output_name
-        } : null
+        } if depends_on_stack_id == stack_dependency_resource.depends_on_stack_id
       ]
     ]
   ])
@@ -184,7 +184,6 @@ resource "spacelift_stack_dependency_reference" "this" {
   output_name = local.dependency_mappings[count.index].output_name
 
   depends_on = [
-    spacelift_stack_dependency.this,
     spacelift_stack_destructor.this,
   ]
 }
