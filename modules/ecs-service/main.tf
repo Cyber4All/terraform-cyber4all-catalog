@@ -127,8 +127,7 @@ locals {
     local.lookup_deployed_image ?
     (
       var.create_scheduled_task ?
-      # data.aws_ecs_container_definition.scheduled[0].image :
-      var.ecs_container_image : # TODO FIX THIS IN THE ECS SCHEDULED TASK MODULE IMPLEMENTATION
+      data.aws_ecs_container_definition.scheduled[0].image :
       data.aws_ecs_container_definition.service[0].image
     )
     : var.ecs_container_image
@@ -137,6 +136,8 @@ locals {
 
   # Define the conditions for count to be used with the terraform blocks
   lookup_deployed_ecs_service_image = !var.create_scheduled_task && local.lookup_deployed_image
+
+  lookup_deployed_ecs_scheduled_image = var.create_scheduled_task && local.lookup_deployed_image
 }
 
 # -------------------------------------------
@@ -160,26 +161,25 @@ data "aws_ecs_container_definition" "service" {
   container_name  = var.ecs_service_name
 }
 
-
 # -------------------------------------------
-# LOOKUP IMAGE FOR SCHEDULED TASK
+# LOOKUP IMAGE FOR ECS SCHEDULED TASK
 # -------------------------------------------
 
-# TODO: This causes a circular dependency, new solution is needed
+# This will get the latest task definition revision for the scheduled task.
+data "aws_ecs_task_definition" "scheduled" {
+  count = local.lookup_deployed_ecs_scheduled_image ? 1 : 0
 
-# Gets the latest container definition from the max
-# revision of the task definition.
-# data "aws_ecs_container_definition" "scheduled" {
-#   count = var.create_scheduled_task && local.lookup_deployed_image ? 1 : 0
+  task_definition = var.ecs_service_name
+}
 
-#   task_definition = local.task_definition
-#   container_name  = var.ecs_service_name
+# This will get the latest container definition from the task definition
+# that is currently deployed to the ECS scheduled task.
+data "aws_ecs_container_definition" "scheduled" {
+  count = local.lookup_deployed_ecs_scheduled_image ? 1 : 0
 
-#   depends_on = [
-#     data.aws_ecs_task_definition.task
-#   ]
-# }
-
+  task_definition = data.aws_ecs_task_definition.scheduled[0].arn
+  container_name  = var.ecs_service_name
+}
 
 # -------------------------------------------
 # CREATE THE ECS TASK DEFINITION
@@ -199,13 +199,18 @@ locals {
   repositoryCredentials = {
     credentialsParameter = var.docker_credential_secretsmanager_arn
   }
+
+  portMappings = !var.create_scheduled_task && var.enable_service_connect ? [{
+    name          = random_id.service_connect[0].hex
+    containerPort = var.ecs_container_port
+  }] : []
 }
 
 resource "aws_ecs_task_definition" "task" {
   family = var.ecs_service_name
 
   cpu          = 256
-  memory       = 256
+  memory       = var.create_scheduled_task ? 512 : 256
   network_mode = var.create_scheduled_task ? "awsvpc" : "bridge"
 
   execution_role_arn = aws_iam_role.task_execution.arn
@@ -219,10 +224,7 @@ resource "aws_ecs_task_definition" "task" {
 
       repositoryCredentials = var.docker_credential_secretsmanager_arn != "" ? local.repositoryCredentials : null
 
-      portMappings = [{
-        name          = random_id.service_connect[0].hex
-        containerPort = var.ecs_container_port
-      }]
+      portMappings = local.portMappings
 
       # Environment Variables and Secrets are both string maps with
       # the same key/value structure. They are mapped to the appropriate
@@ -601,7 +603,7 @@ resource "aws_lb_target_group" "alb" {
   health_check {
     # This is the default health check configuration for the target group.
     # This would mean that a task could be considered healthy in 2 * (10 + 5) = 30 seconds.
-    # or the task could be considered unhealthy in 5 * (5 + 10) = 1 min 30 seconds.
+    # or the task could be considered unhealthy in 6 * (5 + 10) = 45 seconds.
     healthy_threshold   = 2
     unhealthy_threshold = 6
     timeout             = 5
@@ -709,7 +711,7 @@ data "aws_iam_policy_document" "scheduled" {
     effect  = "Allow"
 
     resources = [
-      "${local.task_definition}:*"
+      local.task_definition
     ]
   }
 

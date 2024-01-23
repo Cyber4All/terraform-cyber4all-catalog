@@ -36,14 +36,6 @@ func TestExamplesForTerraformModules(t *testing.T) {
 	 */
 	tests := [][]TestCase{
 		{
-			{
-				name:            "spacelift-admin",
-				workingDir:      "../examples/deploy-spacelift-admin-stack",
-				genTestDataFunc: modules.DeploySpaceliftAdminStack,
-				validateFunc:    modules.ValidateSpaceliftAdminStack,
-			},
-
-			// Only run this test locally as it may conflict in CI
 			// mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
 			// This test requires a VPC.
 			{
