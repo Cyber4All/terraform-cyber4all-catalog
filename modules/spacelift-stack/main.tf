@@ -184,6 +184,7 @@ resource "spacelift_stack_dependency_reference" "this" {
   output_name = local.dependency_mappings[count.index].output_name
 
   depends_on = [
+    spacelift_stack_dependency.this,
     spacelift_stack_destructor.this,
   ]
 }
