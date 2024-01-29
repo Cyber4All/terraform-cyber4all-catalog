@@ -57,7 +57,7 @@ locals {
   ecs_cluster_stack_name = "test-ecs-cluster-${var.region}${var.random_id}"
 
   repository = "terraform-cyber4all-catalog"
-  branch     = "main"
+  branch     = "bug/sc-28578/spacelift-stack-with-dependencies-fails-to"
 
   labels = ["folder: Environment/Testing", "folder: Project/terraform-cyber4all-catalog", "folder: Region/${var.region}"]
 }

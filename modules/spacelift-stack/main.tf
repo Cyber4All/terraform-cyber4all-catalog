@@ -127,6 +127,8 @@ resource "spacelift_stack_destructor" "this" {
     spacelift_environment_variable.this,
     spacelift_policy_attachment.this,
     spacelift_stack.this,
+    spacelift_stack_dependency.this,
+    spacelift_stack_dependency_reference.this,
   ]
 
   stack_id = spacelift_stack.this.id
@@ -170,9 +172,9 @@ resource "spacelift_stack_dependency" "this" {
   stack_id            = spacelift_stack.this.id
   depends_on_stack_id = local.depends_on_stack_ids[count.index]
 
-  depends_on = [
-    spacelift_stack_destructor.this,
-  ]
+  # depends_on = [
+  #   spacelift_stack_destructor.this,
+  # ]
 }
 
 resource "spacelift_stack_dependency_reference" "this" {
@@ -183,9 +185,9 @@ resource "spacelift_stack_dependency_reference" "this" {
   input_name  = local.dependency_mappings[count.index].input_name
   output_name = local.dependency_mappings[count.index].output_name
 
-  depends_on = [
-    spacelift_stack_destructor.this,
-  ]
+  # depends_on = [
+  #   spacelift_stack_destructor.this,
+  # ]
 }
 
 
