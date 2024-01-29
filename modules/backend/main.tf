@@ -11,11 +11,6 @@ resource "aws_s3_bucket" "backend" {
 # S3 BUCKET ACL
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "aws_s3_bucket_acl" "backend" {
-  bucket = aws_s3_bucket.backend.id
-  acl    = "private"
-}
-
 resource "aws_s3_bucket_public_access_block" "backend" {
   bucket = aws_s3_bucket.backend.id
 

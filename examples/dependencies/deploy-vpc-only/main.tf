@@ -12,6 +12,15 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "s3" {
+    bucket = "terraform-cyber4all-sandbox"
+    key    = "examples/dependencies/deploy-vpc-only/terraform.tfstate"
+    region = "us-east-1"
+
+    dynamodb_table = "terraform-cyber4all-sandbox"
+    encrypt        = true
+  }
 }
 
 provider "aws" {

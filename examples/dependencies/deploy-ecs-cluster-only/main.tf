@@ -13,6 +13,15 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "s3" {
+    bucket = "terraform-cyber4all-sandbox"
+    key    = "examples/dependencies/deploy-ecs-cluster-only/terraform.tfstate"
+    region = "us-east-1"
+
+    dynamodb_table = "terraform-cyber4all-sandbox"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
@@ -20,16 +29,12 @@ provider "aws" {
 }
 
 data "terraform_remote_state" "vpc" {
-  backend = "remote"
+  backend = "s3"
 
   config = {
-    hostname     = "spacelift.io"
-    organization = "cyber4all"
-
-    workspaces = {
-      # This is defined in ../deploy-spacelift-stacks/main.tf
-      name = "test-vpc-${var.region}${var.random_id}"
-    }
+    bucket = "terraform-cyber4all-sandbox"
+    key    = "examples/dependencies/deploy-vpc-only/terraform.tfstate"
+    region = "us-east-1"
   }
 }
 

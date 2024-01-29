@@ -50,10 +50,11 @@ resource "spacelift_stack" "this" {
   branch       = var.branch
   project_root = var.path
 
-  administrative        = var.enable_admin_stack
-  autodeploy            = var.enable_autodeploy
-  manage_state          = var.enable_state_management
-  protect_from_deletion = var.enable_protect_from_deletion
+  administrative                  = var.enable_admin_stack
+  autodeploy                      = var.enable_autodeploy
+  manage_state                    = var.enable_state_management
+  protect_from_deletion           = var.enable_protect_from_deletion
+  terraform_external_state_access = true # this is needed to allow for remote_state data source to work
 
   terraform_smart_sanitization = true
   terraform_version            = var.terraform_version

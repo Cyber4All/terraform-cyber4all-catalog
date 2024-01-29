@@ -107,8 +107,8 @@ variable "spacelift_integration_name" {
 
 variable "stack_dependencies" {
   description = "A map of stack ids that this stack depends on. The key is the stack id and the value is a map of environment variables that are defined by outputs of the stack. i.e { \"stack-id\" = { \"vpc_id\" = \"vpc_id\" } }. The input name is automatically prefixed with TF_VAR_."
-  type        = map(any)
-  default     = {}
+  type        = list(string)
+  default     = []
 }
 
 variable "terraform_version" {
