@@ -69,12 +69,6 @@ variable "enable_protect_from_deletion" {
   default     = true
 }
 
-variable "enable_state_management" {
-  description = "Whether to enable state management for the stack. If disabled, the implementation of the module should define another remote backend such as S3."
-  type        = bool
-  default     = false
-}
-
 variable "environment_variables" {
   description = "Stack scoped environment variables to set for the stack. These variables will be available to all Terraform runs for the stack. All variables will be prefixed automatically with TF_VAR_."
   type        = map(string)

@@ -29,14 +29,12 @@ terraform {
 locals {
   admin_label                 = var.enable_admin_stack ? "Admin" : null
   autodeploy_label            = var.enable_autodeploy ? "Autodeploy" : null
-  state_management_label      = var.enable_state_management ? "State Managed" : null
   protect_from_deletion_label = var.enable_protect_from_deletion ? "Protected from Deletion" : null
 
   # Adds additional labels to the stack for filtering purposes
   labels = concat(var.labels, compact([
     local.admin_label,
     local.autodeploy_label,
-    local.state_management_label,
     local.protect_from_deletion_label,
   ]))
 }
@@ -50,11 +48,9 @@ resource "spacelift_stack" "this" {
   branch       = var.branch
   project_root = var.path
 
-  administrative                  = var.enable_admin_stack
-  autodeploy                      = var.enable_autodeploy
-  manage_state                    = var.enable_state_management
-  protect_from_deletion           = var.enable_protect_from_deletion
-  terraform_external_state_access = true # this is needed to allow for remote_state data source to work
+  administrative        = var.enable_admin_stack
+  autodeploy            = var.enable_autodeploy
+  protect_from_deletion = var.enable_protect_from_deletion
 
   terraform_smart_sanitization = true
   terraform_version            = var.terraform_version
