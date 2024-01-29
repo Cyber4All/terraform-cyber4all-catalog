@@ -16,7 +16,7 @@ terraform {
   required_providers {
     spacelift = {
       source  = "spacelift-io/spacelift"
-      version = ">= 1.6.0"
+      version = ">= 1.8.0"
     }
   }
 }
@@ -52,8 +52,7 @@ resource "spacelift_stack" "this" {
   autodeploy            = var.enable_autodeploy
   protect_from_deletion = var.enable_protect_from_deletion
 
-  terraform_smart_sanitization = true
-  terraform_version            = var.terraform_version
+  terraform_version = var.terraform_version
 
   # This can be transitioned to OpenToFu at a later time
   terraform_workflow_tool = "TERRAFORM_FOSS"
@@ -63,53 +62,6 @@ resource "spacelift_stack" "this" {
   ]
 }
 
-
-# ---------------------------------------------------
-# DEFINE THE SPACELIFT STACK ENVIRONMENT VARIABLES
-# ---------------------------------------------------
-
-locals {
-  environment_variables = [for k, v in var.environment_variables : {
-    name  = k
-    value = v
-  }]
-}
-
-resource "spacelift_environment_variable" "this" {
-  count = length(keys(var.environment_variables))
-
-  stack_id = spacelift_stack.this.id
-
-  name       = "TF_VAR_${lookup(local.environment_variables[count.index], "name", null)}"
-  value      = lookup(local.environment_variables[count.index], "value", null)
-  write_only = false
-}
-
-
-# ---------------------------------------------------
-# ATTACH THE SPACELIFT CONTEXT TO THE STACK
-# ---------------------------------------------------
-
-resource "spacelift_context_attachment" "this" {
-  count = length(var.context_ids)
-
-  context_id = var.context_ids[count.index]
-  stack_id   = spacelift_stack.this.id
-
-  priority = count.index
-}
-
-
-# ---------------------------------------------------
-# ATTACH THE SPACELIFT POLICIES TO THE STACK
-# ---------------------------------------------------
-
-resource "spacelift_policy_attachment" "this" {
-  count = length(var.policy_ids)
-
-  policy_id = var.policy_ids[count.index]
-  stack_id  = spacelift_stack.this.id
-}
 
 # ---------------------------------------------------
 # CREATE STACK DESTRUCTOR

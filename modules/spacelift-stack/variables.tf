@@ -33,12 +33,6 @@ variable "repository" {
 # These values are optional and have default values provided
 # --------------------------------------------------------------------
 
-variable "context_ids" {
-  description = "List of Spacelift context IDs to attach to the stack"
-  type        = list(string)
-  default     = []
-}
-
 variable "description" {
   description = "Description of the stack"
   type        = string
@@ -69,12 +63,6 @@ variable "enable_protect_from_deletion" {
   default     = true
 }
 
-variable "environment_variables" {
-  description = "Stack scoped environment variables to set for the stack. These variables will be available to all Terraform runs for the stack. All variables will be prefixed automatically with TF_VAR_."
-  type        = map(string)
-  default     = {}
-}
-
 variable "labels" {
   description = "Labels to assign to the stack."
   type        = list(string)
@@ -85,12 +73,6 @@ variable "path" {
   description = "Path to the root of the project"
   type        = string
   default     = null
-}
-
-variable "policy_ids" {
-  description = "List of Spacelift policy IDs to attach to the stack"
-  type        = list(string)
-  default     = []
 }
 
 variable "spacelift_integration_name" {
