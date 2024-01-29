@@ -19,6 +19,20 @@ provider "aws" {
   region = var.region
 }
 
+data "terraform_remote_state" "vpc" {
+  backend = "remote"
+
+  config = {
+    hostname     = "spacelift.io"
+    organization = "cyber4all"
+
+    workspaces = {
+      # This is defined in ../deploy-spacelift-stacks/main.tf
+      name = "test-vpc-${var.region}${var.random_id}"
+    }
+  }
+}
+
 module "cluster" {
   source = "../../../modules/ecs-cluster"
 
@@ -26,8 +40,8 @@ module "cluster" {
 
   cluster_instance_ami = var.cluster_instance_ami
 
-  vpc_id         = var.vpc_id
-  vpc_subnet_ids = var.vpc_subnet_ids
+  vpc_id         = data.terraform_remote_state.vpc.outputs.vpc_id
+  vpc_subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnet_ids
 
   cluster_max_size = 2
 }

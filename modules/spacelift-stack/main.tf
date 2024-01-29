@@ -127,8 +127,6 @@ resource "spacelift_stack_destructor" "this" {
     spacelift_environment_variable.this,
     spacelift_policy_attachment.this,
     spacelift_stack.this,
-    spacelift_stack_dependency.this,
-    spacelift_stack_dependency_reference.this,
   ]
 
   stack_id = spacelift_stack.this.id
@@ -138,56 +136,11 @@ resource "spacelift_stack_destructor" "this" {
 # ADD STACK DEPENDENCIES
 # ---------------------------------------------------
 
-locals {
-  # map stack depdency id from spacelift_stack_dependency to the mappings defined in the stack_dependencies variable
-  dependency_mappings = flatten([
-    # iterate over each stack dependency
-    for stack_dependency_resource in spacelift_stack_dependency.this : [
-
-      # iterate over each mapping defined in the stack_dependencies variable
-      for depends_on_stack_id, mapping in var.stack_dependencies : [
-
-        # Create a mapping of the stack_dependency_id to the variable mappings defined in the stack_dependencies variable
-        # only if the depends on stack id matches the id defined in the spacelift_stack_dependency resource
-        for input_name, output_name in mapping :
-        {
-          stack_dependency_id = stack_dependency_resource.id
-          input_name          = "TF_VAR_${input_name}"
-          output_name         = output_name
-        } if depends_on_stack_id == stack_dependency_resource.depends_on_stack_id
-      ]
-    ]
-  ])
-
-  # list of stack dependency ids
-  depends_on_stack_ids = keys(var.stack_dependencies)
-
-  number_of_dependencies = length(local.depends_on_stack_ids)
-  number_of_references   = length(local.dependency_mappings)
-}
-
 resource "spacelift_stack_dependency" "this" {
-  count = local.number_of_dependencies
+  count = length(var.stack_dependencies)
 
   stack_id            = spacelift_stack.this.id
-  depends_on_stack_id = local.depends_on_stack_ids[count.index]
-
-  # depends_on = [
-  #   spacelift_stack_destructor.this,
-  # ]
-}
-
-resource "spacelift_stack_dependency_reference" "this" {
-  count = local.number_of_references
-
-  stack_dependency_id = local.dependency_mappings[count.index].stack_dependency_id
-
-  input_name  = local.dependency_mappings[count.index].input_name
-  output_name = local.dependency_mappings[count.index].output_name
-
-  # depends_on = [
-  #   spacelift_stack_destructor.this,
-  # ]
+  depends_on_stack_id = var.stack_dependencies[count.index]
 }
 
 

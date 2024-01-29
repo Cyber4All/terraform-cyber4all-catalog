@@ -73,6 +73,7 @@ module "vpc-stack" {
   path       = "examples/dependencies/deploy-vpc-only"
 
   enable_autodeploy = true
+  enable_init_run   = true
   # We want to be able to apply/delete in tests without having errors
   # in most cases, you will want to keep the default of `true`
   enable_protect_from_deletion = false
@@ -111,12 +112,7 @@ module "ecs-cluster-stack" {
     "random_id" = var.random_id,
   }
 
-  stack_dependencies = {
-    (local.vpc_stack_name) = {
-      "vpc_id"         = "vpc_id",
-      "vpc_subnet_ids" = "private_subnet_ids",
-    },
-  }
+  stack_dependencies = [local.vpc_stack_name]
 
   labels = local.labels
 
