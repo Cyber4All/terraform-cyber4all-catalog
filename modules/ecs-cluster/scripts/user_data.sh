@@ -22,6 +22,8 @@ echo "ECS_CONTAINER_CREATE_TIMEOUT=1m" >> /etc/ecs/ecs.config
 
 # ECS agent will pull the latest image one time and cache it for
 # re-use between similar tasks. The default behavior is to always
-# attempt a pull and use cache only on failure. This causes unneeded
-# requests taking 10-20 seconds.
-echo "ECS_IMAGE_PULL_BEHAVIOR=once" >> /etc/ecs/ecs.config
+# attempt a pull and use cache only on failure. We are staying
+# with this behavior because if the same tag is updated in
+# the repository, the ECS agent will not pull the new image.
+# (i.e when staging tag is updated)
+echo "ECS_IMAGE_PULL_BEHAVIOR=default" >> /etc/ecs/ecs.config
