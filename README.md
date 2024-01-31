@@ -41,9 +41,7 @@ pre-commit install
 
 <!-- BEGIN_TF_DOCS -->
 
-
 ## Sample Usage
-
 ```hcl
 module "example" {
 
