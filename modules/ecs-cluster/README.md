@@ -192,7 +192,7 @@ Description: The size of the EC2 instance.
 
 Type: `string`
 
-Default: `"t2.micro"`
+Default: `"t3.micro"`
 
 ### <a name="input_cluster_max_size"></a> [cluster\_max\_size](#input\_cluster\_max\_size)
 

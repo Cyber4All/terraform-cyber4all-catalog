@@ -272,6 +272,14 @@ module "example" {
 	 ecs_container_secrets  = map(string)
 
 
+	 # The amount of CPU (in units) to allocate to the ECS task.
+	 ecs_task_cpu  = number
+
+
+	 # The amount of memory (in MiB) to allocate to the ECS task.
+	 ecs_task_memory  = number
+
+
 	 # A list of ARNs of IAM policies to attach to the ECS task role.
 	 ecs_task_role_policy_arns  = list(string)
 
@@ -417,7 +425,7 @@ Description: The container port that the application is listening on.
 
 Type: `number`
 
-Default: `null`
+Default: `3000`
 
 ### <a name="input_ecs_container_secrets"></a> [ecs\_container\_secrets](#input\_ecs\_container\_secrets)
 
@@ -426,6 +434,22 @@ Description: A map of secrets to configure in the ECS container definition. The 
 Type: `map(string)`
 
 Default: `{}`
+
+### <a name="input_ecs_task_cpu"></a> [ecs\_task\_cpu](#input\_ecs\_task\_cpu)
+
+Description: The amount of CPU (in units) to allocate to the ECS task.
+
+Type: `number`
+
+Default: `256`
+
+### <a name="input_ecs_task_memory"></a> [ecs\_task\_memory](#input\_ecs\_task\_memory)
+
+Description: The amount of memory (in MiB) to allocate to the ECS task.
+
+Type: `number`
+
+Default: `256`
 
 ### <a name="input_ecs_task_role_policy_arns"></a> [ecs\_task\_role\_policy\_arns](#input\_ecs\_task\_role\_policy\_arns)
 

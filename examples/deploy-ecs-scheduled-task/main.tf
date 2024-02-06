@@ -103,6 +103,8 @@ module "ecs-scheduled-task-cron" {
     "MOCK_TYPE" = "single-process"
   }
 
+  ecs_task_memory = 512
+
   create_scheduled_task          = true
   scheduled_task_cron_expression = "cron(0/2 * * * ? *)"
   scheduled_task_subnet_ids      = module.vpc.public_subnet_ids

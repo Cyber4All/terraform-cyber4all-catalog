@@ -86,13 +86,25 @@ variable "ecs_container_image" {
 variable "ecs_container_port" {
   type        = number
   description = "The container port that the application is listening on."
-  default     = null
+  default     = 3000
 }
 
 variable "ecs_container_secrets" {
   type        = map(string)
   description = "A map of secrets to configure in the ECS container definition. The key is the name of the environment variable and the value is the ARN of the Secrets Manager secret that contains the environment variable. It is assumed that the secret's value can be indexed using the environment variable name. These are environment variables that are sensitive and should not be stored in plain text."
   default     = {}
+}
+
+variable "ecs_task_cpu" {
+  type        = number
+  description = "The amount of CPU (in units) to allocate to the ECS task."
+  default     = 256
+}
+
+variable "ecs_task_memory" {
+  type        = number
+  description = "The amount of memory (in MiB) to allocate to the ECS task."
+  default     = 256
 }
 
 variable "ecs_task_role_policy_arns" {

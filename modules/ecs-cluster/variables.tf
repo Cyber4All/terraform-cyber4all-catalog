@@ -78,7 +78,7 @@ variable "cluster_instance_ami" {
 variable "cluster_instance_type" {
   type        = string
   description = "The size of the EC2 instance."
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "cluster_max_size" {
