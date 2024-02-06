@@ -209,8 +209,8 @@ locals {
 resource "aws_ecs_task_definition" "task" {
   family = var.ecs_service_name
 
-  cpu          = 256
-  memory       = var.create_scheduled_task ? 512 : 256
+  cpu          = var.ecs_task_cpu
+  memory       = var.ecs_task_memory
   network_mode = var.create_scheduled_task ? "awsvpc" : "bridge"
 
   execution_role_arn = aws_iam_role.task_execution.arn
