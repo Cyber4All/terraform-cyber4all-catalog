@@ -37,10 +37,11 @@ The following requirements are needed by this module:
 - <a name="requirement_mongodbatlas"></a> [mongodbatlas](#requirement\_mongodbatlas) (>= 1.12.1)
 ## Sample Usage
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+inputs = {
 
 
 	 # --------------------------------------------
@@ -48,11 +49,9 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. WARNING: Changing the name will result in destruction of the existing cluster and the creation of a new cluster.
 	 cluster_name  = string
 
 
-	 # Name of the project as it appears in Atlas to deploy the cluster into.
 	 project_name  = string
 
 
@@ -61,61 +60,46 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # Create a map of AWS IAM roles to assign an admin, readWrite, or read database role to the cluster's databases.
 	 cluster_authorized_iam_roles  = map(string)
 
 
-	 # Create a map of AWS IAM users to assign an admin, readWrite, or read database role to the cluster's databases.
 	 cluster_authorized_iam_users  = map(string)
 
 
-	 # Capacity, in gigabytes, of the host's root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive integer.
 	 cluster_disk_size_gb  = number
 
 
-	 # The Atlas instance size name. Each Atlas instance size has a unique combination of memory, and storage capacity. See https://www.mongodb.com/docs/atlas/reference/amazon-aws/#cluster-configuration-options for more info.
 	 cluster_instance_name  = string
 
 
-	 # Version of the cluster to deploy. This module supports 4.4, 5.0, or 6.0. By default 5.0 is deployed.
 	 cluster_mongodb_version  = string
 
 
-	 # The CIDR block of the VPC to peer with.
 	 cluster_peering_cidr_block  = string
 
 
-	 # The route table IDs of the VPC to peer with. Each route table should belong to a unique VPC.
 	 cluster_peering_route_table_ids  = list(string)
 
 
-	 # The AWS region to deploy the cluster into.
 	 cluster_region  = string
 
 
-	 # Set to true to enable auto scaling for the cluster's compute and storage. Recommended for production clusters.
 	 enable_cluster_auto_scaling  = bool
 
 
-	 # Set to true to allow Atlas to automatically update your cluster to the latest patch release of the MongoDB version specified in the cluster_mongodb_version field.
 	 enable_cluster_automated_patches  = bool
 
 
-	 # Set to true to enable backups for the cluster. Recommended for production clusters.
 	 enable_cluster_backups  = bool
 
 
-	 # Set to true to prevent terraform from deleting the Atlas cluster. Recommended for production clusters.
 	 enable_cluster_terimination_protection  = bool
 
 
-	 # Set to true to retain backup snapshots for the deleted cluster. Recommended for production clusters.
 	 enable_retain_deleted_cluster_backups  = bool
 
 
-	 # Set to true to enable a peering connection with an existing VPC.
 	 enable_vpc_peering  = bool
-
 
 
 }

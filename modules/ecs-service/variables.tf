@@ -101,6 +101,12 @@ variable "ecs_task_cpu" {
   default     = 256
 }
 
+variable "ecs_task_ephemeral_storage" {
+  type        = number
+  description = "The amount of ephemeral storage (in GiB) to allocate to the ECS task."
+  default     = 21
+}
+
 variable "ecs_task_memory" {
   type        = number
   description = "The amount of memory (in MiB) to allocate to the ECS task."

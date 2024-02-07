@@ -29,10 +29,11 @@ The following requirements are needed by this module:
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
 ## Sample Usage
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+inputs = {
 
 
 	 # --------------------------------------------
@@ -40,7 +41,6 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The name of the VPC.
 	 vpc_name  = string
 
 
@@ -49,21 +49,16 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # Whether or not to create a NAT gateway.
 	 create_nat_gateway  = bool
 
 
-	 # Whether or not to create private subnets.
 	 create_private_subnets  = bool
 
 
-	 # Whether or not to create public subnets.
 	 create_public_subnets  = bool
 
 
-	 # How many AWS Availability Zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ. Note that this must be less than or equal to the total number of AZs in a region. A value of null means all AZs should be used. For example, if you specify 3 in a region with 5 AZs, subnets will be created in just 3 AZs instead of all 5. Defaults to all AZs in a region.
 	 num_availability_zones  = number
-
 
 
 }

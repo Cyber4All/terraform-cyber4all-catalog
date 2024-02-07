@@ -233,10 +233,19 @@ resource "aws_ecs_task_definition" "task" {
       secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = "${v}:${k}::" }]
 
       logConfiguration = var.enable_container_logs ? local.log_configuration : null
+
     }
   ])
 
   requires_compatibilities = var.create_scheduled_task ? ["FARGATE"] : ["EC2"]
+
+  dynamic "ephemeral_storage" {
+    for_each = var.create_scheduled_task ? [1] : []
+
+    content {
+      size_in_gib = var.ecs_task_ephemeral_storage
+    }
+  }
 
   runtime_platform {
     operating_system_family = "LINUX"

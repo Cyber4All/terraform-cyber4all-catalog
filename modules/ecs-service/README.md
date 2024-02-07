@@ -208,10 +208,11 @@ The following requirements are needed by this module:
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.1)
 ## Sample Usage
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+inputs = {
 
 
 	 # --------------------------------------------
@@ -219,11 +220,9 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The name of the ECS cluster.
 	 ecs_cluster_name  = string
 
 
-	 # The name of the ECS service.
 	 ecs_service_name  = string
 
 
@@ -232,105 +231,82 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
 	 auto_scaling_max_number_of_tasks  = number
 
 
-	 # The percentage for the ECS service's average Memory utilization threshold. The service uses a target tracking scaling policy.
 	 auto_scaling_memory_util_threshold  = number
 
 
-	 # The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number.
 	 auto_scaling_min_number_of_tasks  = number
 
 
-	 # The ECS task should be deployed as a scheduled task rather than a managed ECS service.
 	 create_scheduled_task  = bool
 
 
-	 # The number of instances of the ECS service or scheduled task to run across the ECS cluster.
 	 desired_number_of_tasks  = number
 
 
-	 # The ARN of the AWS Secrets Manager secret containing the Docker credentials.
 	 docker_credential_secretsmanager_arn  = string
 
 
-	 # A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive.
 	 ecs_container_environment_variables  = map(string)
 
 
-	 # The name and tag of the docker image to use for the ECS essential container definition. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform. This value is required for initial deployments and when changing the base image (image without the tag).
 	 ecs_container_image  = string
 
 
-	 # The container port that the application is listening on.
 	 ecs_container_port  = number
 
 
-	 # A map of secrets to configure in the ECS container definition. The key is the name of the environment variable and the value is the ARN of the Secrets Manager secret that contains the environment variable. It is assumed that the secret's value can be indexed using the environment variable name. These are environment variables that are sensitive and should not be stored in plain text.
 	 ecs_container_secrets  = map(string)
 
 
-	 # The amount of CPU (in units) to allocate to the ECS task.
 	 ecs_task_cpu  = number
 
 
-	 # The amount of memory (in MiB) to allocate to the ECS task.
+	 ecs_task_ephemeral_storage  = number
+
+
 	 ecs_task_memory  = number
 
 
-	 # A list of ARNs of IAM policies to attach to the ECS task role.
 	 ecs_task_role_policy_arns  = list(string)
 
 
-	 # Enable container logging to CloudWatch Logs.
 	 enable_container_logs  = bool
 
 
-	 # Enable rollback of a FAILED deployment if a service cannot reach a steady state.
 	 enable_deployment_rollback  = bool
 
 
-	 # Enable a load balancer for the ECS service. This will create an ALB target for the ECS service that is attached to an existing ALB.
 	 enable_load_balancer  = bool
 
 
-	 # Enable auto scaling of the ECS service.
 	 enable_service_auto_scaling  = bool
 
 
-	 # Enable service connect for the ECS service.
 	 enable_service_connect  = bool
 
 
-	 # The load balancer listener arn to attach the ECS service to. This value is required when enable_load_balancer is true.
 	 lb_listener_arn  = string
 
 
-	 # The VPC id to deploy the ECS service's load balancer traget group into. Required when enable_load_balancer is true.
 	 lb_target_group_vpc_id  = string
 
 
-	 # Assign a public IP address to the ECS task.
 	 scheduled_task_assign_public_ip  = bool
 
 
-	 # The cron expression to use for the scheduled task. If create scheduled task is true and no event pattern is provided, then the cron is expected.
 	 scheduled_task_cron_expression  = string
 
 
-	 # The event pattern to use for the scheduled task. If create scheduled task is true and no cron expression is provided, then the event pattern is expected.
 	 scheduled_task_event_pattern  = any
 
 
-	 # A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified.
 	 scheduled_task_security_group_ids  = list(string)
 
 
-	 # A list of subnet IDs to associate with the ECS task. This value is required when create_scheduled_task is true.
 	 scheduled_task_subnet_ids  = list(string)
-
 
 
 }
@@ -442,6 +418,14 @@ Description: The amount of CPU (in units) to allocate to the ECS task.
 Type: `number`
 
 Default: `256`
+
+### <a name="input_ecs_task_ephemeral_storage"></a> [ecs\_task\_ephemeral\_storage](#input\_ecs\_task\_ephemeral\_storage)
+
+Description: The amount of ephemeral storage (in GiB) to allocate to the ECS task.
+
+Type: `number`
+
+Default: `21`
 
 ### <a name="input_ecs_task_memory"></a> [ecs\_task\_memory](#input\_ecs\_task\_memory)
 

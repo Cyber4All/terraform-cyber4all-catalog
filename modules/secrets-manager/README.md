@@ -28,10 +28,11 @@ The following requirements are needed by this module:
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
 ## Sample Usage
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+inputs = {
 
 
 	 # --------------------------------------------
@@ -39,13 +40,11 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # List of secrets that can be used to maintain the secret and its environment variables managed by the secret.
 	 secrets  = list(object({
     name                  = string
     description           = optional(string)
     environment_variables = map(string)
   }))
-
 
 
 }

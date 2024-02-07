@@ -10,10 +10,11 @@ The following requirements are needed by this module:
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 4.36)
 ## Sample Usage
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+inputs = {
 
 
 	 # --------------------------------------------
@@ -21,11 +22,9 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The name of the backend bucket
 	 bucket_name  = string
 
 
-	 # The name of the dynamodb table
 	 dynamodb_table_name  = string
 
 
@@ -34,9 +33,7 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # Server side encryption algorithm for S3 bucket
 	 sse_algorithm  = string
-
 
 
 }
