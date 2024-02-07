@@ -420,19 +420,6 @@ resource "aws_iam_role_policy_attachment" "task_execution" {
 
 
 # -------------------------------------------
-# CREATE THE SERVICE CONNECT RANDOM ID
-# -------------------------------------------
-
-# Namespaces the CloudMap services to avoid name conflicts
-# with other services sharing the same Service Connect namespace.
-resource "random_id" "service_connect" {
-  count = !var.create_scheduled_task && var.enable_service_connect ? 1 : 0
-
-  byte_length = 8
-}
-
-
-# -------------------------------------------
 # CREATE THE ECS SERVICE
 # -------------------------------------------
 
@@ -491,7 +478,7 @@ resource "aws_ecs_service" "service" {
   service_connect_configuration {
     enabled = var.enable_service_connect
     service {
-      port_name = random_id.service_connect[0].hex
+      port_name = sha256(var.ecs_service_name)
       client_alias {
         port     = var.ecs_container_port
         dns_name = var.ecs_service_name
