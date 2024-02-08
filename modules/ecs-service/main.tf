@@ -201,7 +201,7 @@ locals {
   }
 
   portMappings = !var.create_scheduled_task && var.enable_service_connect ? [{
-    name          = random_id.service_connect[0].hex
+    name          = sha256(var.ecs_service_name)
     containerPort = var.ecs_container_port
   }] : []
 }
