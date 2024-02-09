@@ -88,6 +88,9 @@ workflows:
 
       - integration-tests:
           requires: [pre-commit, tfsec]
+          filters:
+            branches:
+              ignore: /main/
 
       - cyber4all/release:
           context: [Github]

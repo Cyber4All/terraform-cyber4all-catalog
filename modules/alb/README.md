@@ -32,10 +32,11 @@ The following requirements are needed by this module:
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
 ## Sample Usage
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+inputs = {
 
 
 	 # --------------------------------------------
@@ -43,15 +44,12 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The name of the ALB.
 	 alb_name  = string
 
 
-	 # The VPC ID where the ALB will be created.
 	 vpc_id  = string
 
 
-	 # The ids of the subnets that the ALB can use to source its IP.
 	 vpc_subnet_ids  = list(string)
 
 
@@ -60,17 +58,13 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The prefix of the DNS A record that will be created for the ALB.
 	 dns_record_prefix  = string
 
 
-	 # Creates an HTTPS listener for the ALB. When enabled the ALB will redirect HTTP traffic to HTTPS automatically.
 	 enable_https_listener  = bool
 
 
-	 # The name of the hosted zone where the ALB DNS record will be created.
 	 hosted_zone_name  = string
-
 
 
 }
