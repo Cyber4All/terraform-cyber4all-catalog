@@ -201,7 +201,7 @@ locals {
   }
 
   portMappings = !var.create_scheduled_task && var.enable_service_connect ? [{
-    name          = sha256(var.ecs_service_name)
+    name          = sha1(var.ecs_service_name)
     containerPort = var.ecs_container_port
   }] : []
 }
@@ -478,7 +478,7 @@ resource "aws_ecs_service" "service" {
   service_connect_configuration {
     enabled = var.enable_service_connect
     service {
-      port_name = sha256(var.ecs_service_name)
+      port_name = sha1(var.ecs_service_name)
       client_alias {
         port     = var.ecs_container_port
         dns_name = var.ecs_service_name
