@@ -266,9 +266,6 @@ resource "aws_autoscaling_group" "cluster" {
     delete = "60m"
   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 
