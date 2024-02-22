@@ -22,13 +22,3 @@ output "cluster_state" {
   description = "The state that the cluster is in. Possible values are: IDLE, CREATING, UPDATING, DELETING, DELETED, REPAIRING."
   value       = module.mongodb.cluster_state
 }
-
-output "cluster_authorized_users" {
-  description = "The list of users/roles authorized to access the cluster."
-  value       = module.mongodb.cluster_authorized_users
-}
-
-output "cluster_peering_route_table_ids" {
-  description = "The list of peering route table IDs."
-  value       = module.mongodb.cluster_peering_route_table_ids
-}
