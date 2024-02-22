@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"regexp"
-	"strings"
 	"testing"
 
 	aws_sdk "github.com/aws/aws-sdk-go/aws"
@@ -19,7 +17,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231001002/admin"
 )
 
-func DeployMongoDBCluster(t *testing.T, workingDir string) {
+func DeployMongoDBSecurityUsingTerraform(t *testing.T, workingDir string) {
 	// Generate a random id
 	randomID := random.UniqueId()
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
@@ -33,12 +31,13 @@ func DeployMongoDBCluster(t *testing.T, workingDir string) {
 	test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
 }
 
-// ValidateMongoDBCluster validates the MongoDB cluster Terraform module.
+// ValidateMongoDBSecurity validates the MongoDB Security Terraform module.
 // It loads the Terraform options, gets the public and private keys from SecretsManager to connect to the MongoDB SDK,
-// creates an admin client, and validates the MongoDB cluster outputs and VPC peering configuration.
+// creates an admin client, and validates the outputs and VPC peering configuration.
 // MONGODB_SECRET_ARN environment variable must be set to the ARN of the secret containing the MongoDB public and private keys.
-func ValidateMongoDBCluster(t *testing.T, workingDir string) {
+func ValidateMongoDBSecurity(t *testing.T, workingDir string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+
 	// Get the public key and private key from SecretsManager to connect to the MongoDB SDK
 	secretArn := os.Getenv("MONGODB_SECRET_ARN")
 	secretString := aws.GetSecretValue(t, "us-east-1", secretArn)
@@ -57,21 +56,20 @@ func ValidateMongoDBCluster(t *testing.T, workingDir string) {
 	sdk, err := admin.NewClient(admin.UseDigestAuth(apiKey, apiSecret))
 	assert.NoError(t, err, "Error when creating MongoDB SDK client")
 
-	// CASE: MongoDB Cluster outputs are correct
-	// Get the mongodb base uri
-	mongoURIs := terraform.Output(t, terraformOptions, "cluster_mongodb_base_uri")
-	mongoURI := strings.Split(mongoURIs, ",")[0]
+	// CASE: MongoDB Security outputs are correct
 	// Get the peering route table ids
-	peeringRouteTableIDs := terraform.OutputList(t, terraformOptions, "cluster_peering_route_table_ids")
+	peeringRouteTableIDs := terraform.OutputList(t, terraformOptions, "peering_route_table_ids")
+	authorizedIamUsers := terraform.OutputList(t, terraformOptions, "authorized_iam_users")
+	authorizedIamRoles := terraform.OutputList(t, terraformOptions, "authorized_iam_roles")
+
 	// Assert there is one peering route table id
 	assert.Equal(t, 1, len(peeringRouteTableIDs), "Expected 1 peering route table id, got %d", len(peeringRouteTableIDs))
 
-	// Get Cluster State
-	clusterState := terraform.Output(t, terraformOptions, "cluster_state")
-	// Validate the cluster state is IDLE or CREATING
-	assert.Contains(t, []string{"IDLE", "CREATING"}, clusterState, "Cluster state is not IDLE or CREATING")
-	// Assert mongoURI is correct using regex: https://regex101.com/library/fX0bH6
-	assert.Regexpf(t, regexp.MustCompile(`mongodb:\/\/(?:(?:[^:]+):(?:[^@]+)?@)?(?:(?:(?:[^\/]+)|(?:\/.+.sock?),?)+)(?:\/([^\/\.\ "*<>:\|\?]*))?(?:\?(?:(.+=.+)&?)+)*`), mongoURI, "Mongo URI is not correct")
+	// Assert there are two authorized IAM users
+	assert.Equal(t, 2, len(authorizedIamUsers), "Expected 2 authorized IAM users, got %d", len(authorizedIamUsers))
+
+	// Assert there is one authorized IAM role
+	assert.Equal(t, 1, len(authorizedIamRoles), "Expected 1 authorized IAM role, got %d", len(authorizedIamRoles))
 
 	// CASE: VPC Peering configured properly
 	assertPeeringConnectionConfigured(t, sdk, peeringRouteTableIDs[0])
