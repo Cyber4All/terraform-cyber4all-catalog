@@ -28,7 +28,7 @@ variable "authorized_iam_users" {
   type        = map(string)
   default     = {}
   validation {
-    condition     = alltrue([for k, v in var.cluster_authorized_iam_users : anytrue([for role in ["admin", "readWrite", "read"] : strcontains(v, role)])])
+    condition     = alltrue([for k, v in var.authorized_iam_users : anytrue([for role in ["admin", "readWrite", "read"] : strcontains(v, role)])])
     error_message = "A database role must be one of the following: admin, readWrite, read."
   }
 }
@@ -38,7 +38,7 @@ variable "authorized_iam_roles" {
   type        = map(string)
   default     = {}
   validation {
-    condition     = alltrue([for k, v in var.cluster_authorized_iam_roles : anytrue([for role in ["admin", "readWrite", "read"] : strcontains(v, role)])])
+    condition     = alltrue([for k, v in var.authorized_iam_roles : anytrue([for role in ["admin", "readWrite", "read"] : strcontains(v, role)])])
     error_message = "A database role must be one of the following: admin, readWrite, read."
   }
 }
