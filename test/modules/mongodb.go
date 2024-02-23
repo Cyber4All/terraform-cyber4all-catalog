@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/gruntwork-io/terratest/modules/aws"
-	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
@@ -19,12 +18,9 @@ import (
 
 func DeployMongoDBSecurityUsingTerraform(t *testing.T, workingDir string) {
 	// Generate a random id
-	randomID := random.UniqueId()
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: workingDir,
-		Vars: map[string]interface{}{
-			"random_id": randomID,
-		},
+		Vars:         map[string]interface{}{},
 	})
 
 	// Save the options so later test stages can use them
