@@ -3,9 +3,9 @@
 # 
 # This module configures a MongoDB Project's security module.
 #
-# The MongoDB cluster can be configured to use VPC peering to connect to the VPC of 
-# the application. This allows the application to connect to the MongoDB cluster
-# without exposing the cluster to the public internet.
+# The MongoDB project can be configured to use VPC peering to connect to the VPC of 
+# the application. This allows the application to connect to the MongoDB project
+# without exposing the project to the public internet.
 #
 # Additionally, the module can be configured to use AWS IAM to manage access to the
 # MongoDB cluster. This allows the application to use the same AWS IAM users and roles
@@ -205,11 +205,32 @@ locals {
   ]
 }
 
+data "mongodbatlas_clusters" "peering" {
+  count = var.enable_vpc_peering ? 1 : 0
+
+  project_id = data.mongodbatlas_project.project.id
+
+  lifecycle {
+    postcondition {
+      condition     = length(data.mongodbatlas_clusters.peering) > 0
+      error_message = "Atleast one cluster must exist before creating a network peering connection."
+    }
+  }
+}
+
+
+data "mongodbatlas_advanced_cluster" "peering" {
+  count = var.enable_vpc_peering ? 1 : 0
+
+  project_id = data.mongodbatlas_project.project.id
+  name       = data.mongodbatlas_clusters.peering[0].name
+}
+
 resource "mongodbatlas_network_peering" "peering" {
   count = var.enable_vpc_peering ? length(data.aws_route_table.peering) : 0
 
   project_id    = data.mongodbatlas_project.project.id
-  container_id  = mongodbatlas_cluster.cluster.container_id
+  container_id  = data.mongodbatlas_advanced_cluster.peering.container_id
   provider_name = "AWS"
 
   accepter_region_name   = data.aws_region.current.name
@@ -220,10 +241,17 @@ resource "mongodbatlas_network_peering" "peering" {
   depends_on = [
     data.aws_route_table.peering
   ]
+
+  lifecycle {
+    precondition {
+      condition     = length(data.aws_route_table.peering) == length(local.vpc_ids)
+      error_message = "The number of route tables must match the number of VPCs."
+    }
+  }
 }
 
 resource "aws_vpc_peering_connection_accepter" "peering" {
-  count = var.enable_vpc_peering && length(mongodbatlas_network_peering.peering) > 0 ? length(mongodbatlas_network_peering.peering) : 0
+  count = var.enable_vpc_peering ? length(mongodbatlas_network_peering.peering) : 0
 
   vpc_peering_connection_id = mongodbatlas_network_peering.peering[count.index].connection_id
   auto_accept               = true
@@ -239,7 +267,7 @@ resource "aws_vpc_peering_connection_accepter" "peering" {
 }
 
 data "aws_vpc_peering_connection" "peering" {
-  count = var.enable_vpc_peering && length(mongodbatlas_network_peering.peering) > 0 ? length(mongodbatlas_network_peering.peering) : 0
+  count = var.enable_vpc_peering ? length(mongodbatlas_network_peering.peering) : 0
 
   id = mongodbatlas_network_peering.peering[count.index].connection_id
 

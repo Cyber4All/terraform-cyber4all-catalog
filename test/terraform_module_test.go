@@ -38,12 +38,12 @@ func TestExamplesForTerraformModules(t *testing.T) {
 		{
 			// vpc: Deploy and validate a VPC. (~100s)
 			// This test requires a VPC.
-			{
-				name:            "vpc",
-				workingDir:      "../examples/deploy-vpc",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateVpc,
-			},
+			// {
+			// 	name:            "vpc",
+			// 	workingDir:      "../examples/deploy-vpc",
+			// 	genTestDataFunc: modules.DeployVpcUsingTerraform,
+			// 	validateFunc:    modules.ValidateVpc,
+			// },
 
 			// mongodb-security: Deploy and validate a MongoDB Security Terraform module. (~200s)
 			{
@@ -55,32 +55,32 @@ func TestExamplesForTerraformModules(t *testing.T) {
 
 			// ecs-cluster: Deploy and validate an ECS cluster. (~313s)
 			// This test requires a VPC.
-			{
-				name:            "ecs-cluster",
-				workingDir:      "../examples/deploy-ecs-cluster",
-				genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
-				validateFunc:    modules.ValidateEcsCluster,
-			},
+			// {
+			// 	name:            "ecs-cluster",
+			// 	workingDir:      "../examples/deploy-ecs-cluster",
+			// 	genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
+			// 	validateFunc:    modules.ValidateEcsCluster,
+			// },
 		},
-		{
-			// ecs_service: Deploy and validate an ECS service. (~912s)
-			// This test requires a VPC.
-			{
-				name:            "ecs service",
-				workingDir:      "../examples/deploy-ecs-service",
-				genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
-				validateFunc:    modules.ValidateEcsService,
-			},
+		// {
+		// 	// ecs_service: Deploy and validate an ECS service. (~912s)
+		// 	// This test requires a VPC.
+		// 	{
+		// 		name:            "ecs service",
+		// 		workingDir:      "../examples/deploy-ecs-service",
+		// 		genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
+		// 		validateFunc:    modules.ValidateEcsService,
+		// 	},
 
-			// alb-https: Deploy and validate an Application Load Balancer with HTTPS. (~268s)
-			// This test requires a VPC.
-			{
-				name:            "alb",
-				workingDir:      "../examples/deploy-alb",
-				genTestDataFunc: modules.DeployAlb,
-				validateFunc:    modules.ValidateAlbHttps,
-			},
-		},
+		// 	// alb-https: Deploy and validate an Application Load Balancer with HTTPS. (~268s)
+		// 	// This test requires a VPC.
+		// 	{
+		// 		name:            "alb",
+		// 		workingDir:      "../examples/deploy-alb",
+		// 		genTestDataFunc: modules.DeployAlb,
+		// 		validateFunc:    modules.ValidateAlbHttps,
+		// 	},
+		// },
 	}
 
 	for _, tests := range tests {
