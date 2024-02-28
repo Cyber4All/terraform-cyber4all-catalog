@@ -212,7 +212,7 @@ data "mongodbatlas_clusters" "peering" {
 
   lifecycle {
     postcondition {
-      condition     = length(data.mongodbatlas_clusters.peering) > 0
+      condition     = length(self) > 0
       error_message = "Atleast one cluster must exist before creating a network peering connection."
     }
   }
