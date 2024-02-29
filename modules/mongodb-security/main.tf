@@ -223,7 +223,7 @@ data "mongodbatlas_advanced_cluster" "peering" {
   count = var.enable_vpc_peering ? 1 : 0
 
   project_id = data.mongodbatlas_project.project.id
-  name       = data.mongodbatlas_clusters.peering.results[0].name
+  name       = data.mongodbatlas_clusters.peering[0].results[0].name
 }
 
 resource "mongodbatlas_network_peering" "peering" {
