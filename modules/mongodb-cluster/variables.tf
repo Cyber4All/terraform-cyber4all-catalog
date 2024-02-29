@@ -68,38 +68,6 @@ variable "cluster_region" {
   }
 }
 
-variable "cluster_authorized_iam_users" {
-  description = "Create a map of AWS IAM users to assign an admin, readWrite, or read database role to the cluster's databases."
-  type        = map(string)
-  default     = {}
-  validation {
-    condition     = alltrue([for k, v in var.cluster_authorized_iam_users : contains(["admin", "read", "readWrite"], v)])
-    error_message = "A database role must be one of the following: admin, readWrite, read."
-  }
-}
-
-variable "cluster_authorized_iam_roles" {
-  description = "Create a map of AWS IAM roles to assign an admin, readWrite, or read database role to the cluster's databases."
-  type        = map(string)
-  default     = {}
-  validation {
-    condition     = alltrue([for k, v in var.cluster_authorized_iam_roles : contains(["admin", "read", "readWrite"], v)])
-    error_message = "A database role must be one of the following: admin, readWrite, read."
-  }
-}
-
-variable "cluster_peering_route_table_ids" {
-  description = "The route table IDs of the VPC to peer with. Each route table should belong to a unique VPC."
-  type        = list(string)
-  default     = []
-}
-
-variable "cluster_peering_cidr_block" {
-  description = "The CIDR block of the VPC to peer with."
-  type        = string
-  default     = ""
-}
-
 variable "enable_cluster_auto_scaling" {
   description = "Set to true to enable auto scaling for the cluster's compute and storage. Recommended for production clusters."
   type        = bool
@@ -128,10 +96,4 @@ variable "enable_retain_deleted_cluster_backups" {
   description = "Set to true to retain backup snapshots for the deleted cluster. Recommended for production clusters."
   type        = bool
   default     = false
-}
-
-variable "enable_vpc_peering" {
-  description = "Set to true to enable a peering connection with an existing VPC."
-  type        = bool
-  default     = true
 }
