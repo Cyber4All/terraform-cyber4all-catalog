@@ -105,10 +105,6 @@ data "aws_acm_certificate" "cert" {
   domain      = var.hosted_zone_name
   types       = ["AMAZON_ISSUED"]
   most_recent = true
-
-  depends_on = [
-    var.hosted_zone_name
-  ]
 }
 
 resource "aws_lb_listener" "redirect" {
@@ -164,10 +160,14 @@ resource "aws_lb_listener" "https" {
 # -------------------------------------------
 
 resource "aws_security_group" "alb" {
-  name        = "${var.alb_name}-sg"
+  name        = "${var.alb_name}-alb"
   description = "Terraform managed security group for ${var.alb_name} ALB."
 
   vpc_id = var.vpc_id
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_vpc_security_group_egress_rule" "alb" {
@@ -218,10 +218,6 @@ data "aws_route53_zone" "zone" {
   count = var.hosted_zone_name != "" ? 1 : 0
 
   name = var.hosted_zone_name
-
-  depends_on = [
-    var.hosted_zone_name
-  ]
 }
 
 resource "aws_route53_record" "alb" {

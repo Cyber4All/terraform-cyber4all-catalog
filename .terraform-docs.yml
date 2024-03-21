@@ -7,44 +7,38 @@ recursive:
 
 content: |-
   {{ .Requirements }}
-
   ## Sample Usage
-
   ```hcl
-  module "example" {
-    {{"\n"}}
-    {{"\t"}} source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
-    {{"\n"}}
-  
+  terraform {
+  {{"\t"}} source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+  }
+
+  inputs = {
+  {{"\n"}}
   {{- if .Module.RequiredInputs }}
     {{"\t"}} # --------------------------------------------
     {{"\t"}} # Required variables
     {{"\t"}} # --------------------------------------------
     {{"\n"}}
     {{- range .Module.RequiredInputs }}
-      {{"\t #"}} {{ .Description }}
       {{"\t"}} {{ .Name }}  = {{ .Type }}
       {{"\n"}}
     {{- end }}
   {{- end }}
-  
   {{- if .Module.OptionalInputs }}
     {{"\t"}} # --------------------------------------------
     {{"\t"}} # Optional variables
     {{"\t"}} # --------------------------------------------
     {{"\n"}}
     {{- range .Module.OptionalInputs }}
-      {{"\t #"}} {{ .Description }}
       {{"\t"}} {{ .Name }}  = {{ .Type }}
       {{"\n"}}
     {{- end }}
   {{- end }}
-  
   }
   ```
   {{ .Inputs }}
   {{ .Outputs }}
-
 output:
   file: README.md
   mode: inject

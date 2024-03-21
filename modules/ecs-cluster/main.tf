@@ -267,8 +267,9 @@ resource "aws_autoscaling_group" "cluster" {
   }
 
   lifecycle {
-    create_before_destroy = true
+    create_before_destroy = false
   }
+
 }
 
 
@@ -353,15 +354,25 @@ resource "aws_launch_template" "cluster" {
 # -------------------------------------------
 
 resource "aws_security_group" "default" {
-  name        = "${var.cluster_name}-ecs-agent-sg"
+  name        = "${var.cluster_name}-ecs-agent"
   description = "Terraform managed security group for ${var.cluster_name} ECS agent."
 
   vpc_id = var.vpc_id
 }
 
+resource "aws_vpc_security_group_ingress_rule" "agent" {
+  security_group_id = aws_security_group.default.id
+  description       = "Opens a dynamic ephemeral port for tasks using the bridge network mode."
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 32768
+  to_port     = 65535
+}
+
 resource "aws_vpc_security_group_egress_rule" "agent" {
   security_group_id = aws_security_group.default.id
-  description       = "Allow all TCP range to support ECS agent, Docker daemon, and Docker ephemeral port requirements."
+  description       = "Allow all outbound tcp traffic."
 
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "tcp"
@@ -375,7 +386,7 @@ resource "aws_vpc_security_group_egress_rule" "agent" {
 # -------------------------------------------
 
 resource "aws_security_group" "cluster" {
-  name        = "${var.cluster_name}-sg"
+  name        = "${var.cluster_name}-instance"
   description = "Terraform managed security group for ${var.cluster_name} ECS container instances."
 
   vpc_id = var.vpc_id
@@ -416,7 +427,7 @@ data "aws_iam_policy_document" "cluster" {
 }
 
 resource "aws_iam_role" "cluster" {
-  name = "${var.cluster_name}-role"
+  name_prefix = "${var.cluster_name}-cluster"
 
   description = "Terraform managed IAM role for ${var.cluster_name}"
 

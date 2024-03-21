@@ -31,14 +31,13 @@ The following requirements are needed by this module:
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.5.5)
 
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
-
 ## Sample Usage
-
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+inputs = {
 
 
 	 # --------------------------------------------
@@ -46,19 +45,12 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The AMI to run on each instance in the ECS cluster.
-	 cluster_instance_ami  = string
-
-
-	 # The name of the ECS cluster.
 	 cluster_name  = string
 
 
-	 # The ID of the VPC in which the ECS cluster should be launched.
 	 vpc_id  = string
 
 
-	 # The IDs of the subnets in which to deploy the ECS cluster instances.
 	 vpc_subnet_ids  = list(string)
 
 
@@ -67,41 +59,34 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The ARNs of SNS topics where failed Autoscaling notifications should be sent to.
 	 autoscaling_sns_topic_arns  = list(string)
 
 
-	 # Protect EC2 instances running ECS tasks from being terminated due to scale in (spot instances do not support lifecycle modifications). Note that the behavior of termination protection differs between clusters with capacity providers and clusters without. When capacity providers is turned on and this flag is true, only instances that have 0 ECS tasks running will be scaled in, regardless of capacity_provider_target. If capacity providers is turned off and this flag is true, this will prevent ANY instances from being scaled in.
 	 autoscaling_termination_protection  = bool
 
 
-	 # Maximum step adjustment size to the ASG's desired instance count. A number between 1 and 10000. It is better to overestimate this value.
 	 capacity_provider_max_scale_step  = number
 
 
-	 # Minimum step adjustment size to the ASG's desired instance count. A number between 1 and 10000. It is better to underestimate this value.
 	 capacity_provider_min_scale_step  = number
 
 
-	 # Target cluster utilization for the ASG capacity provider; a number from 1 to 100. This number influences when scale out happens, and when instances should be scaled in. For example, a setting of 90 means that new instances will be provisioned when all instances are at 90% utilization, while instances that are only 10% utilized (CPU and Memory usage from tasks = 10%) will be scaled in.
 	 capacity_provider_target  = number
 
 
-	 # Specify a list of ECS Cluster TCP ports which should be made accessible through ingress traffic.
 	 cluster_ingress_access_ports  = list(number)
 
 
-	 # The size of the EC2 instance.
+	 cluster_instance_ami  = string
+
+
 	 cluster_instance_type  = string
 
 
-	 # The maximum number of instances to run in the ECS cluster.
 	 cluster_max_size  = number
 
 
-	 # The minimum number of instances to run in the ECS cluster
 	 cluster_min_size  = number
-
 
 
 }
@@ -109,12 +94,6 @@ module "example" {
 ## Required Inputs
 
 The following input variables are required:
-
-### <a name="input_cluster_instance_ami"></a> [cluster\_instance\_ami](#input\_cluster\_instance\_ami)
-
-Description: The AMI to run on each instance in the ECS cluster.
-
-Type: `string`
 
 ### <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name)
 
@@ -176,7 +155,7 @@ Description: Target cluster utilization for the ASG capacity provider; a number 
 
 Type: `number`
 
-Default: `75`
+Default: `100`
 
 ### <a name="input_cluster_ingress_access_ports"></a> [cluster\_ingress\_access\_ports](#input\_cluster\_ingress\_access\_ports)
 
@@ -186,13 +165,21 @@ Type: `list(number)`
 
 Default: `[]`
 
+### <a name="input_cluster_instance_ami"></a> [cluster\_instance\_ami](#input\_cluster\_instance\_ami)
+
+Description: The AMI to run on each instance in the ECS cluster.
+
+Type: `string`
+
+Default: `"ami-011425496927b80c0"`
+
 ### <a name="input_cluster_instance_type"></a> [cluster\_instance\_type](#input\_cluster\_instance\_type)
 
 Description: The size of the EC2 instance.
 
 Type: `string`
 
-Default: `"t2.micro"`
+Default: `"t3.micro"`
 
 ### <a name="input_cluster_max_size"></a> [cluster\_max\_size](#input\_cluster\_max\_size)
 

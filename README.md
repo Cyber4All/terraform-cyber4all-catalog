@@ -43,15 +43,13 @@ pre-commit install
 
 <!-- BEGIN_TF_DOCS -->
 
-
 ## Sample Usage
-
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
-
+inputs = {
 
 
 }

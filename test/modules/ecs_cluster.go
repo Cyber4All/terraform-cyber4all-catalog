@@ -41,9 +41,11 @@ func ValidateEcsCluster(t *testing.T, workingDir string) {
 	// Load the Terraform Options saved by the earlier deploy_terraform stage
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
+
 	// Get the random id
 	randomId := terraformOptions.Vars["random_id"].(string)
-	expectedClusterName := fmt.Sprintf("cluster-test%s", randomId)
+
+	expectedClusterName := terraform.Output(t, terraformOptions, "ecs_cluster_name")
 
 	// Check that the cluster exists
 	cluster := assertClusterExists(t, awsRegion, expectedClusterName)

@@ -21,6 +21,7 @@ import (
 func DeployAlb(t *testing.T, workingDir string) {
 	// Generate a unique ID
 	uniqueId := strings.ToLower(random.UniqueId())
+
 	// Get a random AWS region
 	awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-east-2"}, nil)
 	test_structure.SaveString(t, workingDir, "awsRegion", awsRegion)
@@ -50,9 +51,9 @@ func ValidateAlbNoHttps(t *testing.T, workingDir string) {
 	// Load the Terraform Options saved by the earlier deploy_terraform stage
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
+
 	// Get the random id
-	randomId := terraformOptions.Vars["random_id"].(string)
-	expectedAlbName := fmt.Sprintf("alb-test%s", randomId)
+	expectedAlbName := terraform.Output(t, terraformOptions, "alb_name")
 
 	elb := elbv2.New(session, &aws_sdk.Config{Region: aws_sdk.String(awsRegion)})
 
@@ -77,9 +78,8 @@ func ValidateAlbHttps(t *testing.T, workingDir string) {
 	// Load the Terraform Options saved by the earlier deploy_terraform stage
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 	awsRegion := test_structure.LoadString(t, workingDir, "awsRegion")
-	// Get the random id
-	randomId := terraformOptions.Vars["random_id"].(string)
-	expectedAlbName := fmt.Sprintf("alb-test%s", randomId)
+
+	expectedAlbName := terraform.Output(t, terraformOptions, "alb_name")
 
 	elb := elbv2.New(session, &aws_sdk.Config{Region: aws_sdk.String(awsRegion)})
 

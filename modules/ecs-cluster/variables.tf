@@ -16,11 +16,6 @@ variable "cluster_name" {
   description = "The name of the ECS cluster."
 }
 
-variable "cluster_instance_ami" {
-  type        = string
-  description = "The AMI to run on each instance in the ECS cluster."
-}
-
 variable "vpc_id" {
   type        = string
   description = "The ID of the VPC in which the ECS cluster should be launched."
@@ -65,7 +60,7 @@ variable "capacity_provider_min_scale_step" {
 variable "capacity_provider_target" {
   type        = number
   description = "Target cluster utilization for the ASG capacity provider; a number from 1 to 100. This number influences when scale out happens, and when instances should be scaled in. For example, a setting of 90 means that new instances will be provisioned when all instances are at 90% utilization, while instances that are only 10% utilized (CPU and Memory usage from tasks = 10%) will be scaled in."
-  default     = 75
+  default     = 100
 }
 
 variable "cluster_ingress_access_ports" {
@@ -74,10 +69,16 @@ variable "cluster_ingress_access_ports" {
   default     = []
 }
 
+variable "cluster_instance_ami" {
+  type        = string
+  description = "The AMI to run on each instance in the ECS cluster."
+  default     = "ami-011425496927b80c0"
+}
+
 variable "cluster_instance_type" {
   type        = string
   description = "The size of the EC2 instance."
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "cluster_max_size" {
