@@ -12,6 +12,10 @@ terraform {
   }
 }
 
+provider "aws" {
+  region = "us-east-1"
+}
+
 provider "mongodbatlas" {
   assume_role {
     role_arn = var.mongodb_role_arn
