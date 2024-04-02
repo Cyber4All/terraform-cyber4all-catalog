@@ -230,7 +230,7 @@ resource "mongodbatlas_network_peering" "peering" {
   count = var.enable_vpc_peering ? length(data.aws_route_table.peering) : 0
 
   project_id    = data.mongodbatlas_project.project.id
-  container_id  = data.mongodbatlas_advanced_cluster.peering.container_id
+  container_id  = data.mongodbatlas_advanced_cluster.peering[0].container_id
   provider_name = "AWS"
 
   accepter_region_name   = data.aws_region.current.name
