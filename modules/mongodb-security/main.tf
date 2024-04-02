@@ -205,32 +205,32 @@ locals {
   ]
 }
 
-data "mongodbatlas_clusters" "peering" {
-  count = var.enable_vpc_peering ? 1 : 0
+# data "mongodbatlas_clusters" "peering" {
+#   count = var.enable_vpc_peering ? 1 : 0
 
-  project_id = data.mongodbatlas_project.project.id
+#   project_id = data.mongodbatlas_project.project.id
 
-  lifecycle {
-    postcondition {
-      condition     = length(self.results) > 0
-      error_message = "Atleast one cluster must exist before creating a network peering connection."
-    }
-  }
-}
+#   lifecycle {
+#     postcondition {
+#       condition     = length(self.results) > 0
+#       error_message = "Atleast one cluster must exist before creating a network peering connection."
+#     }
+#   }
+# }
 
 
-data "mongodbatlas_advanced_cluster" "peering" {
-  count = var.enable_vpc_peering ? 1 : 0
+# data "mongodbatlas_advanced_cluster" "peering" {
+#   count = var.enable_vpc_peering ? 1 : 0
 
-  project_id = data.mongodbatlas_project.project.id
-  name       = data.mongodbatlas_clusters.peering[0].results[0].name
-}
+#   project_id = data.mongodbatlas_project.project.id
+#   name       = data.mongodbatlas_clusters.peering[0].results[0].name
+# }
 
 resource "mongodbatlas_network_peering" "peering" {
   count = var.enable_vpc_peering ? length(data.aws_route_table.peering) : 0
 
   project_id    = data.mongodbatlas_project.project.id
-  container_id  = data.mongodbatlas_advanced_cluster.peering[0].container_id
+  container_id  = "61e0797dde08fb498ca11a71"
   provider_name = "AWS"
 
   accepter_region_name   = data.aws_region.current.name
