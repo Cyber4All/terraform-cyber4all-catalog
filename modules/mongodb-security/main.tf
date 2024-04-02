@@ -107,7 +107,7 @@ resource "mongodbatlas_database_user" "user" {
   }
 
   dynamic "scopes" {
-    for_each = each.value.length == 2 ? [1] : []
+    for_each = length(each.value) ? [1] : []
     content {
       name = each.value[1]
       type = "CLUSTER"
@@ -168,7 +168,7 @@ resource "mongodbatlas_database_user" "role" {
   }
 
   dynamic "scopes" {
-    for_each = each.value.length == 2 ? [1] : []
+    for_each = length(each.value) == 2 ? [1] : []
     content {
       name = each.value[1]
       type = "CLUSTER"
