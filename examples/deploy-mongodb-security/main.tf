@@ -13,13 +13,11 @@ terraform {
 }
 
 provider "mongodbatlas" {
-  # assume_role {
-  #   role_arn = var.mongodb_role_arn
-  # }
-  # secret_name = "mongodb/project/sandbox"
-  # region      = "us-east-1"
-  public_key  = "tkdjexks"
-  private_key = "0433abce-8135-449c-8848-66fd51122b92"
+  assume_role {
+    role_arn = var.mongodb_role_arn
+  }
+  secret_name = "mongodb/project/sandbox"
+  region      = "us-east-1"
 }
 
 module "mongodb-security" {
