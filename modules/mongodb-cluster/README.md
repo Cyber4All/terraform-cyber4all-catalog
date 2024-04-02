@@ -4,7 +4,7 @@
 
 This module contains Terraform code to deploy a MongoDB Atlas database cluster.
 
-This service launches a MongoDB cluster in AWS using the MongoDB Atlas provider. The cluster supports autoscaling, backups, automated patches, VPC peering, and IAM authentication.
+This service launches a MongoDB cluster in AWS using the MongoDB Atlas provider. The cluster supports autoscaling, backups, automated patches.
 
 <!-- Image or Arch diagram -->
 
@@ -18,7 +18,7 @@ MongoDB is a no-sql database that is used to store data as documents in a JSON-l
 
 In regards to the supporting infrastructure, the MongoDB Atlas provider is a PaaS that allows us to deploy fully managed MongoDB clusters in AWS. The provider is responsible for managing the underlying infrastructure, such as EC2 instances, EBS volumes, and VPCs. The provider also handles the installation, configuration, and maintenance of MongoDB on the cluster.
 
-In this module, the provided inputs allow us to easily enable features such as autoscaling, backups, automated patches, VPC peering, and IAM authentication.
+In this module, the provided inputs allow us to easily enable features such as autoscaling, backups, automated patches.
 
 For more information on MongoDB, see the following links:
 
@@ -31,8 +31,6 @@ For more information on MongoDB, see the following links:
 The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.5.5)
-
-- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
 
 - <a name="requirement_mongodbatlas"></a> [mongodbatlas](#requirement\_mongodbatlas) (>= 1.12.1)
 ## Sample Usage
@@ -60,12 +58,6 @@ inputs = {
 	 # --------------------------------------------
 
 
-	 cluster_authorized_iam_roles  = map(string)
-
-
-	 cluster_authorized_iam_users  = map(string)
-
-
 	 cluster_disk_size_gb  = number
 
 
@@ -73,12 +65,6 @@ inputs = {
 
 
 	 cluster_mongodb_version  = string
-
-
-	 cluster_peering_cidr_block  = string
-
-
-	 cluster_peering_route_table_ids  = list(string)
 
 
 	 cluster_region  = string
@@ -97,9 +83,6 @@ inputs = {
 
 
 	 enable_retain_deleted_cluster_backups  = bool
-
-
-	 enable_vpc_peering  = bool
 
 
 }
@@ -124,22 +107,6 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_cluster_authorized_iam_roles"></a> [cluster\_authorized\_iam\_roles](#input\_cluster\_authorized\_iam\_roles)
-
-Description: Create a map of AWS IAM roles to assign an admin, readWrite, or read database role to the cluster's databases.
-
-Type: `map(string)`
-
-Default: `{}`
-
-### <a name="input_cluster_authorized_iam_users"></a> [cluster\_authorized\_iam\_users](#input\_cluster\_authorized\_iam\_users)
-
-Description: Create a map of AWS IAM users to assign an admin, readWrite, or read database role to the cluster's databases.
-
-Type: `map(string)`
-
-Default: `{}`
-
 ### <a name="input_cluster_disk_size_gb"></a> [cluster\_disk\_size\_gb](#input\_cluster\_disk\_size\_gb)
 
 Description: Capacity, in gigabytes, of the host's root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive integer.
@@ -163,22 +130,6 @@ Description: Version of the cluster to deploy. This module supports 4.4, 5.0, or
 Type: `string`
 
 Default: `"5.0"`
-
-### <a name="input_cluster_peering_cidr_block"></a> [cluster\_peering\_cidr\_block](#input\_cluster\_peering\_cidr\_block)
-
-Description: The CIDR block of the VPC to peer with.
-
-Type: `string`
-
-Default: `""`
-
-### <a name="input_cluster_peering_route_table_ids"></a> [cluster\_peering\_route\_table\_ids](#input\_cluster\_peering\_route\_table\_ids)
-
-Description: The route table IDs of the VPC to peer with. Each route table should belong to a unique VPC.
-
-Type: `list(string)`
-
-Default: `[]`
 
 ### <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region)
 
@@ -227,21 +178,9 @@ Description: Set to true to retain backup snapshots for the deleted cluster. Rec
 Type: `bool`
 
 Default: `false`
-
-### <a name="input_enable_vpc_peering"></a> [enable\_vpc\_peering](#input\_enable\_vpc\_peering)
-
-Description: Set to true to enable a peering connection with an existing VPC.
-
-Type: `bool`
-
-Default: `true`
 ## Outputs
 
 The following outputs are exported:
-
-### <a name="output_cluster_authorized_users"></a> [cluster\_authorized\_users](#output\_cluster\_authorized\_users)
-
-Description: The list of users/roles authorized to access the cluster.
 
 ### <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id)
 
@@ -258,10 +197,6 @@ Description: The connection string for the cluster with replicaSet, ssl, and aut
 ### <a name="output_cluster_mongodb_version"></a> [cluster\_mongodb\_version](#output\_cluster\_mongodb\_version)
 
 Description: The mongodb cluster version
-
-### <a name="output_cluster_peering_route_table_ids"></a> [cluster\_peering\_route\_table\_ids](#output\_cluster\_peering\_route\_table\_ids)
-
-Description: The list of peering route table IDs.
 
 ### <a name="output_cluster_state"></a> [cluster\_state](#output\_cluster\_state)
 

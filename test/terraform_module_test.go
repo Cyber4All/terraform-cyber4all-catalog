@@ -36,22 +36,21 @@ func TestExamplesForTerraformModules(t *testing.T) {
 	 */
 	tests := [][]TestCase{
 		{
-			// mongodb-cluster: Deploy and validate a MongoDB cluster. (~686.96s)
+			// vpc: Deploy and validate a VPC. (~100s)
 			// This test requires a VPC.
 			{
-				name:            "mongodb-cluster",
-				workingDir:      "../examples/deploy-mongodb-cluster",
-				genTestDataFunc: modules.DeployMongoDBCluster,
-				validateFunc:    modules.ValidateMongoDBCluster,
+				name:            "vpc",
+				workingDir:      "../examples/deploy-vpc",
+				genTestDataFunc: modules.DeployVpcUsingTerraform,
+				validateFunc:    modules.ValidateVpc,
 			},
 
-			// ecs_service: Deploy and validate an ECS service. (~912s)
-			// This test requires a VPC.
+			// mongodb-security: Deploy and validate a MongoDB Security Terraform module. (~200s)
 			{
-				name:            "ecs service",
-				workingDir:      "../examples/deploy-ecs-service",
-				genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
-				validateFunc:    modules.ValidateEcsService,
+				name:            "mongodb-security",
+				workingDir:      "../examples/deploy-mongodb-security",
+				genTestDataFunc: modules.DeployMongoDBSecurityUsingTerraform,
+				validateFunc:    modules.ValidateMongoDBSecurity,
 			},
 
 			// ecs-cluster: Deploy and validate an ECS cluster. (~313s)
@@ -62,6 +61,16 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				genTestDataFunc: modules.DeployEcsClusterUsingTerraform,
 				validateFunc:    modules.ValidateEcsCluster,
 			},
+		},
+		{
+			// ecs_service: Deploy and validate an ECS service. (~912s)
+			// This test requires a VPC.
+			{
+				name:            "ecs service",
+				workingDir:      "../examples/deploy-ecs-service",
+				genTestDataFunc: modules.DeployEcsServiceUsingTerraform,
+				validateFunc:    modules.ValidateEcsService,
+			},
 
 			// alb-https: Deploy and validate an Application Load Balancer with HTTPS. (~268s)
 			// This test requires a VPC.
@@ -70,15 +79,6 @@ func TestExamplesForTerraformModules(t *testing.T) {
 				workingDir:      "../examples/deploy-alb",
 				genTestDataFunc: modules.DeployAlb,
 				validateFunc:    modules.ValidateAlbHttps,
-			},
-
-			// vpc: Deploy and validate a VPC. (~100s)
-			// This test requires a VPC.
-			{
-				name:            "vpc",
-				workingDir:      "../examples/deploy-vpc",
-				genTestDataFunc: modules.DeployVpcUsingTerraform,
-				validateFunc:    modules.ValidateVpc,
 			},
 		},
 	}
