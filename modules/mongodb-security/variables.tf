@@ -42,21 +42,3 @@ variable "authorized_iam_roles" {
     error_message = "A database role must be one of the following: admin, readWrite, read."
   }
 }
-
-variable "enable_vpc_peering" {
-  description = "Set to true to enable a peering connection with an existing VPC."
-  type        = bool
-  default     = false
-}
-
-variable "peering_route_table_ids" {
-  description = "The route table IDs of the VPC to peer with. Each route table should belong to a unique VPC."
-  type        = list(string)
-  default     = []
-}
-
-variable "peering_cidr_block" {
-  description = "The CIDR block of the VPC to peer with."
-  type        = string
-  default     = ""
-}

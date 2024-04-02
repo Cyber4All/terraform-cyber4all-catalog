@@ -13,25 +13,13 @@ terraform {
 }
 
 provider "mongodbatlas" {
-  assume_role {
-    role_arn = var.mongodb_role_arn
-  }
-  secret_name = "mongodb/project/sandbox"
-  region      = "us-east-1"
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
-module "vpc" {
-  source = "../../modules/vpc"
-
-  vpc_name = "test-vpc"
-
-  num_availability_zones = 1
-
-  create_private_subnets = false
+  # assume_role {
+  #   role_arn = var.mongodb_role_arn
+  # }
+  # secret_name = "mongodb/project/sandbox"
+  # region      = "us-east-1"
+  public_key  = "tkdjexks"
+  private_key = "0433abce-8135-449c-8848-66fd51122b92"
 }
 
 module "mongodb-security" {
@@ -47,8 +35,4 @@ module "mongodb-security" {
   authorized_iam_roles = {
     "ecsTaskExecutionRole" = "read"
   }
-
-  enable_vpc_peering      = true
-  peering_cidr_block      = module.vpc.vpc_cidr_block
-  peering_route_table_ids = [module.vpc.public_subnet_route_table_id]
 }

@@ -8,8 +8,3 @@ output "authorized_iam_roles" {
   value       = keys(mongodbatlas_database_user.role)
 
 }
-
-output "peering_route_table_ids" {
-  description = "The list of peering route table IDs."
-  value       = var.enable_vpc_peering ? local.route_table_ids : []
-}

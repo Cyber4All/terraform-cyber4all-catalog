@@ -36,15 +36,6 @@ inputs = {
 	 authorized_iam_users  = map(string)
 
 
-	 enable_vpc_peering  = bool
-
-
-	 peering_cidr_block  = string
-
-
-	 peering_route_table_ids  = list(string)
-
-
 }
 ```
 ## Required Inputs
@@ -76,30 +67,6 @@ Description: Create a map of AWS IAM users to assign an admin, readWrite, or rea
 Type: `map(string)`
 
 Default: `{}`
-
-### <a name="input_enable_vpc_peering"></a> [enable\_vpc\_peering](#input\_enable\_vpc\_peering)
-
-Description: Set to true to enable a peering connection with an existing VPC.
-
-Type: `bool`
-
-Default: `false`
-
-### <a name="input_peering_cidr_block"></a> [peering\_cidr\_block](#input\_peering\_cidr\_block)
-
-Description: The CIDR block of the VPC to peer with.
-
-Type: `string`
-
-Default: `""`
-
-### <a name="input_peering_route_table_ids"></a> [peering\_route\_table\_ids](#input\_peering\_route\_table\_ids)
-
-Description: The route table IDs of the VPC to peer with. Each route table should belong to a unique VPC.
-
-Type: `list(string)`
-
-Default: `[]`
 ## Outputs
 
 The following outputs are exported:
@@ -111,8 +78,4 @@ Description: The list of IAM roles authorized to access the project.
 ### <a name="output_authorized_iam_users"></a> [authorized\_iam\_users](#output\_authorized\_iam\_users)
 
 Description: The list of IAM users authorized to access the project.
-
-### <a name="output_peering_route_table_ids"></a> [peering\_route\_table\_ids](#output\_peering\_route\_table\_ids)
-
-Description: The list of peering route table IDs.
 <!-- END_TF_DOCS -->
