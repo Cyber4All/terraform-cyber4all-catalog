@@ -225,7 +225,7 @@ resource "aws_s3_bucket_cors_configuration" "primary" {
 # -------------------------------------------
 # CONFIGURE PRIMARY S3 BUCKET SERVER SIDE ENCRYPTION
 # -------------------------------------------
-#tfsec:ignore:aws_s3_bucket_server_side_encryption_configuration
+#tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "primary" {
   bucket = aws_s3_bucket.primary.id
 
@@ -313,7 +313,7 @@ resource "aws_s3_bucket_public_access_block" "replica" {
 # CONFIGURE REPLICA S3 BUCKET SERVER SIDE ENCRYPTION
 # -------------------------------------------
 
-#tfsec:ignore:aws_s3_bucket_server_side_encryption_configuration
+#tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
   count = var.enable_replica ? 1 : 0
 
