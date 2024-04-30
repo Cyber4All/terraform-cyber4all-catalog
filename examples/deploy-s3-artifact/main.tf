@@ -11,4 +11,5 @@ module "s3_artifact" {
   source = "../../modules/s3-artifact"
 
   bucket_name = var.bucket_name
+  enable_storage_class_transition = var.enable_storage_class_transition
 }

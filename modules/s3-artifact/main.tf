@@ -209,7 +209,7 @@ resource "aws_s3_bucket_policy" "primary" {
 # -------------------------------------------
 # CONFIGURE PRIMARY S3 BUCKET CORS POLICY
 # -------------------------------------------
-resource "aws_s3_bucket_cors" "primary" {
+resource "aws_s3_bucket_cors_configuration" "primary" {
   count = var.enable_public_access ? 1 : 0
   bucket = aws_s3_bucket.primary.id
 
