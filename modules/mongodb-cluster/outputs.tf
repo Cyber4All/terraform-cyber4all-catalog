@@ -22,13 +22,3 @@ output "cluster_state" {
   description = "The state that the cluster is in. Possible values are: IDLE, CREATING, UPDATING, DELETING, DELETED, REPAIRING."
   value       = mongodbatlas_cluster.cluster.state_name
 }
-
-output "cluster_authorized_users" {
-  description = "The list of users/roles authorized to access the cluster."
-  value       = concat(keys(mongodbatlas_database_user.user), keys(mongodbatlas_database_user.role))
-}
-
-output "cluster_peering_route_table_ids" {
-  description = "The list of peering route table IDs."
-  value       = var.enable_vpc_peering ? local.route_table_ids : []
-}
