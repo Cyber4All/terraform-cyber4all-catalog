@@ -8,14 +8,13 @@ The following requirements are needed by this module:
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.5.5)
 
 - <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
-
 ## Sample Usage
-
 ```hcl
-module "example" {
+terraform {
+	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+}
 
-
-	 source  = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
+inputs = {
 
 
 	 # --------------------------------------------
@@ -23,7 +22,6 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # The name of the S3 bucket.
 	 bucket_name  = string
 
 
@@ -32,25 +30,19 @@ module "example" {
 	 # --------------------------------------------
 
 
-	 # Whether or not to enable versioning on the S3 bucket.
-	 enable_bucket_versioning  = bool
+	 enable_public_access  = bool
 
 
-	 # Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled.
-	 enable_storage_class_transition  = bool
-
-
-	 # Whether or not to create a replica bucket in a different region. Defaults to true.
 	 enable_replica  = bool
 
 
-	 # The AWS region in which to create the S3 bucket.
+	 enable_storage_class_transition  = bool
+
+
 	 primary_region  = string
 
 
-	 # The AWS region in which to create the S3 bucket.
 	 replica_region  = string
-
 
 
 }
@@ -69,21 +61,13 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_enable_bucket_versioning"></a> [enable\_bucket\_versioning](#input\_enable\_bucket\_versioning)
+### <a name="input_enable_public_access"></a> [enable\_public\_access](#input\_enable\_public\_access)
 
-Description: Whether or not to enable versioning on the S3 bucket.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_enable_storage_class_transition"></a> [enable\_lifecycle\_management](#input\_enable\_lifecycle\_management)
-
-Description: Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled.
+Description: Whether or not to enable public access to the S3 bucket. Defaults to false.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ### <a name="input_enable_replica"></a> [enable\_replica](#input\_enable\_replica)
 
@@ -92,6 +76,14 @@ Description: Whether or not to create a replica bucket in a different region. De
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_enable_storage_class_transition"></a> [enable\_storage\_class\_transition](#input\_enable\_storage\_class\_transition)
+
+Description: Whether or not to enable full lifecycle management with both storage transitions on the S3 bucket. Defaults to false and is an opt-in feature since bucket versioning will always be enabled.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_primary_region"></a> [primary\_region](#input\_primary\_region)
 
@@ -103,7 +95,7 @@ Default: `"us-east-1"`
 
 ### <a name="input_replica_region"></a> [replica\_region](#input\_replica\_region)
 
-Description: The AWS region in which to create the S3 bucket.
+Description: The AWS region in which to create the replica S3 bucket.
 
 Type: `string`
 

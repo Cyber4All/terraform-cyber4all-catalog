@@ -50,6 +50,6 @@ variable "primary_region" {
 
 variable "replica_region" {
   type        = string
-  description = "The AWS region in which to create the S3 bucket."
+  description = "The AWS region in which to create the replica S3 bucket."
   default     = "us-east-2"
 }
