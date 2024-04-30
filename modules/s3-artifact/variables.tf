@@ -32,8 +32,14 @@ variable "enable_replica" {
 
 variable "enable_storage_class_transition" {
   type        = bool
-  description = "Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled."
-  default     = true
+  description = "Whether or not to enable full lifecycle management with both storage transitions on the S3 bucket. Defaults to false and is an opt-in feature since bucket versioning will always be enabled."
+  default     = false
+}
+
+variable "enable_public_access" {
+  type        = bool
+  description = "Whether or not to enable public access to the S3 bucket. Defaults to false."
+  default     = false
 }
 
 variable "primary_region" {
