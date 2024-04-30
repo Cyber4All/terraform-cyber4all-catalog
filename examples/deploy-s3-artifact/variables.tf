@@ -1,7 +1,7 @@
 variable "bucket_name" {
   type        = string
   description = "The name of the S3 bucket."
-  default     = "mike-testing-cause-suck-at-naming-things"
+  default     = "cyber4all-artifact-bucket"
 }
 
 variable "enable_storage_class_transition" {
