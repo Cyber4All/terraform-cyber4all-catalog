@@ -4,11 +4,9 @@
 # This module will create an S3 Bucket that supports lifecycle management,
 # server side encryption configuration, and bucket replication configuration.
 #
-# Full lifecycle management by default enables both object versioning and storage transitions.
-# Object versioning is enabled with a 30 day noncurrent version expiration policy and transitions
-# are enabled with a 30 day transition to STANDARD_IA and a 90 day transition to GLACIER.
-# Partial lifecycle management enables only object versioning with a 30 day noncurrent version
-# expiration policy. The variable enable_storage_class_transition is a boolean and is defaulted to true.
+# Object versioning is enabled by default with a 30 day noncurrent version expiration policy and
+# optionally allows transitions with a 30 day transition to STANDARD_IA and a 90 day transition to GLACIER.
+# The variable enable_storage_class_transition is a boolean and is defaulted to false.
 #
 # The bucket replication configuration creates a bucket in a different region. The replica
 # bucket will be encrypted with the same "kms" as the primary bucket. The replica bucket defines
@@ -107,7 +105,6 @@ resource "aws_s3_bucket_ownership_controls" "primary" {
 # -------------------------------------------
 # CREATE PRIMARY S3 BUCKET ACL
 # -------------------------------------------
-// this and ownership controls need to be dynamic
 resource "aws_s3_bucket_acl" "primary" {
   bucket = aws_s3_bucket.primary.id
   access_control_policy {
@@ -180,7 +177,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "primary" {
 # -------------------------------------------
 # CONFIGURE PRIMARY S3 BUCKET PUBLIC ACCESS
 # -------------------------------------------
-// this needs to be dynamic
 resource "aws_s3_bucket_public_access_block" "primary" {
   bucket = aws_s3_bucket.primary.id
 
@@ -188,6 +184,42 @@ resource "aws_s3_bucket_public_access_block" "primary" {
   block_public_policy     = !var.enable_public_access
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# -------------------------------------------
+# CONFIGURE PRIMARY S3 BUCKET POLICY
+# -------------------------------------------
+resource "aws_s3_bucket_policy" "primary" {
+  count = var.enable_public_access ? 1 : 0
+  bucket = aws_s3_bucket.primary.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.primary.arn}/*"
+      },
+    ]
+  })
+}
+
+# -------------------------------------------
+# CONFIGURE PRIMARY S3 BUCKET CORS POLICY
+# -------------------------------------------
+resource "aws_s3_bucket_cors" "primary" {
+  count = var.enable_public_access ? 1 : 0
+  bucket = aws_s3_bucket.primary.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
 }
 
 # -------------------------------------------
