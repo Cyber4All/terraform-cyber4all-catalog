@@ -11,5 +11,5 @@ module "s3_artifact" {
   source = "../../modules/s3-artifact"
 
   bucket_name                 = var.bucket_name
-  enable_lifecycle_management = var.partial_lifecycle_management
+  enable_storage_class_transition = var.partial_lifecycle_management
 }

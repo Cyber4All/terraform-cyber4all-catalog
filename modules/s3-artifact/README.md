@@ -37,7 +37,7 @@ module "example" {
 
 
 	 # Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled.
-	 enable_lifecycle_management  = bool
+	 enable_storage_class_transition  = bool
 
 
 	 # Whether or not to create a replica bucket in a different region. Defaults to true.
@@ -77,7 +77,7 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_enable_lifecycle_management"></a> [enable\_lifecycle\_management](#input\_enable\_lifecycle\_management)
+### <a name="input_enable_storage_class_transition"></a> [enable\_lifecycle\_management](#input\_enable\_lifecycle\_management)
 
 Description: Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled.
 

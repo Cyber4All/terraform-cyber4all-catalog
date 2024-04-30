@@ -8,7 +8,7 @@
 # Object versioning is enabled with a 30 day noncurrent version expiration policy and transitions
 # are enabled with a 30 day transition to STANDARD_IA and a 90 day transition to GLACIER.
 # Partial lifecycle management enables only object versioning with a 30 day noncurrent version
-# expiration policy. The variable enable_lifecycle_management is a boolean and is defaulted to true.
+# expiration policy. The variable enable_storage_class_transition is a boolean and is defaulted to true.
 #
 # The bucket replication configuration creates a bucket in a different region. The replica
 # bucket will be encrypted with the same "kms" as the primary bucket. The replica bucket defines
@@ -129,7 +129,7 @@ resource "aws_s3_bucket_versioning" "primary" {
 
   bucket = aws_s3_bucket.primary.id
   versioning_configuration {
-    status = (!var.enable_replica ? (var.enable_bucket_versioning ? "Enabled" : "Disabled") : "Enabled")
+    status = "Enabled"
   }
 }
 
@@ -141,7 +141,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "primary" {
   bucket = aws_s3_bucket.primary.id
 
   dynamic "rule" {
-    for_each = var.enable_lifecycle_management ? [1] : []
+    for_each = var.enable_storage_class_transition ? [1] : []
 
     content {
       id = "${var.bucket_name}-downgrade-storage-class"

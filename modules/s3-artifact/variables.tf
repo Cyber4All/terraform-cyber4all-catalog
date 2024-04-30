@@ -30,12 +30,7 @@ variable "enable_replica" {
   default     = true
 }
 
-variable "enable_bucket_versioning" {
-  type        = bool
-  description = "Whether or not to enable versioning on the S3 bucket."
-  default     = true
-}
-variable "enable_lifecycle_management" {
+variable "enable_storage_class_transition" {
   type        = bool
   description = "Whether or not to enable full lifecycle management with both storage transitions and object versions on the S3 bucket. Defaults to ture. If set to false, only object versioning will be enabled."
   default     = true
