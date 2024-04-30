@@ -69,6 +69,11 @@ provider "aws" {
   region = var.replica_region
 }
 
+
+# -------------------------------------------
+# RETRIEVE GENERAL AWS INFORMATION
+# -------------------------------------------
+
 data "aws_canonical_user_id" "current" {}
 
 
