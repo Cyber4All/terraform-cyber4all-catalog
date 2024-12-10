@@ -42,48 +42,48 @@ terraform {
 inputs = {
 
 
-	 # --------------------------------------------
-	 # Required variables
-	 # --------------------------------------------
+  	 # --------------------------------------------
+  	 # Required variables
+  	 # --------------------------------------------
+  
 
+    	 cluster_name  = string
+    
 
-	 cluster_name  = string
+    	 project_name  = string
+    
 
+  	 # --------------------------------------------
+  	 # Optional variables
+  	 # --------------------------------------------
+  
 
-	 project_name  = string
+    	 cluster_disk_size_gb  = number
+    
 
+    	 cluster_instance_name  = string
+    
 
-	 # --------------------------------------------
-	 # Optional variables
-	 # --------------------------------------------
+    	 cluster_mongodb_version  = string
+    
 
+    	 cluster_region  = string
+    
 
-	 cluster_disk_size_gb  = number
+    	 enable_cluster_auto_scaling  = bool
+    
 
+    	 enable_cluster_automated_patches  = bool
+    
 
-	 cluster_instance_name  = string
+    	 enable_cluster_backups  = bool
+    
 
+    	 enable_cluster_terimination_protection  = bool
+    
 
-	 cluster_mongodb_version  = string
-
-
-	 cluster_region  = string
-
-
-	 enable_cluster_auto_scaling  = bool
-
-
-	 enable_cluster_automated_patches  = bool
-
-
-	 enable_cluster_backups  = bool
-
-
-	 enable_cluster_terimination_protection  = bool
-
-
-	 enable_retain_deleted_cluster_backups  = bool
-
+    	 enable_retain_deleted_cluster_backups  = bool
+    
 
 }
 ```

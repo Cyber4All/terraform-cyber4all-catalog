@@ -1,6 +1,6 @@
 formatter: "markdown document"
 
-version: "0.16"
+version: "0.19"
 
 recursive:
   enabled: true

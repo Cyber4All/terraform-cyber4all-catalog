@@ -46,3 +46,9 @@ variable "num_availability_zones" {
   description = "How many AWS Availability Zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ. Note that this must be less than or equal to the total number of AZs in a region. A value of null means all AZs should be used. For example, if you specify 3 in a region with 5 AZs, subnets will be created in just 3 AZs instead of all 5. Defaults to all AZs in a region."
   default     = null
 }
+
+variable "vpc_cidr_block" {
+  type        = string
+  description = "The VPC CIDR Block to assign to the VPC"
+  default     = "10.0.0.0/18"
+}

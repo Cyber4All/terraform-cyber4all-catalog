@@ -36,30 +36,33 @@ terraform {
 inputs = {
 
 
-	 # --------------------------------------------
-	 # Required variables
-	 # --------------------------------------------
+  	 # --------------------------------------------
+  	 # Required variables
+  	 # --------------------------------------------
+  
 
+    	 vpc_name  = string
+    
 
-	 vpc_name  = string
+  	 # --------------------------------------------
+  	 # Optional variables
+  	 # --------------------------------------------
+  
 
+    	 create_nat_gateway  = bool
+    
 
-	 # --------------------------------------------
-	 # Optional variables
-	 # --------------------------------------------
+    	 create_private_subnets  = bool
+    
 
+    	 create_public_subnets  = bool
+    
 
-	 create_nat_gateway  = bool
+    	 num_availability_zones  = number
+    
 
-
-	 create_private_subnets  = bool
-
-
-	 create_public_subnets  = bool
-
-
-	 num_availability_zones  = number
-
+    	 vpc_cidr_block  = string
+    
 
 }
 ```
@@ -108,6 +111,14 @@ Description: How many AWS Availability Zones (AZs) to use. One subnet of each ty
 Type: `number`
 
 Default: `null`
+
+### <a name="input_vpc_cidr_block"></a> [vpc\_cidr\_block](#input\_vpc\_cidr\_block)
+
+Description: The VPC CIDR Block to assign to the VPC
+
+Type: `string`
+
+Default: `"10.0.0.0/18"`
 ## Outputs
 
 The following outputs are exported:

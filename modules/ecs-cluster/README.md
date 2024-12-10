@@ -40,54 +40,54 @@ terraform {
 inputs = {
 
 
-	 # --------------------------------------------
-	 # Required variables
-	 # --------------------------------------------
+  	 # --------------------------------------------
+  	 # Required variables
+  	 # --------------------------------------------
+  
 
+    	 cluster_name  = string
+    
 
-	 cluster_name  = string
+    	 vpc_id  = string
+    
 
+    	 vpc_subnet_ids  = list(string)
+    
 
-	 vpc_id  = string
+  	 # --------------------------------------------
+  	 # Optional variables
+  	 # --------------------------------------------
+  
 
+    	 autoscaling_sns_topic_arns  = list(string)
+    
 
-	 vpc_subnet_ids  = list(string)
+    	 autoscaling_termination_protection  = bool
+    
 
+    	 capacity_provider_max_scale_step  = number
+    
 
-	 # --------------------------------------------
-	 # Optional variables
-	 # --------------------------------------------
+    	 capacity_provider_min_scale_step  = number
+    
 
+    	 capacity_provider_target  = number
+    
 
-	 autoscaling_sns_topic_arns  = list(string)
+    	 cluster_ingress_access_ports  = list(number)
+    
 
+    	 cluster_instance_ami  = string
+    
 
-	 autoscaling_termination_protection  = bool
+    	 cluster_instance_type  = string
+    
 
+    	 cluster_max_size  = number
+    
 
-	 capacity_provider_max_scale_step  = number
-
-
-	 capacity_provider_min_scale_step  = number
-
-
-	 capacity_provider_target  = number
-
-
-	 cluster_ingress_access_ports  = list(number)
-
-
-	 cluster_instance_ami  = string
-
-
-	 cluster_instance_type  = string
-
-
-	 cluster_max_size  = number
-
-
-	 cluster_min_size  = number
-
+    	 cluster_min_size  = number
+    
 
 }
 ```

@@ -39,33 +39,33 @@ terraform {
 inputs = {
 
 
-	 # --------------------------------------------
-	 # Required variables
-	 # --------------------------------------------
+  	 # --------------------------------------------
+  	 # Required variables
+  	 # --------------------------------------------
+  
 
+    	 alb_name  = string
+    
 
-	 alb_name  = string
+    	 vpc_id  = string
+    
 
+    	 vpc_subnet_ids  = list(string)
+    
 
-	 vpc_id  = string
+  	 # --------------------------------------------
+  	 # Optional variables
+  	 # --------------------------------------------
+  
 
+    	 dns_record_prefix  = string
+    
 
-	 vpc_subnet_ids  = list(string)
+    	 enable_https_listener  = bool
+    
 
-
-	 # --------------------------------------------
-	 # Optional variables
-	 # --------------------------------------------
-
-
-	 dns_record_prefix  = string
-
-
-	 enable_https_listener  = bool
-
-
-	 hosted_zone_name  = string
-
+    	 hosted_zone_name  = string
+    
 
 }
 ```
