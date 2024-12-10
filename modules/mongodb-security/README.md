@@ -17,24 +17,24 @@ terraform {
 inputs = {
 
 
-	 # --------------------------------------------
-	 # Required variables
-	 # --------------------------------------------
+  	 # --------------------------------------------
+  	 # Required variables
+  	 # --------------------------------------------
+  
 
+    	 project_name  = string
+    
 
-	 project_name  = string
+  	 # --------------------------------------------
+  	 # Optional variables
+  	 # --------------------------------------------
+  
 
+    	 authorized_iam_roles  = map(string)
+    
 
-	 # --------------------------------------------
-	 # Optional variables
-	 # --------------------------------------------
-
-
-	 authorized_iam_roles  = map(string)
-
-
-	 authorized_iam_users  = map(string)
-
+    	 authorized_iam_users  = map(string)
+    
 
 }
 ```

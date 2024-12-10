@@ -6,7 +6,7 @@ repos:
       - id: terraform-fmt
       - id: tflint
   - repo: https://github.com/terraform-docs/terraform-docs
-    rev: "v0.16.0" # Get the latest from: https://github.com/terraform-docs/terraform-docs/releases
+    rev: "v0.19.0" # Get the latest from: https://github.com/terraform-docs/terraform-docs/releases
     hooks:
       - id: terraform-docs-go
         args: ["-c", ".terraform-docs.yml", "."]

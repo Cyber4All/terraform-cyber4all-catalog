@@ -35,17 +35,17 @@ terraform {
 inputs = {
 
 
-	 # --------------------------------------------
-	 # Required variables
-	 # --------------------------------------------
+  	 # --------------------------------------------
+  	 # Required variables
+  	 # --------------------------------------------
+  
 
-
-	 secrets  = list(object({
+    	 secrets  = list(object({
     name                  = string
     description           = optional(string)
     environment_variables = map(string)
   }))
-
+    
 
 }
 ```

@@ -215,99 +215,99 @@ terraform {
 inputs = {
 
 
-	 # --------------------------------------------
-	 # Required variables
-	 # --------------------------------------------
+  	 # --------------------------------------------
+  	 # Required variables
+  	 # --------------------------------------------
+  
 
+    	 ecs_cluster_name  = string
+    
 
-	 ecs_cluster_name  = string
+    	 ecs_service_name  = string
+    
 
+  	 # --------------------------------------------
+  	 # Optional variables
+  	 # --------------------------------------------
+  
 
-	 ecs_service_name  = string
+    	 auto_scaling_max_number_of_tasks  = number
+    
 
+    	 auto_scaling_memory_util_threshold  = number
+    
 
-	 # --------------------------------------------
-	 # Optional variables
-	 # --------------------------------------------
+    	 auto_scaling_min_number_of_tasks  = number
+    
 
+    	 create_scheduled_task  = bool
+    
 
-	 auto_scaling_max_number_of_tasks  = number
+    	 desired_number_of_tasks  = number
+    
 
+    	 docker_credential_secretsmanager_arn  = string
+    
 
-	 auto_scaling_memory_util_threshold  = number
+    	 ecs_container_environment_variables  = map(string)
+    
 
+    	 ecs_container_image  = string
+    
 
-	 auto_scaling_min_number_of_tasks  = number
+    	 ecs_container_port  = number
+    
 
+    	 ecs_container_secrets  = map(string)
+    
 
-	 create_scheduled_task  = bool
+    	 ecs_task_cpu  = number
+    
 
+    	 ecs_task_ephemeral_storage  = number
+    
 
-	 desired_number_of_tasks  = number
+    	 ecs_task_memory  = number
+    
 
+    	 ecs_task_role_policy_arns  = list(string)
+    
 
-	 docker_credential_secretsmanager_arn  = string
+    	 enable_container_logs  = bool
+    
 
+    	 enable_deployment_rollback  = bool
+    
 
-	 ecs_container_environment_variables  = map(string)
+    	 enable_load_balancer  = bool
+    
 
+    	 enable_service_auto_scaling  = bool
+    
 
-	 ecs_container_image  = string
+    	 enable_service_connect  = bool
+    
 
+    	 lb_listener_arn  = string
+    
 
-	 ecs_container_port  = number
+    	 lb_target_group_vpc_id  = string
+    
 
+    	 scheduled_task_assign_public_ip  = bool
+    
 
-	 ecs_container_secrets  = map(string)
+    	 scheduled_task_cron_expression  = string
+    
 
+    	 scheduled_task_event_pattern  = any
+    
 
-	 ecs_task_cpu  = number
+    	 scheduled_task_security_group_ids  = list(string)
+    
 
-
-	 ecs_task_ephemeral_storage  = number
-
-
-	 ecs_task_memory  = number
-
-
-	 ecs_task_role_policy_arns  = list(string)
-
-
-	 enable_container_logs  = bool
-
-
-	 enable_deployment_rollback  = bool
-
-
-	 enable_load_balancer  = bool
-
-
-	 enable_service_auto_scaling  = bool
-
-
-	 enable_service_connect  = bool
-
-
-	 lb_listener_arn  = string
-
-
-	 lb_target_group_vpc_id  = string
-
-
-	 scheduled_task_assign_public_ip  = bool
-
-
-	 scheduled_task_cron_expression  = string
-
-
-	 scheduled_task_event_pattern  = any
-
-
-	 scheduled_task_security_group_ids  = list(string)
-
-
-	 scheduled_task_subnet_ids  = list(string)
-
+    	 scheduled_task_subnet_ids  = list(string)
+    
 
 }
 ```

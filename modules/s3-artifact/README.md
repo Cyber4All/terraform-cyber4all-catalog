@@ -17,33 +17,33 @@ terraform {
 inputs = {
 
 
-	 # --------------------------------------------
-	 # Required variables
-	 # --------------------------------------------
+  	 # --------------------------------------------
+  	 # Required variables
+  	 # --------------------------------------------
+  
 
+    	 bucket_name  = string
+    
 
-	 bucket_name  = string
+  	 # --------------------------------------------
+  	 # Optional variables
+  	 # --------------------------------------------
+  
 
+    	 enable_public_access  = bool
+    
 
-	 # --------------------------------------------
-	 # Optional variables
-	 # --------------------------------------------
+    	 enable_replica  = bool
+    
 
+    	 enable_storage_class_transition  = bool
+    
 
-	 enable_public_access  = bool
+    	 primary_region  = string
+    
 
-
-	 enable_replica  = bool
-
-
-	 enable_storage_class_transition  = bool
-
-
-	 primary_region  = string
-
-
-	 replica_region  = string
-
+    	 replica_region  = string
+    
 
 }
 ```
