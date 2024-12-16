@@ -27,3 +27,6 @@ echo "ECS_CONTAINER_CREATE_TIMEOUT=1m" >> /etc/ecs/ecs.config
 # the repository, the ECS agent will not pull the new image.
 # (i.e when staging tag is updated)
 echo "ECS_IMAGE_PULL_BEHAVIOR=default" >> /etc/ecs/ecs.config
+
+# Enable container instance CloudWatch logs
+echo "ECS_LOG_DRIVER=awslogs" >> /etc/ecs/ecs.config
