@@ -78,8 +78,4 @@ Description: The ARN of the ECS cluster.
 ### <a name="output_ecs_cluster_name"></a> [ecs\_cluster\_name](#output\_ecs\_cluster\_name)
 
 Description: The name of the ECS cluster.
-
-### <a name="output_ecs_default_security_group_id"></a> [ecs\_default\_security\_group\_id](#output\_ecs\_default\_security\_group\_id)
-
-Description: The default security group id.
 <!-- END_TF_DOCS -->
