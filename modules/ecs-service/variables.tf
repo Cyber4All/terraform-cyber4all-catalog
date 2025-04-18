@@ -11,6 +11,11 @@
 # These values are required by the module and have no default values
 # --------------------------------------------------------------------
 
+variable "coralogix_secret_name" {
+  type        = string
+  description = "The name of the AWS Secrets Manager secret containing the PRIVATE_KEY Coralogix credentials."
+}
+
 variable "ecs_cluster_name" {
   type        = string
   description = "The name of the ECS cluster."

@@ -234,6 +234,56 @@ resource "aws_ecs_task_definition" "task" {
 
       logConfiguration = var.enable_container_logs ? local.log_configuration : null
 
+    },
+    {
+      name  = "otel-collector",
+      image = "otel/opentelemetry-collector-contrib",
+      portMappings = [
+        {
+          name          = "otel-collector-4317-grpc",
+          containerPort = 4317,
+          hostPort      = 4317,
+          protocol      = "tcp",
+          appProtocol   = "grpc"
+        },
+        {
+          name          = "otel-collector-4318-http",
+          containerPort = 4318,
+          hostPort      = 4318,
+          protocol      = "tcp"
+        }
+      ]
+      essential = false,
+      command = [
+        "--config",
+        "env:SSM_CONFIG"
+      ]
+      environment = [
+        {
+          name  = "CORALOGIX_DOMAIN"
+          value = "coralogix.us"
+        }
+      ]
+      secrets = [
+        {
+          name      = "SSM_CONFIG",
+          valueFrom = "CX_OTEL_ECS_Fargate_config.yaml"
+        },
+        {
+          name      = "PRIVATE_KEY"
+          valueFrom = "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.coralogix_secret_name}:PRIVATE_KEY::"
+        }
+      ]
+      user = 0,
+      logConfiguration = {
+        logDriver = "awsfirelens",
+        options = {
+          Name = "OpenTelemetry"
+        }
+      },
+      firelensConfiguration = {
+        type = "fluentbit"
+      }
     }
   ])
 
@@ -357,10 +407,12 @@ resource "aws_iam_role" "task_execution" {
 locals {
   # A list of resource ARNs that will be authorized in the
   # iam policy for the task execution role.
-  secrets_manager_arns = compact(
-    concat(
-      [for k, v in var.ecs_container_secrets : v],
-      [var.docker_credential_secretsmanager_arn]
+  secrets_manager_arns = toset(
+    compact(
+      concat(
+        [for k, v in var.ecs_container_secrets : v],
+        [var.docker_credential_secretsmanager_arn, var.coralogix_secret_name]
+      )
     )
   )
 
@@ -376,6 +428,15 @@ data "aws_iam_policy_document" "secrets_manager" {
     effect  = "Allow"
 
     resources = local.secrets_manager_arns
+  }
+
+  statement {
+    actions = ["ssm:GetParameters"]
+    effect  = "Allow"
+
+    resources = [
+      "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/CX_OTEL_ECS_Fargate_config.yaml"
+    ]
   }
 }
 

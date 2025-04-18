@@ -248,19 +248,16 @@ Deployment failures are marked when tasks fail to reach a steady state, defined 
 [Amazon EventBridge events](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events.html)
 
 <!-- BEGIN_TF_DOCS -->
-
 ## Requirements
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement_terraform) (>= 1.5.5)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.5.5)
 
-- <a name="requirement_aws"></a> [aws](#requirement_aws) (>= 5.0)
+- <a name="requirement_aws"></a> [aws](#requirement\_aws) (>= 5.0)
 
-- <a name="requirement_random"></a> [random](#requirement_random) (>= 3.5.1)
-
+- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.1)
 ## Sample Usage
-
 ```hcl
 terraform {
 	 source = "github.com/Cyber4All/terraform-cyber4all-catalog//modules/<REPLACE_WITH_MODULE>?ref=v<REPLACE_WITH_VERSION>"
@@ -272,117 +269,125 @@ inputs = {
   	 # --------------------------------------------
   	 # Required variables
   	 # --------------------------------------------
+  
 
+    	 coralogix_secret_name  = string
+    
 
     	 ecs_cluster_name  = string
-
+    
 
     	 ecs_service_name  = string
-
+    
 
     	 ecs_subnet_ids  = list(string)
-
+    
 
   	 # --------------------------------------------
   	 # Optional variables
   	 # --------------------------------------------
-
+  
 
     	 auto_scaling_max_number_of_tasks  = number
-
+    
 
     	 auto_scaling_memory_util_threshold  = number
-
+    
 
     	 auto_scaling_min_number_of_tasks  = number
-
+    
 
     	 create_scheduled_task  = bool
-
+    
 
     	 desired_number_of_tasks  = number
-
+    
 
     	 docker_credential_secretsmanager_arn  = string
-
+    
 
     	 ecs_assign_public_ip  = bool
-
+    
 
     	 ecs_container_environment_variables  = map(string)
-
+    
 
     	 ecs_container_image  = string
-
+    
 
     	 ecs_container_port  = number
-
+    
 
     	 ecs_container_secrets  = map(string)
-
+    
 
     	 ecs_security_group_ids  = list(string)
-
+    
 
     	 ecs_task_cpu  = number
-
+    
 
     	 ecs_task_ephemeral_storage  = number
-
+    
 
     	 ecs_task_memory  = number
-
+    
 
     	 ecs_task_role_policy_arns  = list(string)
-
+    
 
     	 enable_container_logs  = bool
-
+    
 
     	 enable_deployment_rollback  = bool
-
+    
 
     	 enable_load_balancer  = bool
-
+    
 
     	 enable_service_auto_scaling  = bool
-
+    
 
     	 enable_service_connect  = bool
-
+    
 
     	 lb_listener_arn  = string
-
+    
 
     	 lb_target_group_vpc_id  = string
-
+    
 
     	 scheduled_task_cron_expression  = string
-
+    
 
     	 scheduled_task_event_pattern  = any
-
+    
 
 }
 ```
-
 ## Required Inputs
 
 The following input variables are required:
 
-### <a name="input_ecs_cluster_name"></a> [ecs_cluster_name](#input_ecs_cluster_name)
+### <a name="input_coralogix_secret_name"></a> [coralogix\_secret\_name](#input\_coralogix\_secret\_name)
+
+Description: The name of the AWS Secrets Manager secret containing the PRIVATE\_KEY Coralogix credentials.
+
+Type: `string`
+
+### <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name)
 
 Description: The name of the ECS cluster.
 
 Type: `string`
 
-### <a name="input_ecs_service_name"></a> [ecs_service_name](#input_ecs_service_name)
+### <a name="input_ecs_service_name"></a> [ecs\_service\_name](#input\_ecs\_service\_name)
 
 Description: The name of the ECS service.
 
 Type: `string`
 
-### <a name="input_ecs_subnet_ids"></a> [ecs_subnet_ids](#input_ecs_subnet_ids)
+### <a name="input_ecs_subnet_ids"></a> [ecs\_subnet\_ids](#input\_ecs\_subnet\_ids)
 
 Description: A list of subnet IDs to deploy the ECS task to.
 
@@ -392,7 +397,7 @@ Type: `list(string)`
 
 The following input variables are optional (have default values):
 
-### <a name="input_auto_scaling_max_number_of_tasks"></a> [auto_scaling_max_number_of_tasks](#input_auto_scaling_max_number_of_tasks)
+### <a name="input_auto_scaling_max_number_of_tasks"></a> [auto\_scaling\_max\_number\_of\_tasks](#input\_auto\_scaling\_max\_number\_of\_tasks)
 
 Description: The maximum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale beyond this number.
 
@@ -400,7 +405,7 @@ Type: `number`
 
 Default: `4`
 
-### <a name="input_auto_scaling_memory_util_threshold"></a> [auto_scaling_memory_util_threshold](#input_auto_scaling_memory_util_threshold)
+### <a name="input_auto_scaling_memory_util_threshold"></a> [auto\_scaling\_memory\_util\_threshold](#input\_auto\_scaling\_memory\_util\_threshold)
 
 Description: The percentage for the ECS service's average Memory utilization threshold. The service uses a target tracking scaling policy.
 
@@ -408,7 +413,7 @@ Type: `number`
 
 Default: `75`
 
-### <a name="input_auto_scaling_min_number_of_tasks"></a> [auto_scaling_min_number_of_tasks](#input_auto_scaling_min_number_of_tasks)
+### <a name="input_auto_scaling_min_number_of_tasks"></a> [auto\_scaling\_min\_number\_of\_tasks](#input\_auto\_scaling\_min\_number\_of\_tasks)
 
 Description: The minimum number of instances of the ECS service to run across the ECS cluster. Auto scaling will not scale below this number.
 
@@ -416,7 +421,7 @@ Type: `number`
 
 Default: `1`
 
-### <a name="input_create_scheduled_task"></a> [create_scheduled_task](#input_create_scheduled_task)
+### <a name="input_create_scheduled_task"></a> [create\_scheduled\_task](#input\_create\_scheduled\_task)
 
 Description: The ECS task should be deployed as a scheduled task rather than a managed ECS service.
 
@@ -424,7 +429,7 @@ Type: `bool`
 
 Default: `false`
 
-### <a name="input_desired_number_of_tasks"></a> [desired_number_of_tasks](#input_desired_number_of_tasks)
+### <a name="input_desired_number_of_tasks"></a> [desired\_number\_of\_tasks](#input\_desired\_number\_of\_tasks)
 
 Description: The number of instances of the ECS service or scheduled task to run across the ECS cluster.
 
@@ -432,7 +437,7 @@ Type: `number`
 
 Default: `1`
 
-### <a name="input_docker_credential_secretsmanager_arn"></a> [docker_credential_secretsmanager_arn](#input_docker_credential_secretsmanager_arn)
+### <a name="input_docker_credential_secretsmanager_arn"></a> [docker\_credential\_secretsmanager\_arn](#input\_docker\_credential\_secretsmanager\_arn)
 
 Description: The ARN of the AWS Secrets Manager secret containing the Docker credentials.
 
@@ -440,7 +445,7 @@ Type: `string`
 
 Default: `""`
 
-### <a name="input_ecs_assign_public_ip"></a> [ecs_assign_public_ip](#input_ecs_assign_public_ip)
+### <a name="input_ecs_assign_public_ip"></a> [ecs\_assign\_public\_ip](#input\_ecs\_assign\_public\_ip)
 
 Description: Assign a public IP address to the ECS task.
 
@@ -448,7 +453,7 @@ Type: `bool`
 
 Default: `false`
 
-### <a name="input_ecs_container_environment_variables"></a> [ecs_container_environment_variables](#input_ecs_container_environment_variables)
+### <a name="input_ecs_container_environment_variables"></a> [ecs\_container\_environment\_variables](#input\_ecs\_container\_environment\_variables)
 
 Description: A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive.
 
@@ -456,7 +461,7 @@ Type: `map(string)`
 
 Default: `{}`
 
-### <a name="input_ecs_container_image"></a> [ecs_container_image](#input_ecs_container_image)
+### <a name="input_ecs_container_image"></a> [ecs\_container\_image](#input\_ecs\_container\_image)
 
 Description: The name and tag of the docker image to use for the ECS essential container definition. If this value is not set, it will try and pull the currently deployed container image. This allows for external application deployments to be managed outside of Terraform. This value is required for initial deployments and when changing the base image (image without the tag).
 
@@ -464,7 +469,7 @@ Type: `string`
 
 Default: `""`
 
-### <a name="input_ecs_container_port"></a> [ecs_container_port](#input_ecs_container_port)
+### <a name="input_ecs_container_port"></a> [ecs\_container\_port](#input\_ecs\_container\_port)
 
 Description: The container port that the application is listening on.
 
@@ -472,7 +477,7 @@ Type: `number`
 
 Default: `3000`
 
-### <a name="input_ecs_container_secrets"></a> [ecs_container_secrets](#input_ecs_container_secrets)
+### <a name="input_ecs_container_secrets"></a> [ecs\_container\_secrets](#input\_ecs\_container\_secrets)
 
 Description: A map of secrets to configure in the ECS container definition. The key is the name of the environment variable and the value is the ARN of the Secrets Manager secret that contains the environment variable. It is assumed that the secret's value can be indexed using the environment variable name. These are environment variables that are sensitive and should not be stored in plain text.
 
@@ -480,7 +485,7 @@ Type: `map(string)`
 
 Default: `{}`
 
-### <a name="input_ecs_security_group_ids"></a> [ecs_security_group_ids](#input_ecs_security_group_ids)
+### <a name="input_ecs_security_group_ids"></a> [ecs\_security\_group\_ids](#input\_ecs\_security\_group\_ids)
 
 Description: A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified.
 
@@ -488,7 +493,7 @@ Type: `list(string)`
 
 Default: `[]`
 
-### <a name="input_ecs_task_cpu"></a> [ecs_task_cpu](#input_ecs_task_cpu)
+### <a name="input_ecs_task_cpu"></a> [ecs\_task\_cpu](#input\_ecs\_task\_cpu)
 
 Description: The amount of CPU (in units) to allocate to the ECS task.
 
@@ -496,7 +501,7 @@ Type: `number`
 
 Default: `256`
 
-### <a name="input_ecs_task_ephemeral_storage"></a> [ecs_task_ephemeral_storage](#input_ecs_task_ephemeral_storage)
+### <a name="input_ecs_task_ephemeral_storage"></a> [ecs\_task\_ephemeral\_storage](#input\_ecs\_task\_ephemeral\_storage)
 
 Description: The amount of ephemeral storage (in GiB) to allocate to the ECS task.
 
@@ -504,7 +509,7 @@ Type: `number`
 
 Default: `21`
 
-### <a name="input_ecs_task_memory"></a> [ecs_task_memory](#input_ecs_task_memory)
+### <a name="input_ecs_task_memory"></a> [ecs\_task\_memory](#input\_ecs\_task\_memory)
 
 Description: The amount of memory (in MiB) to allocate to the ECS task.
 
@@ -512,7 +517,7 @@ Type: `number`
 
 Default: `256`
 
-### <a name="input_ecs_task_role_policy_arns"></a> [ecs_task_role_policy_arns](#input_ecs_task_role_policy_arns)
+### <a name="input_ecs_task_role_policy_arns"></a> [ecs\_task\_role\_policy\_arns](#input\_ecs\_task\_role\_policy\_arns)
 
 Description: A list of ARNs of IAM policies to attach to the ECS task role.
 
@@ -520,7 +525,7 @@ Type: `list(string)`
 
 Default: `[]`
 
-### <a name="input_enable_container_logs"></a> [enable_container_logs](#input_enable_container_logs)
+### <a name="input_enable_container_logs"></a> [enable\_container\_logs](#input\_enable\_container\_logs)
 
 Description: Enable container logging to CloudWatch Logs.
 
@@ -528,7 +533,7 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_enable_deployment_rollback"></a> [enable_deployment_rollback](#input_enable_deployment_rollback)
+### <a name="input_enable_deployment_rollback"></a> [enable\_deployment\_rollback](#input\_enable\_deployment\_rollback)
 
 Description: Enable rollback of a FAILED deployment if a service cannot reach a steady state.
 
@@ -536,7 +541,7 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_enable_load_balancer"></a> [enable_load_balancer](#input_enable_load_balancer)
+### <a name="input_enable_load_balancer"></a> [enable\_load\_balancer](#input\_enable\_load\_balancer)
 
 Description: Enable a load balancer for the ECS service. This will create an ALB target for the ECS service that is attached to an existing ALB.
 
@@ -544,7 +549,7 @@ Type: `bool`
 
 Default: `false`
 
-### <a name="input_enable_service_auto_scaling"></a> [enable_service_auto_scaling](#input_enable_service_auto_scaling)
+### <a name="input_enable_service_auto_scaling"></a> [enable\_service\_auto\_scaling](#input\_enable\_service\_auto\_scaling)
 
 Description: Enable auto scaling of the ECS service.
 
@@ -552,7 +557,7 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_enable_service_connect"></a> [enable_service_connect](#input_enable_service_connect)
+### <a name="input_enable_service_connect"></a> [enable\_service\_connect](#input\_enable\_service\_connect)
 
 Description: Enable service connect for the ECS service.
 
@@ -560,23 +565,23 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_lb_listener_arn"></a> [lb_listener_arn](#input_lb_listener_arn)
+### <a name="input_lb_listener_arn"></a> [lb\_listener\_arn](#input\_lb\_listener\_arn)
 
-Description: The load balancer listener arn to attach the ECS service to. This value is required when enable_load_balancer is true.
-
-Type: `string`
-
-Default: `""`
-
-### <a name="input_lb_target_group_vpc_id"></a> [lb_target_group_vpc_id](#input_lb_target_group_vpc_id)
-
-Description: The VPC id to deploy the ECS service's load balancer traget group into. Required when enable_load_balancer is true.
+Description: The load balancer listener arn to attach the ECS service to. This value is required when enable\_load\_balancer is true.
 
 Type: `string`
 
 Default: `""`
 
-### <a name="input_scheduled_task_cron_expression"></a> [scheduled_task_cron_expression](#input_scheduled_task_cron_expression)
+### <a name="input_lb_target_group_vpc_id"></a> [lb\_target\_group\_vpc\_id](#input\_lb\_target\_group\_vpc\_id)
+
+Description: The VPC id to deploy the ECS service's load balancer traget group into. Required when enable\_load\_balancer is true.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_scheduled_task_cron_expression"></a> [scheduled\_task\_cron\_expression](#input\_scheduled\_task\_cron\_expression)
 
 Description: The cron expression to use for the scheduled task. If create scheduled task is true and no event pattern is provided, then the cron is expected.
 
@@ -584,88 +589,86 @@ Type: `string`
 
 Default: `""`
 
-### <a name="input_scheduled_task_event_pattern"></a> [scheduled_task_event_pattern](#input_scheduled_task_event_pattern)
+### <a name="input_scheduled_task_event_pattern"></a> [scheduled\_task\_event\_pattern](#input\_scheduled\_task\_event\_pattern)
 
 Description: The event pattern to use for the scheduled task. If create scheduled task is true and no cron expression is provided, then the event pattern is expected.
 
 Type: `any`
 
 Default: `null`
-
 ## Outputs
 
 The following outputs are exported:
 
-### <a name="output_ecs_task_container_port"></a> [ecs_task_container_port](#output_ecs_task_container_port)
+### <a name="output_ecs_task_container_port"></a> [ecs\_task\_container\_port](#output\_ecs\_task\_container\_port)
 
 Description: The port that is exposed by the ECS task.
 
-### <a name="output_ecs_task_definition_arn"></a> [ecs_task_definition_arn](#output_ecs_task_definition_arn)
+### <a name="output_ecs_task_definition_arn"></a> [ecs\_task\_definition\_arn](#output\_ecs\_task\_definition\_arn)
 
 Description: The full ARN of the task definition that is deployed.
 
-### <a name="output_ecs_task_essential_image"></a> [ecs_task_essential_image](#output_ecs_task_essential_image)
+### <a name="output_ecs_task_essential_image"></a> [ecs\_task\_essential\_image](#output\_ecs\_task\_essential\_image)
 
 Description: The image that is deployed.
 
-### <a name="output_ecs_task_event_rule_arn"></a> [ecs_task_event_rule_arn](#output_ecs_task_event_rule_arn)
+### <a name="output_ecs_task_event_rule_arn"></a> [ecs\_task\_event\_rule\_arn](#output\_ecs\_task\_event\_rule\_arn)
 
 Description: The ARN of the EventBridge event rule that is used for the scheduled ECS task.
 
-### <a name="output_ecs_task_event_rule_name"></a> [ecs_task_event_rule_name](#output_ecs_task_event_rule_name)
+### <a name="output_ecs_task_event_rule_name"></a> [ecs\_task\_event\_rule\_name](#output\_ecs\_task\_event\_rule\_name)
 
 Description: The name of the EventBridge event rule that is used for the scheduled ECS task.
 
-### <a name="output_ecs_task_execution_iam_role_arn"></a> [ecs_task_execution_iam_role_arn](#output_ecs_task_execution_iam_role_arn)
+### <a name="output_ecs_task_execution_iam_role_arn"></a> [ecs\_task\_execution\_iam\_role\_arn](#output\_ecs\_task\_execution\_iam\_role\_arn)
 
 Description: The ARN of the IAM role that is used for the ECS task execution.
 
-### <a name="output_ecs_task_execution_iam_role_name"></a> [ecs_task_execution_iam_role_name](#output_ecs_task_execution_iam_role_name)
+### <a name="output_ecs_task_execution_iam_role_name"></a> [ecs\_task\_execution\_iam\_role\_name](#output\_ecs\_task\_execution\_iam\_role\_name)
 
 Description: The name of the IAM role that is used for the ECS task execution.
 
-### <a name="output_ecs_task_iam_role_arn"></a> [ecs_task_iam_role_arn](#output_ecs_task_iam_role_arn)
+### <a name="output_ecs_task_iam_role_arn"></a> [ecs\_task\_iam\_role\_arn](#output\_ecs\_task\_iam\_role\_arn)
 
 Description: The ARN of the IAM role that is used for the ECS task.
 
-### <a name="output_ecs_task_iam_role_name"></a> [ecs_task_iam_role_name](#output_ecs_task_iam_role_name)
+### <a name="output_ecs_task_iam_role_name"></a> [ecs\_task\_iam\_role\_name](#output\_ecs\_task\_iam\_role\_name)
 
 Description: The name of the IAM role that is used for the ECS task.
 
-### <a name="output_ecs_task_log_group_arn"></a> [ecs_task_log_group_arn](#output_ecs_task_log_group_arn)
+### <a name="output_ecs_task_log_group_arn"></a> [ecs\_task\_log\_group\_arn](#output\_ecs\_task\_log\_group\_arn)
 
 Description: The ARN of the CloudWatch log group that is used for the ECS task.
 
-### <a name="output_ecs_task_log_group_name"></a> [ecs_task_log_group_name](#output_ecs_task_log_group_name)
+### <a name="output_ecs_task_log_group_name"></a> [ecs\_task\_log\_group\_name](#output\_ecs\_task\_log\_group\_name)
 
 Description: The name of the CloudWatch log group that is used for the ECS task.
 
-### <a name="output_service_arn"></a> [service_arn](#output_service_arn)
+### <a name="output_service_arn"></a> [service\_arn](#output\_service\_arn)
 
 Description: The ARN of the ECS service.
 
-### <a name="output_service_auto_scaling_alarm_arns"></a> [service_auto_scaling_alarm_arns](#output_service_auto_scaling_alarm_arns)
+### <a name="output_service_auto_scaling_alarm_arns"></a> [service\_auto\_scaling\_alarm\_arns](#output\_service\_auto\_scaling\_alarm\_arns)
 
 Description: The ARNs of the CloudWatch alarms that are used for the ECS service's Auto Scaling.
 
-### <a name="output_service_elb_iam_role_arn"></a> [service_elb_iam_role_arn](#output_service_elb_iam_role_arn)
+### <a name="output_service_elb_iam_role_arn"></a> [service\_elb\_iam\_role\_arn](#output\_service\_elb\_iam\_role\_arn)
 
 Description: The ARN of the IAM role that is used for the ECS service's ELB.
 
-### <a name="output_service_name"></a> [service_name](#output_service_name)
+### <a name="output_service_name"></a> [service\_name](#output\_service\_name)
 
 Description: The name of the ECS service.
 
-### <a name="output_service_target_group_arn"></a> [service_target_group_arn](#output_service_target_group_arn)
+### <a name="output_service_target_group_arn"></a> [service\_target\_group\_arn](#output\_service\_target\_group\_arn)
 
 Description: The ARN of the load balancing target group.
 
-### <a name="output_service_target_group_arn_suffix"></a> [service_target_group_arn_suffix](#output_service_target_group_arn_suffix)
+### <a name="output_service_target_group_arn_suffix"></a> [service\_target\_group\_arn\_suffix](#output\_service\_target\_group\_arn\_suffix)
 
 Description: The load balancing target group's ARN suffix to use with CloudWatch Metrics.
 
-### <a name="output_service_target_group_name"></a> [service_target_group_name](#output_service_target_group_name)
+### <a name="output_service_target_group_name"></a> [service\_target\_group\_name](#output\_service\_target\_group\_name)
 
 Description: The name of the load balancing target group.
-
 <!-- END_TF_DOCS -->
