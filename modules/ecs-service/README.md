@@ -226,6 +226,9 @@ inputs = {
     	 ecs_service_name  = string
     
 
+    	 ecs_subnet_ids  = list(string)
+    
+
   	 # --------------------------------------------
   	 # Optional variables
   	 # --------------------------------------------
@@ -249,6 +252,9 @@ inputs = {
     	 docker_credential_secretsmanager_arn  = string
     
 
+    	 ecs_assign_public_ip  = bool
+    
+
     	 ecs_container_environment_variables  = map(string)
     
 
@@ -259,6 +265,9 @@ inputs = {
     
 
     	 ecs_container_secrets  = map(string)
+    
+
+    	 ecs_security_group_ids  = list(string)
     
 
     	 ecs_task_cpu  = number
@@ -294,19 +303,10 @@ inputs = {
     	 lb_target_group_vpc_id  = string
     
 
-    	 scheduled_task_assign_public_ip  = bool
-    
-
     	 scheduled_task_cron_expression  = string
     
 
     	 scheduled_task_event_pattern  = any
-    
-
-    	 scheduled_task_security_group_ids  = list(string)
-    
-
-    	 scheduled_task_subnet_ids  = list(string)
     
 
 }
@@ -326,6 +326,12 @@ Type: `string`
 Description: The name of the ECS service.
 
 Type: `string`
+
+### <a name="input_ecs_subnet_ids"></a> [ecs\_subnet\_ids](#input\_ecs\_subnet\_ids)
+
+Description: A list of subnet IDs to deploy the ECS task to.
+
+Type: `list(string)`
 
 ## Optional Inputs
 
@@ -379,6 +385,14 @@ Type: `string`
 
 Default: `""`
 
+### <a name="input_ecs_assign_public_ip"></a> [ecs\_assign\_public\_ip](#input\_ecs\_assign\_public\_ip)
+
+Description: Assign a public IP address to the ECS task.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_ecs_container_environment_variables"></a> [ecs\_container\_environment\_variables](#input\_ecs\_container\_environment\_variables)
 
 Description: A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive.
@@ -410,6 +424,14 @@ Description: A map of secrets to configure in the ECS container definition. The 
 Type: `map(string)`
 
 Default: `{}`
+
+### <a name="input_ecs_security_group_ids"></a> [ecs\_security\_group\_ids](#input\_ecs\_security\_group\_ids)
+
+Description: A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified.
+
+Type: `list(string)`
+
+Default: `[]`
 
 ### <a name="input_ecs_task_cpu"></a> [ecs\_task\_cpu](#input\_ecs\_task\_cpu)
 
@@ -499,14 +521,6 @@ Type: `string`
 
 Default: `""`
 
-### <a name="input_scheduled_task_assign_public_ip"></a> [scheduled\_task\_assign\_public\_ip](#input\_scheduled\_task\_assign\_public\_ip)
-
-Description: Assign a public IP address to the ECS task.
-
-Type: `bool`
-
-Default: `true`
-
 ### <a name="input_scheduled_task_cron_expression"></a> [scheduled\_task\_cron\_expression](#input\_scheduled\_task\_cron\_expression)
 
 Description: The cron expression to use for the scheduled task. If create scheduled task is true and no event pattern is provided, then the cron is expected.
@@ -522,22 +536,6 @@ Description: The event pattern to use for the scheduled task. If create schedule
 Type: `any`
 
 Default: `null`
-
-### <a name="input_scheduled_task_security_group_ids"></a> [scheduled\_task\_security\_group\_ids](#input\_scheduled\_task\_security\_group\_ids)
-
-Description: A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified.
-
-Type: `list(string)`
-
-Default: `[]`
-
-### <a name="input_scheduled_task_subnet_ids"></a> [scheduled\_task\_subnet\_ids](#input\_scheduled\_task\_subnet\_ids)
-
-Description: A list of subnet IDs to associate with the ECS task. This value is required when create\_scheduled\_task is true.
-
-Type: `list(string)`
-
-Default: `[]`
 ## Outputs
 
 The following outputs are exported:

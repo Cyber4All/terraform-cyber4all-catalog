@@ -463,6 +463,12 @@ resource "aws_ecs_service" "service" {
     }
   }
 
+  network_configuration {
+    subnets          = var.ecs_subnet_ids
+    security_groups  = var.ecs_security_group_ids
+    assign_public_ip = var.ecs_assign_public_ip
+  }
+
   service_connect_configuration {
     enabled = var.enable_service_connect
     service {
@@ -632,9 +638,9 @@ resource "aws_cloudwatch_event_target" "scheduled" {
     task_definition_arn = local.task_definition
     launch_type         = "FARGATE"
     network_configuration {
-      subnets          = var.scheduled_task_subnet_ids
-      security_groups  = var.scheduled_task_security_group_ids
-      assign_public_ip = var.scheduled_task_assign_public_ip
+      subnets          = var.ecs_subnet_ids
+      security_groups  = var.ecs_security_group_ids
+      assign_public_ip = var.ecs_assign_public_ip
     }
   }
 }

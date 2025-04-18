@@ -21,6 +21,11 @@ variable "ecs_service_name" {
   description = "The name of the ECS service."
 }
 
+variable "ecs_subnet_ids" {
+  type        = list(string)
+  description = "A list of subnet IDs to deploy the ECS task to."
+}
+
 # --------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 #
@@ -71,6 +76,12 @@ variable "docker_credential_secretsmanager_arn" {
   }
 }
 
+variable "ecs_assign_public_ip" {
+  type        = bool
+  description = "Assign a public IP address to the ECS task."
+  default     = false
+}
+
 variable "ecs_container_environment_variables" {
   type        = map(string)
   description = "A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive."
@@ -93,6 +104,12 @@ variable "ecs_container_secrets" {
   type        = map(string)
   description = "A map of secrets to configure in the ECS container definition. The key is the name of the environment variable and the value is the ARN of the Secrets Manager secret that contains the environment variable. It is assumed that the secret's value can be indexed using the environment variable name. These are environment variables that are sensitive and should not be stored in plain text."
   default     = {}
+}
+
+variable "ecs_security_group_ids" {
+  type        = list(string)
+  description = "A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified."
+  default     = []
 }
 
 variable "ecs_task_cpu" {
@@ -161,12 +178,6 @@ variable "lb_target_group_vpc_id" {
   default     = ""
 }
 
-variable "scheduled_task_assign_public_ip" {
-  type        = bool
-  description = "Assign a public IP address to the ECS task."
-  default     = true
-}
-
 variable "scheduled_task_cron_expression" {
   type        = string
   description = "The cron expression to use for the scheduled task. If create scheduled task is true and no event pattern is provided, then the cron is expected."
@@ -177,16 +188,4 @@ variable "scheduled_task_event_pattern" {
   type        = any
   description = "The event pattern to use for the scheduled task. If create scheduled task is true and no cron expression is provided, then the event pattern is expected."
   default     = null
-}
-
-variable "scheduled_task_security_group_ids" {
-  type        = list(string)
-  description = "A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified."
-  default     = []
-}
-
-variable "scheduled_task_subnet_ids" {
-  type        = list(string)
-  description = "A list of subnet IDs to associate with the ECS task. This value is required when create_scheduled_task is true."
-  default     = []
 }

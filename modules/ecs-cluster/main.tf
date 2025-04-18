@@ -134,38 +134,3 @@ resource "aws_ecs_cluster_capacity_providers" "cluster" {
   }
 
 }
-
-# ----------------------------------------------
-# CREATE DEFAULT SECURITY GROUP FOR ECS SERVICES
-# ----------------------------------------------
-
-resource "aws_security_group" "default" {
-  name        = "${var.cluster_name}-ecs-services-sg"
-  description = "Terraform managed security group for ${var.cluster_name} ECS services."
-
-  vpc_id = var.vpc_id
-}
-
-# TODO: @Diego This is a default security group. Since we will be using awsvpc
-# networking mode, we should be able to restrict the traffic according
-# to the host port mapping in the ECS service definition. This will
-# looked at later in Diego's Epic over the summer.
-resource "aws_vpc_security_group_ingress_rule" "service" {
-  security_group_id = aws_security_group.default.id
-  description       = "All all inbound tcp traffic."
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "tcp"
-  from_port   = 0
-  to_port     = 65535
-}
-
-resource "aws_vpc_security_group_egress_rule" "service" {
-  security_group_id = aws_security_group.default.id
-  description       = "Allow all outbound tcp traffic."
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "tcp"
-  from_port   = 0
-  to_port     = 65535
-}
