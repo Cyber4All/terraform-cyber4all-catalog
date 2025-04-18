@@ -345,7 +345,7 @@ Description: The percentage for the ECS service's average Memory utilization thr
 
 Type: `number`
 
-Default: `50`
+Default: `75`
 
 ### <a name="input_auto_scaling_min_number_of_tasks"></a> [auto\_scaling\_min\_number\_of\_tasks](#input\_auto\_scaling\_min\_number\_of\_tasks)
 

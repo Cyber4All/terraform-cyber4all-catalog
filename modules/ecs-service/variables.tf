@@ -36,7 +36,7 @@ variable "auto_scaling_max_number_of_tasks" {
 variable "auto_scaling_memory_util_threshold" {
   type        = number
   description = "The percentage for the ECS service's average Memory utilization threshold. The service uses a target tracking scaling policy."
-  default     = 50
+  default     = 75
 }
 
 variable "auto_scaling_min_number_of_tasks" {
