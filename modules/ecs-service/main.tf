@@ -4,7 +4,7 @@
 # This module will creates an ECS service that can be used for application deployments
 # in an existing ECS cluster.
 #
-# The ECS service can support both FARGATE and EC2 compute. In addition to compute,
+# The ECS service supports Fargate runtime. In addition to compute,
 # the module supports running the task-definition as both a service or as a scheduled 
 # task that can be triggered by an Event or rule.
 #
@@ -211,7 +211,7 @@ resource "aws_ecs_task_definition" "task" {
 
   cpu          = var.ecs_task_cpu
   memory       = var.ecs_task_memory
-  network_mode = var.create_scheduled_task ? "awsvpc" : "bridge"
+  network_mode = "awsvpc"
 
   execution_role_arn = aws_iam_role.task_execution.arn
   task_role_arn      = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task[0].arn : null
@@ -237,14 +237,10 @@ resource "aws_ecs_task_definition" "task" {
     }
   ])
 
-  requires_compatibilities = var.create_scheduled_task ? ["FARGATE"] : ["EC2"]
+  requires_compatibilities = ["FARGATE"]
 
-  dynamic "ephemeral_storage" {
-    for_each = var.create_scheduled_task ? [1] : []
-
-    content {
-      size_in_gib = var.ecs_task_ephemeral_storage
-    }
+  ephemeral_storage {
+    size_in_gib = var.ecs_task_ephemeral_storage
   }
 
   runtime_platform {
@@ -465,14 +461,6 @@ resource "aws_ecs_service" "service" {
       container_port   = var.ecs_container_port
       target_group_arn = aws_lb_target_group.alb[0].arn
     }
-  }
-
-  # Tasks are placed on container instances so as to leave the
-  # least amount of unused CPU or memory. This strategy minimizes
-  # the number of container instances in use.
-  ordered_placement_strategy {
-    type  = "binpack"
-    field = "memory"
   }
 
   service_connect_configuration {
