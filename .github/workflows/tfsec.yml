@@ -2,7 +2,7 @@ name: tfsec
 
 on:
   push:
-    branches: "*"
+  pull_request:
   schedule:
     - cron: "0 9 * * 1"
 
