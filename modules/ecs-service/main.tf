@@ -513,6 +513,9 @@ resource "aws_ecs_service" "service" {
 
   health_check_grace_period_seconds = var.enable_load_balancer ? 0 : null
 
+  launch_type      = "FARGATE"
+  platform_version = "LATEST"
+
   dynamic "load_balancer" {
     for_each = var.enable_load_balancer ? [1] : []
 
@@ -546,7 +549,6 @@ resource "aws_ecs_service" "service" {
 
   lifecycle {
     ignore_changes = [
-      capacity_provider_strategy,
       desired_count
     ]
   }
