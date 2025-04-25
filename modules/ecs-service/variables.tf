@@ -11,9 +11,9 @@
 # These values are required by the module and have no default values
 # --------------------------------------------------------------------
 
-variable "coralogix_secret_name" {
+variable "coralogix_secret_arn" {
   type        = string
-  description = "The name of the AWS Secrets Manager secret containing the PRIVATE_KEY Coralogix credentials."
+  description = "The ARN of the AWS Secrets Manager secret containing the PRIVATE_KEY Coralogix credentials."
 }
 
 variable "ecs_cluster_name" {
@@ -132,7 +132,7 @@ variable "ecs_task_ephemeral_storage" {
 variable "ecs_task_memory" {
   type        = number
   description = "The amount of memory (in MiB) to allocate to the ECS task."
-  default     = 256
+  default     = 512
 }
 
 variable "ecs_task_role_policy_arns" {

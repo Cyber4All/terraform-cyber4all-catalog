@@ -271,7 +271,7 @@ inputs = {
   	 # --------------------------------------------
   
 
-    	 coralogix_secret_name  = string
+    	 coralogix_secret_arn  = string
     
 
     	 ecs_cluster_name  = string
@@ -369,9 +369,9 @@ inputs = {
 
 The following input variables are required:
 
-### <a name="input_coralogix_secret_name"></a> [coralogix\_secret\_name](#input\_coralogix\_secret\_name)
+### <a name="input_coralogix_secret_arn"></a> [coralogix\_secret\_arn](#input\_coralogix\_secret\_arn)
 
-Description: The name of the AWS Secrets Manager secret containing the PRIVATE\_KEY Coralogix credentials.
+Description: The ARN of the AWS Secrets Manager secret containing the PRIVATE\_KEY Coralogix credentials.
 
 Type: `string`
 
@@ -515,7 +515,7 @@ Description: The amount of memory (in MiB) to allocate to the ECS task.
 
 Type: `number`
 
-Default: `256`
+Default: `512`
 
 ### <a name="input_ecs_task_role_policy_arns"></a> [ecs\_task\_role\_policy\_arns](#input\_ecs\_task\_role\_policy\_arns)
 

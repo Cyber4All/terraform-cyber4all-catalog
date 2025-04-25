@@ -271,7 +271,7 @@ resource "aws_ecs_task_definition" "task" {
         },
         {
           name      = "PRIVATE_KEY"
-          valueFrom = "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.coralogix_secret_name}:PRIVATE_KEY::"
+          valueFrom = var.coralogix_secret_arn
         }
       ]
       user = 0,
@@ -411,7 +411,7 @@ locals {
     compact(
       concat(
         [for k, v in var.ecs_container_secrets : v],
-        [var.docker_credential_secretsmanager_arn, var.coralogix_secret_name]
+        [var.docker_credential_secretsmanager_arn, var.coralogix_secret_arn]
       )
     )
   )
