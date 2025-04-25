@@ -253,7 +253,7 @@ resource "aws_ecs_task_definition" "task" {
           protocol      = "tcp"
         }
       ]
-      essential = false,
+      essential = false
       command = [
         "--config",
         "env:SSM_CONFIG"
@@ -274,13 +274,12 @@ resource "aws_ecs_task_definition" "task" {
           valueFrom = var.coralogix_secret_arn
         }
       ]
-      user = 0,
       logConfiguration = {
         logDriver = "awsfirelens",
         options = {
           Name = "OpenTelemetry"
         }
-      },
+      }
       firelensConfiguration = {
         type = "fluentbit"
       }
