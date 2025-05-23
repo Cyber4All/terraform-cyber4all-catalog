@@ -204,6 +204,33 @@ locals {
     name          = sha1(var.ecs_service_name)
     containerPort = var.ecs_container_port
   }] : []
+
+  # Define the environment variables needed for OpenTelemetry
+  # to send logs to Coralogix.
+  coralogix_environment_variables = {
+    OTEL_RESOURCE_ATTRIBUTES = "cx.application.name=${var.ecs_service_name}, cx.subsystem.name=${var.ecs_cluster_name}"
+    OTEL_SERVICE_NAME = var.ecs_service_name
+    NODE_OPTIONS = "--require @opentelemetry/auto-instrumentations-node/register"
+    OTEL_TRACES_EXPORTER = "otlp"
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "ingress.coralogix.us:443/v1/traces"
+    OTEL_EXPORTER_OTLP_COMPRESSION = "gzip"
+    OTEL_EXPORTER_OTLP_TRACES_PROTOCOL = "grpc"
+    OTEL_NODE_RESOURCE_DETECTORS = "all"
+  }
+
+  # The environment variable OTEL_EXPORTER_OTLP_HEADERS should
+  # be set in SecretsManager as a secret. The value of the secret
+  # should be the Authorization=Bearer <private_key> string.
+  coralogix_secrets = {
+    OTEL_EXPORTER_OTLP_HEADERS = var.coralogix_secret_arn
+  }
+
+  otel_log_configuration = {
+    logDriver = "awsfirelens"
+    options = {
+      Name = "OpenTelemetry"
+    }
+  }
 }
 
 resource "aws_ecs_task_definition" "task" {
@@ -229,10 +256,10 @@ resource "aws_ecs_task_definition" "task" {
       # Environment Variables and Secrets are both string maps with
       # the same key/value structure. They are mapped to the appropriate
       # structure for the container definition
-      environment = [for k, v in var.ecs_container_environment_variables : { name = k, value = v }]
-      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = "${v}:${k}::" }]
+      environment = [for k, v in concat(var.ecs_container_environment_variables, local.coralogix_environment_variables) : { name = k, value = v }]
+      secrets     = [for k, v in concat(var.ecs_container_secrets, local.coralogix_secrets) : { name = k, valueFrom = "${v}:${k}::" }]
 
-      logConfiguration = var.enable_container_logs ? local.log_configuration : null
+      logConfiguration = var.enable_cloudwatch_logs ? local.log_configuration : local.otel_log_configuration
 
     },
     {
@@ -274,12 +301,7 @@ resource "aws_ecs_task_definition" "task" {
           valueFrom = var.coralogix_secret_arn
         }
       ]
-      logConfiguration = {
-        logDriver = "awsfirelens",
-        options = {
-          Name = "OpenTelemetry"
-        }
-      }
+      logConfiguration = local.otel_log_configuration
       firelensConfiguration = {
         type = "fluentbit"
       }
@@ -314,7 +336,7 @@ resource "aws_ecs_task_definition" "task" {
 
 # tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "task" {
-  count = var.enable_container_logs ? 1 : 0
+  count = var.enable_cloudwatch_logs ? 1 : 0
 
   name              = local.log_group_name
   retention_in_days = 30

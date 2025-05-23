@@ -35,12 +35,12 @@ output "ecs_task_iam_role_name" {
 
 output "ecs_task_log_group_arn" {
   description = "The ARN of the CloudWatch log group that is used for the ECS task."
-  value       = var.enable_container_logs ? aws_cloudwatch_log_group.task[0].arn : null
+  value       = var.enable_cloudwatch_logs ? aws_cloudwatch_log_group.task[0].arn : null
 }
 
 output "ecs_task_log_group_name" {
   description = "The name of the CloudWatch log group that is used for the ECS task."
-  value       = var.enable_container_logs ? aws_cloudwatch_log_group.task[0].name : null
+  value       = var.enable_cloudwatch_logs ? aws_cloudwatch_log_group.task[0].name : null
 }
 
 output "ecs_task_event_rule_arn" {

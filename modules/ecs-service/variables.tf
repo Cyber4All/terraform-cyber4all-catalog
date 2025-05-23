@@ -120,7 +120,7 @@ variable "ecs_security_group_ids" {
 variable "ecs_task_cpu" {
   type        = number
   description = "The amount of CPU (in units) to allocate to the ECS task."
-  default     = 256
+  default     = 512
 }
 
 variable "ecs_task_ephemeral_storage" {
@@ -132,7 +132,7 @@ variable "ecs_task_ephemeral_storage" {
 variable "ecs_task_memory" {
   type        = number
   description = "The amount of memory (in MiB) to allocate to the ECS task."
-  default     = 512
+  default     = 1024
 }
 
 variable "ecs_task_role_policy_arns" {
@@ -141,7 +141,7 @@ variable "ecs_task_role_policy_arns" {
   default     = []
 }
 
-variable "enable_container_logs" {
+variable "enable_cloudwatch_logs" {
   type        = bool
   description = "Enable container logging to CloudWatch Logs."
   default     = true
