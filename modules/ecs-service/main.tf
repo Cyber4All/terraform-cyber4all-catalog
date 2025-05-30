@@ -241,7 +241,7 @@ resource "aws_ecs_task_definition" "task" {
   network_mode = "awsvpc"
 
   execution_role_arn = aws_iam_role.task_execution.arn
-  task_role_arn      = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task[0].arn : null
+  task_role_arn      = aws_iam_role.task[0].arn
 
   container_definitions = jsonencode([
     {
@@ -352,8 +352,6 @@ resource "aws_cloudwatch_log_group" "task" {
 # -------------------------------------------
 
 data "aws_iam_policy_document" "task_assume_role" {
-  count = length(var.ecs_task_role_policy_arns) > 0 ? 1 : 0
-
   statement {
     actions = ["sts:AssumeRole"]
     effect  = "Allow"
@@ -382,8 +380,6 @@ data "aws_iam_policy_document" "task_assume_role" {
 }
 
 resource "aws_iam_role" "task" {
-  count = length(var.ecs_task_role_policy_arns) > 0 ? 1 : 0
-
   name_prefix = "${var.ecs_service_name}-task"
 
   assume_role_policy = data.aws_iam_policy_document.task_assume_role[count.index].json
