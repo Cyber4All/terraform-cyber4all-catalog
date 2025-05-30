@@ -653,6 +653,9 @@ resource "aws_lb_target_group" "alb" {
   port     = var.ecs_container_port
   protocol = "HTTP"
 
+  target_type     = "ip"
+  ip_address_type = "ipv4"
+
   vpc_id = var.lb_target_group_vpc_id
 
   # Our applications are designed to have quick response times
@@ -673,10 +676,6 @@ resource "aws_lb_target_group" "alb" {
     interval            = 10
     path                = "/"
     matcher             = "200"
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
