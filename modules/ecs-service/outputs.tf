@@ -63,11 +63,6 @@ output "service_arn" {
   value       = !var.create_scheduled_task ? aws_ecs_service.service[0].id : null
 }
 
-output "service_elb_iam_role_arn" {
-  description = "The ARN of the IAM role that is used for the ECS service's ELB."
-  value       = !var.create_scheduled_task ? aws_ecs_service.service[0].iam_role : null
-}
-
 output "service_name" {
   description = "The name of the ECS service."
   value       = !var.create_scheduled_task ? aws_ecs_service.service[0].name : null

@@ -652,10 +652,6 @@ Description: The ARN of the ECS service.
 
 Description: The ARNs of the CloudWatch alarms that are used for the ECS service's Auto Scaling.
 
-### <a name="output_service_elb_iam_role_arn"></a> [service\_elb\_iam\_role\_arn](#output\_service\_elb\_iam\_role\_arn)
-
-Description: The ARN of the IAM role that is used for the ECS service's ELB.
-
 ### <a name="output_service_name"></a> [service\_name](#output\_service\_name)
 
 Description: The name of the ECS service.

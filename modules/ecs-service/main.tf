@@ -497,11 +497,6 @@ resource "aws_iam_role_policy_attachment" "task_execution" {
 # CREATE THE ECS SERVICE
 # -------------------------------------------
 
-locals {
-  # The ECS service role is required when using an
-  # Application Load Balancer with the ECS service.
-  aws_ecs_service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
-}
 
 resource "aws_ecs_service" "service" {
   count = !var.create_scheduled_task ? 1 : 0
@@ -510,8 +505,6 @@ resource "aws_ecs_service" "service" {
 
   name            = var.ecs_service_name
   task_definition = local.task_definition
-
-  iam_role = var.enable_load_balancer ? local.aws_ecs_service_role : null
 
   deployment_circuit_breaker {
     enable   = var.enable_deployment_rollback
