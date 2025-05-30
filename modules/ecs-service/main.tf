@@ -241,7 +241,7 @@ resource "aws_ecs_task_definition" "task" {
   network_mode = "awsvpc"
 
   execution_role_arn = aws_iam_role.task_execution.arn
-  task_role_arn      = aws_iam_role.task[0].arn
+  task_role_arn      = aws_iam_role.task.arn
 
   container_definitions = jsonencode([
     {
@@ -388,7 +388,7 @@ resource "aws_iam_role" "task" {
 resource "aws_iam_role_policy_attachment" "task" {
   count = length(var.ecs_task_role_policy_arns) > 0 ? length(var.ecs_task_role_policy_arns) : 0
 
-  role       = aws_iam_role.task[0].name
+  role       = aws_iam_role.task.name
   policy_arn = var.ecs_task_role_policy_arns[count.index]
 }
 

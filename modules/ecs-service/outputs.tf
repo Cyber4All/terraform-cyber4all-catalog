@@ -25,12 +25,12 @@ output "ecs_task_execution_iam_role_name" {
 
 output "ecs_task_iam_role_arn" {
   description = "The ARN of the IAM role that is used for the ECS task."
-  value       = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task[0].arn : null
+  value       = aws_iam_role.task.arn
 }
 
 output "ecs_task_iam_role_name" {
   description = "The name of the IAM role that is used for the ECS task."
-  value       = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task[0].name : null
+  value       = aws_iam_role.task.name
 }
 
 output "ecs_task_log_group_arn" {
