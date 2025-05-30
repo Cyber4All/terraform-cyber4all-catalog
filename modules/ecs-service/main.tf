@@ -208,14 +208,14 @@ locals {
   # Define the environment variables needed for OpenTelemetry
   # to send logs to Coralogix.
   coralogix_environment_variables = {
-    OTEL_RESOURCE_ATTRIBUTES = "cx.application.name=${var.ecs_service_name}, cx.subsystem.name=${var.ecs_cluster_name}"
-    OTEL_SERVICE_NAME = var.ecs_service_name
-    NODE_OPTIONS = "--require @opentelemetry/auto-instrumentations-node/register"
-    OTEL_TRACES_EXPORTER = "otlp"
+    OTEL_RESOURCE_ATTRIBUTES           = "cx.application.name=${var.ecs_service_name}, cx.subsystem.name=${var.ecs_cluster_name}"
+    OTEL_SERVICE_NAME                  = var.ecs_service_name
+    NODE_OPTIONS                       = "--require @opentelemetry/auto-instrumentations-node/register"
+    OTEL_TRACES_EXPORTER               = "otlp"
     OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "ingress.coralogix.us:443/v1/traces"
-    OTEL_EXPORTER_OTLP_COMPRESSION = "gzip"
+    OTEL_EXPORTER_OTLP_COMPRESSION     = "gzip"
     OTEL_EXPORTER_OTLP_TRACES_PROTOCOL = "grpc"
-    OTEL_NODE_RESOURCE_DETECTORS = "all"
+    OTEL_NODE_RESOURCE_DETECTORS       = "all"
   }
 
   # The environment variable OTEL_EXPORTER_OTLP_HEADERS should

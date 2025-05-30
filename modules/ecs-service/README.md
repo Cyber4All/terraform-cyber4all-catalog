@@ -336,7 +336,7 @@ inputs = {
     	 ecs_task_role_policy_arns  = list(string)
     
 
-    	 enable_container_logs  = bool
+    	 enable_cloudwatch_logs  = bool
     
 
     	 enable_deployment_rollback  = bool
@@ -499,7 +499,7 @@ Description: The amount of CPU (in units) to allocate to the ECS task.
 
 Type: `number`
 
-Default: `256`
+Default: `512`
 
 ### <a name="input_ecs_task_ephemeral_storage"></a> [ecs\_task\_ephemeral\_storage](#input\_ecs\_task\_ephemeral\_storage)
 
@@ -515,7 +515,7 @@ Description: The amount of memory (in MiB) to allocate to the ECS task.
 
 Type: `number`
 
-Default: `512`
+Default: `1024`
 
 ### <a name="input_ecs_task_role_policy_arns"></a> [ecs\_task\_role\_policy\_arns](#input\_ecs\_task\_role\_policy\_arns)
 
@@ -525,7 +525,7 @@ Type: `list(string)`
 
 Default: `[]`
 
-### <a name="input_enable_container_logs"></a> [enable\_container\_logs](#input\_enable\_container\_logs)
+### <a name="input_enable_cloudwatch_logs"></a> [enable\_cloudwatch\_logs](#input\_enable\_cloudwatch\_logs)
 
 Description: Enable container logging to CloudWatch Logs.
 
