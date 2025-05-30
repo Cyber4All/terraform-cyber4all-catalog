@@ -382,7 +382,7 @@ data "aws_iam_policy_document" "task_assume_role" {
 resource "aws_iam_role" "task" {
   name_prefix = "${var.ecs_service_name}-task"
 
-  assume_role_policy = data.aws_iam_policy_document.task_assume_role[count.index].json
+  assume_role_policy = data.aws_iam_policy_document.task_assume_role.json
 }
 
 resource "aws_iam_role_policy_attachment" "task" {
