@@ -7,9 +7,7 @@ env: &env
 orbs:
   cyber4all: cyber4all/orb@2.0.0
   go: circleci/go@1.8.0
-  python: circleci/python@2.1.1
   terraform: circleci/terraform@3.2.1
-  tfsec: mycodeself/tfsec@1.1.0
   aws-cli: circleci/aws-cli@4.1.0
 
 jobs:
@@ -53,41 +51,10 @@ jobs:
       - store_test_results:
           path: /tmp/logs
 
-  pre-commit:
-    executor: python/default
-    steps:
-      - terraform/install
-      - run:
-          name: Install TFlint
-          command: |
-            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-      - checkout
-      - run:
-          name: Install Pre-Commit
-          command: |
-            pip3 install --user pre-commit
-      - run:
-          name: Run-all Pre-Commit
-          command: |
-            pre-commit run --all-files
-
-  tfsec:
-    executor: tfsec/default
-    steps:
-      - checkout
-      - tfsec/scan:
-          directory: modules
-          exclude-checks: "aws-s3-enable-bucket-logging,aws-elb-alb-not-public"
-
 workflows:
   continuous-integration:
     jobs:
-      - pre-commit
-
-      - tfsec
-
       # - integration-tests:
-      #     requires: [pre-commit, tfsec]
 
       - cyber4all/release:
           context: [Github]

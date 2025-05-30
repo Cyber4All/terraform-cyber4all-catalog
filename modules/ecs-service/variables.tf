@@ -11,6 +11,11 @@
 # These values are required by the module and have no default values
 # --------------------------------------------------------------------
 
+variable "coralogix_secret_arn" {
+  type        = string
+  description = "The ARN of the AWS Secrets Manager secret containing the PRIVATE_KEY Coralogix credentials."
+}
+
 variable "ecs_cluster_name" {
   type        = string
   description = "The name of the ECS cluster."
@@ -19,6 +24,11 @@ variable "ecs_cluster_name" {
 variable "ecs_service_name" {
   type        = string
   description = "The name of the ECS service."
+}
+
+variable "ecs_subnet_ids" {
+  type        = list(string)
+  description = "A list of subnet IDs to deploy the ECS task to."
 }
 
 # --------------------------------------------------------------------
@@ -36,7 +46,7 @@ variable "auto_scaling_max_number_of_tasks" {
 variable "auto_scaling_memory_util_threshold" {
   type        = number
   description = "The percentage for the ECS service's average Memory utilization threshold. The service uses a target tracking scaling policy."
-  default     = 50
+  default     = 75
 }
 
 variable "auto_scaling_min_number_of_tasks" {
@@ -71,6 +81,12 @@ variable "docker_credential_secretsmanager_arn" {
   }
 }
 
+variable "ecs_assign_public_ip" {
+  type        = bool
+  description = "Assign a public IP address to the ECS task."
+  default     = false
+}
+
 variable "ecs_container_environment_variables" {
   type        = map(string)
   description = "A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive."
@@ -95,10 +111,16 @@ variable "ecs_container_secrets" {
   default     = {}
 }
 
+variable "ecs_security_group_ids" {
+  type        = list(string)
+  description = "A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified."
+  default     = []
+}
+
 variable "ecs_task_cpu" {
   type        = number
   description = "The amount of CPU (in units) to allocate to the ECS task."
-  default     = 256
+  default     = 512
 }
 
 variable "ecs_task_ephemeral_storage" {
@@ -110,7 +132,7 @@ variable "ecs_task_ephemeral_storage" {
 variable "ecs_task_memory" {
   type        = number
   description = "The amount of memory (in MiB) to allocate to the ECS task."
-  default     = 256
+  default     = 1024
 }
 
 variable "ecs_task_role_policy_arns" {
@@ -119,7 +141,7 @@ variable "ecs_task_role_policy_arns" {
   default     = []
 }
 
-variable "enable_container_logs" {
+variable "enable_cloudwatch_logs" {
   type        = bool
   description = "Enable container logging to CloudWatch Logs."
   default     = true
@@ -161,12 +183,6 @@ variable "lb_target_group_vpc_id" {
   default     = ""
 }
 
-variable "scheduled_task_assign_public_ip" {
-  type        = bool
-  description = "Assign a public IP address to the ECS task."
-  default     = true
-}
-
 variable "scheduled_task_cron_expression" {
   type        = string
   description = "The cron expression to use for the scheduled task. If create scheduled task is true and no event pattern is provided, then the cron is expected."
@@ -177,16 +193,4 @@ variable "scheduled_task_event_pattern" {
   type        = any
   description = "The event pattern to use for the scheduled task. If create scheduled task is true and no cron expression is provided, then the event pattern is expected."
   default     = null
-}
-
-variable "scheduled_task_security_group_ids" {
-  type        = list(string)
-  description = "A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified."
-  default     = []
-}
-
-variable "scheduled_task_subnet_ids" {
-  type        = list(string)
-  description = "A list of subnet IDs to associate with the ECS task. This value is required when create_scheduled_task is true."
-  default     = []
 }

@@ -4,28 +4,79 @@
 <summary><strong>Table of Contents</strong></summary>
 
 - [Elastic Container Service (ECS) Module](#elastic-container-service-ecs-module)
-	- [Overview](#overview)
-	- [Learn](#learn)
-		- [ECS Task Definition](#ecs-task-definition)
-			- [Container Definitions](#container-definitions)
-				- [Essential Container Definition](#essential-container-definition)
-			- [Task Execution Role](#task-execution-role)
-			- [Task Role](#task-role)
-			- [Container Logging](#container-logging)
-			- [Container Environment Variables](#container-environment-variables)
-				- [Secrets Manager](#secrets-manager)
-		- [ECS Service](#ecs-service)
-			- [Bootstrapping Images in Deployments](#bootstrapping-images-in-deployments)
-			- [Service Autoscaling](#service-autoscaling)
-				- [Target Tracking Policy](#target-tracking-policy)
-				- [Cluster Scaling](#cluster-scaling)
-				- [Minimum and Maximum Task Limits](#minimum-and-maximum-task-limits)
-				- [`desired_number_of_tasks` Variable](#desired_number_of_tasks-variable)
-			- [ECS Service Connect](#ecs-service-connect)
-			- [ECS Service Rolling Deployment](#ecs-service-rolling-deployment)
-		- [ECS Scheduled Task](#ecs-scheduled-task)
-			- [Cron Expressions](#cron-expressions)
-			- [Event Patterns](#event-patterns)
+  - [Overview](#overview)
+  - [Learn](#learn)
+    - [ECS Task Definition](#ecs-task-definition)
+      - [Container Definitions](#container-definitions)
+        - [Essential Container Definition](#essential-container-definition)
+      - [Task Execution Role](#task-execution-role)
+      - [Task Role](#task-role)
+      - [Container Logging](#container-logging)
+      - [Container Environment Variables](#container-environment-variables)
+        - [Secrets Manager](#secrets-manager)
+    - [ECS Service](#ecs-service)
+      - [Bootstrapping Images in Deployments](#bootstrapping-images-in-deployments)
+      - [Service Autoscaling](#service-autoscaling)
+        - [Target Tracking Policy](#target-tracking-policy)
+        - [Cluster Scaling](#cluster-scaling)
+        - [Minimum and Maximum Task Limits](#minimum-and-maximum-task-limits)
+        - [`desired_number_of_tasks` Variable](#desired_number_of_tasks-variable)
+      - [ECS Service Connect](#ecs-service-connect)
+      - [ECS Service Rolling Deployment](#ecs-service-rolling-deployment)
+    - [ECS Scheduled Task](#ecs-scheduled-task)
+      - [Cron Expressions](#cron-expressions)
+      - [Event Patterns](#event-patterns)
+  - [Requirements](#requirements)
+  - [Sample Usage](#sample-usage)
+  - [Required Inputs](#required-inputs)
+    - [ ecs_cluster_name](#-ecs_cluster_name)
+    - [ ecs_service_name](#-ecs_service_name)
+    - [ ecs_subnet_ids](#-ecs_subnet_ids)
+  - [Optional Inputs](#optional-inputs)
+    - [ auto_scaling_max_number_of_tasks](#-auto_scaling_max_number_of_tasks)
+    - [ auto_scaling_memory_util_threshold](#-auto_scaling_memory_util_threshold)
+    - [ auto_scaling_min_number_of_tasks](#-auto_scaling_min_number_of_tasks)
+    - [ create_scheduled_task](#-create_scheduled_task)
+    - [ desired_number_of_tasks](#-desired_number_of_tasks)
+    - [ docker_credential_secretsmanager_arn](#-docker_credential_secretsmanager_arn)
+    - [ ecs_assign_public_ip](#-ecs_assign_public_ip)
+    - [ ecs_container_environment_variables](#-ecs_container_environment_variables)
+    - [ ecs_container_image](#-ecs_container_image)
+    - [ ecs_container_port](#-ecs_container_port)
+    - [ ecs_container_secrets](#-ecs_container_secrets)
+    - [ ecs_security_group_ids](#-ecs_security_group_ids)
+    - [ ecs_task_cpu](#-ecs_task_cpu)
+    - [ ecs_task_ephemeral_storage](#-ecs_task_ephemeral_storage)
+    - [ ecs_task_memory](#-ecs_task_memory)
+    - [ ecs_task_role_policy_arns](#-ecs_task_role_policy_arns)
+    - [ enable_container_logs](#-enable_container_logs)
+    - [ enable_deployment_rollback](#-enable_deployment_rollback)
+    - [ enable_load_balancer](#-enable_load_balancer)
+    - [ enable_service_auto_scaling](#-enable_service_auto_scaling)
+    - [ enable_service_connect](#-enable_service_connect)
+    - [ lb_listener_arn](#-lb_listener_arn)
+    - [ lb_target_group_vpc_id](#-lb_target_group_vpc_id)
+    - [ scheduled_task_cron_expression](#-scheduled_task_cron_expression)
+    - [ scheduled_task_event_pattern](#-scheduled_task_event_pattern)
+  - [Outputs](#outputs)
+    - [ ecs_task_container_port](#-ecs_task_container_port)
+    - [ ecs_task_definition_arn](#-ecs_task_definition_arn)
+    - [ ecs_task_essential_image](#-ecs_task_essential_image)
+    - [ ecs_task_event_rule_arn](#-ecs_task_event_rule_arn)
+    - [ ecs_task_event_rule_name](#-ecs_task_event_rule_name)
+    - [ ecs_task_execution_iam_role_arn](#-ecs_task_execution_iam_role_arn)
+    - [ ecs_task_execution_iam_role_name](#-ecs_task_execution_iam_role_name)
+    - [ ecs_task_iam_role_arn](#-ecs_task_iam_role_arn)
+    - [ ecs_task_iam_role_name](#-ecs_task_iam_role_name)
+    - [ ecs_task_log_group_arn](#-ecs_task_log_group_arn)
+    - [ ecs_task_log_group_name](#-ecs_task_log_group_name)
+    - [ service_arn](#-service_arn)
+    - [ service_auto_scaling_alarm_arns](#-service_auto_scaling_alarm_arns)
+    - [ service_elb_iam_role_arn](#-service_elb_iam_role_arn)
+    - [ service_name](#-service_name)
+    - [ service_target_group_arn](#-service_target_group_arn)
+    - [ service_target_group_arn_suffix](#-service_target_group_arn_suffix)
+    - [ service_target_group_name](#-service_target_group_name)
 
 </details>
 
@@ -33,11 +84,11 @@
 
 This module contains Terraform code to deploy an ECS service on [AWS](https://aws.amazon.com/) using [Elastic Container Service (ECS)](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html).
 
-This service deploys an [ECS service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) or [scheduled task](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduled_tasks.html) on an existing [ECS cluster]([../ecs-cluster/README.md](https://github.com/Cyber4All/terraform-cyber4all-catalog/blob/main/modules/ecs-cluster/README.md)). An ECS service is a long-running task typically deployed with [auto-scaling](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html) enabled, often used for applications like REST APIs. A scheduled task is a batch task expected to exit gracefully after execution, ideal for tasks such as daily reporting scripts. This module can deploy either task type.
+This service deploys an [ECS service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) or [scheduled task](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduled_tasks.html) on an existing [ECS cluster](<[../ecs-cluster/README.md](https://github.com/Cyber4All/terraform-cyber4all-catalog/blob/main/modules/ecs-cluster/README.md)>). An ECS service is a long-running task typically deployed with [auto-scaling](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html) enabled, often used for applications like REST APIs. A scheduled task is a batch task expected to exit gracefully after execution, ideal for tasks such as daily reporting scripts. This module can deploy either task type.
 
 <!-- Image or Arch diagram -->
 
-![Cloud Craft ECS Service Module Diagram](../../_docs/tf-ecs-service-module-diagram.png)
+![ECS Service Module Diagram](ecs-service.drawio.png)
 
 ## Learn
 
@@ -75,7 +126,7 @@ You can configure non-sensitive environment variables defined in the container d
 module "example" {
   # ...
 
-  ecs_container_environment_variables = { 
+  ecs_container_environment_variables = {
     ENV_VAR_1 = "value1"
     ENV_VAR_2 = "value2"
   }
@@ -92,7 +143,7 @@ Sensitive environment variables can be injected using the `ecs_container_secrets
 module "example" {
   # ...
 
-  ecs_container_secrets = { 
+  ecs_container_secrets = {
     SECRET_VAR_1 = "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-1"
     SECRET_VAR_2 = "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-2"
   }
@@ -220,10 +271,16 @@ inputs = {
   	 # --------------------------------------------
   
 
+    	 coralogix_secret_arn  = string
+    
+
     	 ecs_cluster_name  = string
     
 
     	 ecs_service_name  = string
+    
+
+    	 ecs_subnet_ids  = list(string)
     
 
   	 # --------------------------------------------
@@ -249,6 +306,9 @@ inputs = {
     	 docker_credential_secretsmanager_arn  = string
     
 
+    	 ecs_assign_public_ip  = bool
+    
+
     	 ecs_container_environment_variables  = map(string)
     
 
@@ -259,6 +319,9 @@ inputs = {
     
 
     	 ecs_container_secrets  = map(string)
+    
+
+    	 ecs_security_group_ids  = list(string)
     
 
     	 ecs_task_cpu  = number
@@ -273,7 +336,7 @@ inputs = {
     	 ecs_task_role_policy_arns  = list(string)
     
 
-    	 enable_container_logs  = bool
+    	 enable_cloudwatch_logs  = bool
     
 
     	 enable_deployment_rollback  = bool
@@ -294,19 +357,10 @@ inputs = {
     	 lb_target_group_vpc_id  = string
     
 
-    	 scheduled_task_assign_public_ip  = bool
-    
-
     	 scheduled_task_cron_expression  = string
     
 
     	 scheduled_task_event_pattern  = any
-    
-
-    	 scheduled_task_security_group_ids  = list(string)
-    
-
-    	 scheduled_task_subnet_ids  = list(string)
     
 
 }
@@ -314,6 +368,12 @@ inputs = {
 ## Required Inputs
 
 The following input variables are required:
+
+### <a name="input_coralogix_secret_arn"></a> [coralogix\_secret\_arn](#input\_coralogix\_secret\_arn)
+
+Description: The ARN of the AWS Secrets Manager secret containing the PRIVATE\_KEY Coralogix credentials.
+
+Type: `string`
 
 ### <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name)
 
@@ -326,6 +386,12 @@ Type: `string`
 Description: The name of the ECS service.
 
 Type: `string`
+
+### <a name="input_ecs_subnet_ids"></a> [ecs\_subnet\_ids](#input\_ecs\_subnet\_ids)
+
+Description: A list of subnet IDs to deploy the ECS task to.
+
+Type: `list(string)`
 
 ## Optional Inputs
 
@@ -345,7 +411,7 @@ Description: The percentage for the ECS service's average Memory utilization thr
 
 Type: `number`
 
-Default: `50`
+Default: `75`
 
 ### <a name="input_auto_scaling_min_number_of_tasks"></a> [auto\_scaling\_min\_number\_of\_tasks](#input\_auto\_scaling\_min\_number\_of\_tasks)
 
@@ -379,6 +445,14 @@ Type: `string`
 
 Default: `""`
 
+### <a name="input_ecs_assign_public_ip"></a> [ecs\_assign\_public\_ip](#input\_ecs\_assign\_public\_ip)
+
+Description: Assign a public IP address to the ECS task.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_ecs_container_environment_variables"></a> [ecs\_container\_environment\_variables](#input\_ecs\_container\_environment\_variables)
 
 Description: A map of environment variables to set in the ECS container definition. The key is the name of the environment variable and the value is the value of the environment variable. These values should NOT be sensitive.
@@ -411,13 +485,21 @@ Type: `map(string)`
 
 Default: `{}`
 
+### <a name="input_ecs_security_group_ids"></a> [ecs\_security\_group\_ids](#input\_ecs\_security\_group\_ids)
+
+Description: A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified.
+
+Type: `list(string)`
+
+Default: `[]`
+
 ### <a name="input_ecs_task_cpu"></a> [ecs\_task\_cpu](#input\_ecs\_task\_cpu)
 
 Description: The amount of CPU (in units) to allocate to the ECS task.
 
 Type: `number`
 
-Default: `256`
+Default: `512`
 
 ### <a name="input_ecs_task_ephemeral_storage"></a> [ecs\_task\_ephemeral\_storage](#input\_ecs\_task\_ephemeral\_storage)
 
@@ -433,7 +515,7 @@ Description: The amount of memory (in MiB) to allocate to the ECS task.
 
 Type: `number`
 
-Default: `256`
+Default: `1024`
 
 ### <a name="input_ecs_task_role_policy_arns"></a> [ecs\_task\_role\_policy\_arns](#input\_ecs\_task\_role\_policy\_arns)
 
@@ -443,7 +525,7 @@ Type: `list(string)`
 
 Default: `[]`
 
-### <a name="input_enable_container_logs"></a> [enable\_container\_logs](#input\_enable\_container\_logs)
+### <a name="input_enable_cloudwatch_logs"></a> [enable\_cloudwatch\_logs](#input\_enable\_cloudwatch\_logs)
 
 Description: Enable container logging to CloudWatch Logs.
 
@@ -499,14 +581,6 @@ Type: `string`
 
 Default: `""`
 
-### <a name="input_scheduled_task_assign_public_ip"></a> [scheduled\_task\_assign\_public\_ip](#input\_scheduled\_task\_assign\_public\_ip)
-
-Description: Assign a public IP address to the ECS task.
-
-Type: `bool`
-
-Default: `true`
-
 ### <a name="input_scheduled_task_cron_expression"></a> [scheduled\_task\_cron\_expression](#input\_scheduled\_task\_cron\_expression)
 
 Description: The cron expression to use for the scheduled task. If create scheduled task is true and no event pattern is provided, then the cron is expected.
@@ -522,22 +596,6 @@ Description: The event pattern to use for the scheduled task. If create schedule
 Type: `any`
 
 Default: `null`
-
-### <a name="input_scheduled_task_security_group_ids"></a> [scheduled\_task\_security\_group\_ids](#input\_scheduled\_task\_security\_group\_ids)
-
-Description: A list of security group IDs to associate with the ECS task. A permissive default security will be used if not specified.
-
-Type: `list(string)`
-
-Default: `[]`
-
-### <a name="input_scheduled_task_subnet_ids"></a> [scheduled\_task\_subnet\_ids](#input\_scheduled\_task\_subnet\_ids)
-
-Description: A list of subnet IDs to associate with the ECS task. This value is required when create\_scheduled\_task is true.
-
-Type: `list(string)`
-
-Default: `[]`
 ## Outputs
 
 The following outputs are exported:
@@ -593,10 +651,6 @@ Description: The ARN of the ECS service.
 ### <a name="output_service_auto_scaling_alarm_arns"></a> [service\_auto\_scaling\_alarm\_arns](#output\_service\_auto\_scaling\_alarm\_arns)
 
 Description: The ARNs of the CloudWatch alarms that are used for the ECS service's Auto Scaling.
-
-### <a name="output_service_elb_iam_role_arn"></a> [service\_elb\_iam\_role\_arn](#output\_service\_elb\_iam\_role\_arn)
-
-Description: The ARN of the IAM role that is used for the ECS service's ELB.
 
 ### <a name="output_service_name"></a> [service\_name](#output\_service\_name)
 

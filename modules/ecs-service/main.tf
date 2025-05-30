@@ -4,7 +4,7 @@
 # This module will creates an ECS service that can be used for application deployments
 # in an existing ECS cluster.
 #
-# The ECS service can support both FARGATE and EC2 compute. In addition to compute,
+# The ECS service supports Fargate runtime. In addition to compute,
 # the module supports running the task-definition as both a service or as a scheduled 
 # task that can be triggered by an Event or rule.
 #
@@ -204,6 +204,33 @@ locals {
     name          = sha1(var.ecs_service_name)
     containerPort = var.ecs_container_port
   }] : []
+
+  # Define the environment variables needed for OpenTelemetry
+  # to send logs to Coralogix.
+  coralogix_environment_variables = {
+    OTEL_RESOURCE_ATTRIBUTES           = "cx.application.name=${var.ecs_service_name}, cx.subsystem.name=${var.ecs_cluster_name}"
+    OTEL_SERVICE_NAME                  = var.ecs_service_name
+    NODE_OPTIONS                       = "--require @opentelemetry/auto-instrumentations-node/register"
+    OTEL_TRACES_EXPORTER               = "otlp"
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "ingress.coralogix.us:443/v1/traces"
+    OTEL_EXPORTER_OTLP_COMPRESSION     = "gzip"
+    OTEL_EXPORTER_OTLP_TRACES_PROTOCOL = "grpc"
+    OTEL_NODE_RESOURCE_DETECTORS       = "all"
+  }
+
+  # The environment variable OTEL_EXPORTER_OTLP_HEADERS should
+  # be set in SecretsManager as a secret. The value of the secret
+  # should be the Authorization=Bearer <private_key> string.
+  coralogix_secrets = {
+    OTEL_EXPORTER_OTLP_HEADERS = var.coralogix_secret_arn
+  }
+
+  otel_log_configuration = {
+    logDriver = "awsfirelens"
+    options = {
+      Name = "OpenTelemetry"
+    }
+  }
 }
 
 resource "aws_ecs_task_definition" "task" {
@@ -211,10 +238,10 @@ resource "aws_ecs_task_definition" "task" {
 
   cpu          = var.ecs_task_cpu
   memory       = var.ecs_task_memory
-  network_mode = var.create_scheduled_task ? "awsvpc" : "bridge"
+  network_mode = "awsvpc"
 
   execution_role_arn = aws_iam_role.task_execution.arn
-  task_role_arn      = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task[0].arn : null
+  task_role_arn      = aws_iam_role.task.arn
 
   container_definitions = jsonencode([
     {
@@ -229,22 +256,62 @@ resource "aws_ecs_task_definition" "task" {
       # Environment Variables and Secrets are both string maps with
       # the same key/value structure. They are mapped to the appropriate
       # structure for the container definition
-      environment = [for k, v in var.ecs_container_environment_variables : { name = k, value = v }]
-      secrets     = [for k, v in var.ecs_container_secrets : { name = k, valueFrom = "${v}:${k}::" }]
+      environment = [for k, v in merge(var.ecs_container_environment_variables, local.coralogix_environment_variables) : { name = k, value = v }]
+      secrets     = [for k, v in merge(var.ecs_container_secrets, local.coralogix_secrets) : { name = k, valueFrom = "${v}:${k}::" }]
 
-      logConfiguration = var.enable_container_logs ? local.log_configuration : null
+      logConfiguration = var.enable_cloudwatch_logs ? local.log_configuration : local.otel_log_configuration
 
+    },
+    {
+      name  = "otel-collector",
+      image = "otel/opentelemetry-collector-contrib",
+      portMappings = [
+        {
+          name          = "otel-collector-4317-grpc",
+          containerPort = 4317,
+          hostPort      = 4317,
+          protocol      = "tcp",
+          appProtocol   = "grpc"
+        },
+        {
+          name          = "otel-collector-4318-http",
+          containerPort = 4318,
+          hostPort      = 4318,
+          protocol      = "tcp"
+        }
+      ]
+      essential = false
+      command = [
+        "--config",
+        "env:SSM_CONFIG"
+      ]
+      environment = [
+        {
+          name  = "CORALOGIX_DOMAIN"
+          value = "coralogix.us"
+        }
+      ]
+      secrets = [
+        {
+          name      = "SSM_CONFIG",
+          valueFrom = "CX_OTEL_ECS_Fargate_config.yaml"
+        },
+        {
+          name      = "PRIVATE_KEY"
+          valueFrom = var.coralogix_secret_arn
+        }
+      ]
+      logConfiguration = local.otel_log_configuration
+      firelensConfiguration = {
+        type = "fluentbit"
+      }
     }
   ])
 
-  requires_compatibilities = var.create_scheduled_task ? ["FARGATE"] : ["EC2"]
+  requires_compatibilities = ["FARGATE"]
 
-  dynamic "ephemeral_storage" {
-    for_each = var.create_scheduled_task ? [1] : []
-
-    content {
-      size_in_gib = var.ecs_task_ephemeral_storage
-    }
+  ephemeral_storage {
+    size_in_gib = var.ecs_task_ephemeral_storage
   }
 
   runtime_platform {
@@ -269,7 +336,7 @@ resource "aws_ecs_task_definition" "task" {
 
 # tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "task" {
-  count = var.enable_container_logs ? 1 : 0
+  count = var.enable_cloudwatch_logs ? 1 : 0
 
   name              = local.log_group_name
   retention_in_days = 30
@@ -285,8 +352,6 @@ resource "aws_cloudwatch_log_group" "task" {
 # -------------------------------------------
 
 data "aws_iam_policy_document" "task_assume_role" {
-  count = length(var.ecs_task_role_policy_arns) > 0 ? 1 : 0
-
   statement {
     actions = ["sts:AssumeRole"]
     effect  = "Allow"
@@ -315,17 +380,15 @@ data "aws_iam_policy_document" "task_assume_role" {
 }
 
 resource "aws_iam_role" "task" {
-  count = length(var.ecs_task_role_policy_arns) > 0 ? 1 : 0
-
   name_prefix = "${var.ecs_service_name}-task"
 
-  assume_role_policy = data.aws_iam_policy_document.task_assume_role[count.index].json
+  assume_role_policy = data.aws_iam_policy_document.task_assume_role.json
 }
 
 resource "aws_iam_role_policy_attachment" "task" {
   count = length(var.ecs_task_role_policy_arns) > 0 ? length(var.ecs_task_role_policy_arns) : 0
 
-  role       = aws_iam_role.task[0].name
+  role       = aws_iam_role.task.name
   policy_arn = var.ecs_task_role_policy_arns[count.index]
 }
 
@@ -361,10 +424,12 @@ resource "aws_iam_role" "task_execution" {
 locals {
   # A list of resource ARNs that will be authorized in the
   # iam policy for the task execution role.
-  secrets_manager_arns = compact(
-    concat(
-      [for k, v in var.ecs_container_secrets : v],
-      [var.docker_credential_secretsmanager_arn]
+  secrets_manager_arns = toset(
+    compact(
+      concat(
+        [for k, v in var.ecs_container_secrets : v],
+        [var.docker_credential_secretsmanager_arn, var.coralogix_secret_arn]
+      )
     )
   )
 
@@ -380,6 +445,15 @@ data "aws_iam_policy_document" "secrets_manager" {
     effect  = "Allow"
 
     resources = local.secrets_manager_arns
+  }
+
+  statement {
+    actions = ["ssm:GetParameters"]
+    effect  = "Allow"
+
+    resources = [
+      "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/CX_OTEL_ECS_Fargate_config.yaml"
+    ]
   }
 }
 
@@ -423,11 +497,6 @@ resource "aws_iam_role_policy_attachment" "task_execution" {
 # CREATE THE ECS SERVICE
 # -------------------------------------------
 
-locals {
-  # The ECS service role is required when using an
-  # Application Load Balancer with the ECS service.
-  aws_ecs_service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
-}
 
 resource "aws_ecs_service" "service" {
   count = !var.create_scheduled_task ? 1 : 0
@@ -436,8 +505,6 @@ resource "aws_ecs_service" "service" {
 
   name            = var.ecs_service_name
   task_definition = local.task_definition
-
-  iam_role = var.enable_load_balancer ? local.aws_ecs_service_role : null
 
   deployment_circuit_breaker {
     enable   = var.enable_deployment_rollback
@@ -457,6 +524,9 @@ resource "aws_ecs_service" "service" {
 
   health_check_grace_period_seconds = var.enable_load_balancer ? 0 : null
 
+  launch_type      = "FARGATE"
+  platform_version = "LATEST"
+
   dynamic "load_balancer" {
     for_each = var.enable_load_balancer ? [1] : []
 
@@ -467,12 +537,10 @@ resource "aws_ecs_service" "service" {
     }
   }
 
-  # Tasks are placed on container instances so as to leave the
-  # least amount of unused CPU or memory. This strategy minimizes
-  # the number of container instances in use.
-  ordered_placement_strategy {
-    type  = "binpack"
-    field = "memory"
+  network_configuration {
+    subnets          = var.ecs_subnet_ids
+    security_groups  = var.ecs_security_group_ids
+    assign_public_ip = var.ecs_assign_public_ip
   }
 
   service_connect_configuration {
@@ -492,7 +560,6 @@ resource "aws_ecs_service" "service" {
 
   lifecycle {
     ignore_changes = [
-      capacity_provider_strategy,
       desired_count
     ]
   }
@@ -586,6 +653,9 @@ resource "aws_lb_target_group" "alb" {
   port     = var.ecs_container_port
   protocol = "HTTP"
 
+  target_type     = "ip"
+  ip_address_type = "ipv4"
+
   vpc_id = var.lb_target_group_vpc_id
 
   # Our applications are designed to have quick response times
@@ -606,10 +676,6 @@ resource "aws_lb_target_group" "alb" {
     interval            = 10
     path                = "/"
     matcher             = "200"
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
@@ -644,9 +710,9 @@ resource "aws_cloudwatch_event_target" "scheduled" {
     task_definition_arn = local.task_definition
     launch_type         = "FARGATE"
     network_configuration {
-      subnets          = var.scheduled_task_subnet_ids
-      security_groups  = var.scheduled_task_security_group_ids
-      assign_public_ip = var.scheduled_task_assign_public_ip
+      subnets          = var.ecs_subnet_ids
+      security_groups  = var.ecs_security_group_ids
+      assign_public_ip = var.ecs_assign_public_ip
     }
   }
 }

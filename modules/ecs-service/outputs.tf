@@ -25,22 +25,22 @@ output "ecs_task_execution_iam_role_name" {
 
 output "ecs_task_iam_role_arn" {
   description = "The ARN of the IAM role that is used for the ECS task."
-  value       = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task[0].arn : null
+  value       = aws_iam_role.task.arn
 }
 
 output "ecs_task_iam_role_name" {
   description = "The name of the IAM role that is used for the ECS task."
-  value       = length(var.ecs_task_role_policy_arns) > 0 ? aws_iam_role.task[0].name : null
+  value       = aws_iam_role.task.name
 }
 
 output "ecs_task_log_group_arn" {
   description = "The ARN of the CloudWatch log group that is used for the ECS task."
-  value       = var.enable_container_logs ? aws_cloudwatch_log_group.task[0].arn : null
+  value       = var.enable_cloudwatch_logs ? aws_cloudwatch_log_group.task[0].arn : null
 }
 
 output "ecs_task_log_group_name" {
   description = "The name of the CloudWatch log group that is used for the ECS task."
-  value       = var.enable_container_logs ? aws_cloudwatch_log_group.task[0].name : null
+  value       = var.enable_cloudwatch_logs ? aws_cloudwatch_log_group.task[0].name : null
 }
 
 output "ecs_task_event_rule_arn" {
@@ -61,11 +61,6 @@ output "service_auto_scaling_alarm_arns" {
 output "service_arn" {
   description = "The ARN of the ECS service."
   value       = !var.create_scheduled_task ? aws_ecs_service.service[0].id : null
-}
-
-output "service_elb_iam_role_arn" {
-  description = "The ARN of the IAM role that is used for the ECS service's ELB."
-  value       = !var.create_scheduled_task ? aws_ecs_service.service[0].iam_role : null
 }
 
 output "service_name" {
