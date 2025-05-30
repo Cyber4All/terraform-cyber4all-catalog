@@ -256,8 +256,8 @@ resource "aws_ecs_task_definition" "task" {
       # Environment Variables and Secrets are both string maps with
       # the same key/value structure. They are mapped to the appropriate
       # structure for the container definition
-      environment = [for k, v in concat(var.ecs_container_environment_variables, local.coralogix_environment_variables) : { name = k, value = v }]
-      secrets     = [for k, v in concat(var.ecs_container_secrets, local.coralogix_secrets) : { name = k, valueFrom = "${v}:${k}::" }]
+      environment = [for k, v in merge(var.ecs_container_environment_variables, local.coralogix_environment_variables) : { name = k, value = v }]
+      secrets     = [for k, v in merge(var.ecs_container_secrets, local.coralogix_secrets) : { name = k, valueFrom = "${v}:${k}::" }]
 
       logConfiguration = var.enable_cloudwatch_logs ? local.log_configuration : local.otel_log_configuration
 
