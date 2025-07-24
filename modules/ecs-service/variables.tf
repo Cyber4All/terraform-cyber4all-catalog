@@ -194,3 +194,9 @@ variable "scheduled_task_event_pattern" {
   description = "The event pattern to use for the scheduled task. If create scheduled task is true and no cron expression is provided, then the event pattern is expected."
   default     = null
 }
+
+variable "alb_security_group_id" {
+  type        = string
+  description = "The security group id being used by the clard alb"
+  default     = ""
+}
