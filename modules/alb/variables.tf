@@ -50,3 +50,9 @@ variable "hosted_zone_name" {
   description = "The name of the hosted zone where the ALB DNS record will be created."
   default     = ""
 }
+
+variable "alb_security_group_id" {
+  type        = string
+  description = "The security group id being used by the clard alb"
+  default     = ""
+}

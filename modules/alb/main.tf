@@ -58,7 +58,7 @@ resource "aws_lb" "alb" {
   name               = var.alb_name
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
+  security_groups    = var.alb_security_group_id != null ? [var.alb_security_group_id] : [aws_security_group.alb.id]
   subnets            = var.vpc_subnet_ids
 
   drop_invalid_header_fields = true
