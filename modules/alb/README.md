@@ -100,7 +100,7 @@ The following input variables are optional (have default values):
 
 ### <a name="input_alb_security_group_id"></a> [alb\_security\_group\_id](#input\_alb\_security\_group\_id)
 
-Description: The security group id being used by the clard alb
+Description: The security group id being used by the alb
 
 Type: `string`
 
