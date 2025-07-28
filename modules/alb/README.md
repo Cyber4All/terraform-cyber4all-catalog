@@ -58,6 +58,9 @@ inputs = {
   	 # --------------------------------------------
   
 
+    	 alb_security_group_id  = string
+    
+
     	 dns_record_prefix  = string
     
 
@@ -94,6 +97,14 @@ Type: `list(string)`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_alb_security_group_id"></a> [alb\_security\_group\_id](#input\_alb\_security\_group\_id)
+
+Description: The security group id being used by the clard alb
+
+Type: `string`
+
+Default: `""`
 
 ### <a name="input_dns_record_prefix"></a> [dns\_record\_prefix](#input\_dns\_record\_prefix)
 
