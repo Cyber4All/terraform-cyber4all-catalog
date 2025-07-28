@@ -53,6 +53,6 @@ variable "hosted_zone_name" {
 
 variable "alb_security_group_id" {
   type        = string
-  description = "The security group id being used by the clard alb"
+  description = "The security group id being used by the alb"
   default     = ""
 }
