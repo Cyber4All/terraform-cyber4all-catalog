@@ -58,7 +58,7 @@ resource "aws_lb" "alb" {
   name               = var.alb_name
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
+  security_groups    = var.alb_security_group_id != null ? [var.alb_security_group_id] : [aws_security_group.alb.id]
   subnets            = var.vpc_subnet_ids
 
   drop_invalid_header_fields = true
@@ -153,55 +153,6 @@ resource "aws_lb_listener" "https" {
     data.aws_acm_certificate.cert
   ]
 }
-
-
-# -------------------------------------------
-# CREATE ALB SECURITY GROUP
-# -------------------------------------------
-
-resource "aws_security_group" "alb" {
-  name        = "${var.alb_name}-alb"
-  description = "Terraform managed security group for ${var.alb_name} ALB."
-
-  vpc_id = var.vpc_id
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_vpc_security_group_egress_rule" "alb" {
-  security_group_id = aws_security_group.alb.id
-  description       = "Allow all outbound traffic."
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "tcp"
-  from_port   = 0
-  to_port     = 65535
-}
-
-resource "aws_vpc_security_group_ingress_rule" "http" {
-  security_group_id = aws_security_group.alb.id
-  description       = "Allow HTTP traffic to the ALB from anywhere."
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "tcp"
-  from_port   = 80
-  to_port     = 80
-}
-
-resource "aws_vpc_security_group_ingress_rule" "https" {
-  count = var.enable_https_listener ? 1 : 0
-
-  security_group_id = aws_security_group.alb.id
-  description       = "Allow HTTPS traffic to the ALB from anywhere."
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "tcp"
-  from_port   = 443
-  to_port     = 443
-}
-
 
 # ------------------------------------------------------------
 
