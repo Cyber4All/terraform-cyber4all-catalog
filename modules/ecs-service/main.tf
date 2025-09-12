@@ -312,7 +312,7 @@ resource "aws_ecs_task_definition" "task" {
       }
       mountPoints    = []
       systemControls = []
-      user           = 10001
+      user           = "10001"
       volumesFrom    = []
     }
   ])
