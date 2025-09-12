@@ -202,7 +202,9 @@ locals {
 
   portMappings = !var.create_scheduled_task && var.enable_service_connect ? [{
     name          = sha1(var.ecs_service_name)
+    hostPort      = var.ecs_container_port
     containerPort = var.ecs_container_port
+    protocol      = "tcp"
   }] : []
 
   # Define the environment variables needed for OpenTelemetry
@@ -260,6 +262,10 @@ resource "aws_ecs_task_definition" "task" {
 
       logConfiguration = var.enable_cloudwatch_logs ? local.log_configuration : local.otel_log_configuration
 
+      essential      = true
+      mountPoints    = []
+      systemControls = []
+      volumesFrom    = []
     },
     {
       name  = "otel-collector",
@@ -304,6 +310,10 @@ resource "aws_ecs_task_definition" "task" {
       firelensConfiguration = {
         type = "fluentbit"
       }
+      mountPoints    = []
+      systemControls = []
+      user           = 0
+      volumesFrom    = []
     }
   ])
 
