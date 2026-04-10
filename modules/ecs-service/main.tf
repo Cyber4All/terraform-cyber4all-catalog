@@ -303,7 +303,7 @@ resource "aws_ecs_task_definition" "task" {
         },
         {
           name      = "PRIVATE_KEY"
-          valueFrom = var.coralogix_secret_arn
+          valueFrom = "${var.coralogix_secret_arn}:PRIVATE_KEY::"
         }
       ]
       logConfiguration = local.otel_log_configuration
